@@ -1,9 +1,23 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Menu, X, Activity, Calendar, Users, BookOpen } from 'lucide-react';
+import { Menu, X, Activity, Calendar, Users, BookOpen, User, LogOut } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { user, profile, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
+
+  const getDashboardLink = () => {
+    if (!profile) return '/';
+    return profile.role === 'patient' ? '/patient-dashboard' : '/physiotherapist-dashboard';
+  };
 
   const navigation = [
     { name: 'Assessment', href: '/assessment', icon: Activity },
@@ -30,22 +44,45 @@ const Navigation = () => {
             {navigation.map((item) => {
               const Icon = item.icon;
               return (
-                <a
+                <Link
                   key={item.name}
-                  href={item.href}
+                  to={item.href}
                   className="text-muted-foreground hover:text-primary transition-colors duration-200 flex items-center space-x-1"
                 >
                   <Icon className="h-4 w-4" />
                   <span>{item.name}</span>
-                </a>
+                </Link>
               );
             })}
-            <Button variant="outline" size="sm">
-              Sign In
-            </Button>
-            <Button size="sm" className="bg-gradient-hero shadow-soft">
-              Get Started
-            </Button>
+            
+            {/* Auth Buttons */}
+            {user ? (
+              <div className="flex items-center space-x-4">
+                <Link to={getDashboardLink()}>
+                  <Button variant="ghost" size="sm" className="flex items-center space-x-2">
+                    <User className="h-4 w-4" />
+                    <span>{profile?.first_name || 'Dashboard'}</span>
+                  </Button>
+                </Link>
+                <Button variant="ghost" size="sm" onClick={handleSignOut} className="flex items-center space-x-2">
+                  <LogOut className="h-4 w-4" />
+                  <span>Sign Out</span>
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Link to="/auth">
+                  <Button variant="outline" size="sm">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link to="/auth">
+                  <Button size="sm" className="bg-gradient-hero shadow-soft">
+                    Get Started
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -66,24 +103,47 @@ const Navigation = () => {
               {navigation.map((item) => {
                 const Icon = item.icon;
                 return (
-                  <a
+                  <Link
                     key={item.name}
-                    href={item.href}
+                    to={item.href}
                     className="text-muted-foreground hover:text-primary block px-3 py-2 text-base transition-colors duration-200 flex items-center space-x-2"
                     onClick={() => setIsOpen(false)}
                   >
                     <Icon className="h-4 w-4" />
                     <span>{item.name}</span>
-                  </a>
+                  </Link>
                 );
               })}
+              
+              {/* Mobile Auth Buttons */}
               <div className="flex flex-col space-y-2 px-3 pt-2">
-                <Button variant="outline" size="sm">
-                  Sign In
-                </Button>
-                <Button size="sm" className="bg-gradient-hero shadow-soft">
-                  Get Started
-                </Button>
+                {user ? (
+                  <>
+                    <Link to={getDashboardLink()}>
+                      <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => setIsOpen(false)}>
+                        <User className="h-4 w-4 mr-2" />
+                        {profile?.first_name || 'Dashboard'}
+                      </Button>
+                    </Link>
+                    <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => { handleSignOut(); setIsOpen(false); }}>
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Sign Out
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/auth">
+                      <Button variant="outline" size="sm" onClick={() => setIsOpen(false)}>
+                        Sign In
+                      </Button>
+                    </Link>
+                    <Link to="/auth">
+                      <Button size="sm" className="bg-gradient-hero shadow-soft" onClick={() => setIsOpen(false)}>
+                        Get Started
+                      </Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>

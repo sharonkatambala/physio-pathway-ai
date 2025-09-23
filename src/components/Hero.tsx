@@ -25,14 +25,14 @@ const Hero = () => {
             
             <div className="space-y-6">
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground leading-tight">
-                Your Personal
+                FIZIO AI
                 <span className="block bg-gradient-hero bg-clip-text text-transparent">
-                  AI Physiotherapist
+                  Your AI Physiotherapy Assistant
                 </span>
               </h1>
               
               <p className="text-xl text-muted-foreground max-w-xl leading-relaxed">
-                Get personalized physiotherapy assessments, exercise programs, and progress tracking from the comfort of your home. Professional care, powered by advanced AI.
+                Advanced AI-powered physiotherapy platform connecting patients and physiotherapists. Get personalized assessments, exercise programs, and professional monitoring all in one place.
               </p>
             </div>
 

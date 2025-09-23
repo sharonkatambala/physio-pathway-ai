@@ -19,12 +19,26 @@ const Navigation = () => {
     return profile.role === 'patient' ? '/patient-dashboard' : '/physiotherapist-dashboard';
   };
 
-  const navigation = [
-    { name: 'Assessment', href: '/assessment', icon: Activity },
-    { name: 'Exercises', href: '/exercises', icon: BookOpen },
-    { name: 'Progress', href: '/dashboard', icon: Users },
-    { name: 'Book Session', href: '/booking', icon: Calendar },
-  ];
+  const getNavigationItems = () => {
+    if (!user || !profile) return [];
+    
+    if (profile.role === 'patient') {
+      return [
+        { name: 'Assessment', href: '/assessment', icon: Activity },
+        { name: 'Exercises', href: '/exercises', icon: BookOpen },
+        { name: 'Progress', href: '/dashboard', icon: Users },
+        { name: 'Book Session', href: '/booking', icon: Calendar },
+      ];
+    } else {
+      return [
+        { name: 'Patients', href: '/physiotherapist-dashboard', icon: Users },
+        { name: 'Exercises', href: '/exercises', icon: BookOpen },
+        { name: 'Sessions', href: '/booking', icon: Calendar },
+      ];
+    }
+  };
+
+  const navigation = getNavigationItems();
 
   return (
     <nav className="bg-card/80 backdrop-blur-md border-b border-border sticky top-0 z-50">
@@ -35,7 +49,7 @@ const Navigation = () => {
               <div className="w-8 h-8 bg-gradient-hero rounded-lg flex items-center justify-center">
                 <Activity className="h-5 w-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-foreground">PhysiotherapyAI</span>
+              <span className="text-xl font-bold text-foreground">FIZIO AI</span>
             </div>
           </div>
 

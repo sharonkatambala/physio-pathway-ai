@@ -25,6 +25,11 @@ import {
   CheckCircle,
   RotateCcw
 } from 'lucide-react';
+import ExerciseProgram from '@/components/ExerciseProgram';
+import ProgressTracker from '@/components/ProgressTracker';
+import MonitoringSystem from '@/components/MonitoringSystem';
+import ChatSystem from '@/components/ChatSystem';
+import BookingSystem from '@/components/BookingSystem';
 
 const PatientDashboard = () => {
   const { user, profile, loading } = useAuth();
@@ -302,67 +307,21 @@ const PatientDashboard = () => {
           </TabsContent>
 
           <TabsContent value="exercises">
-            <Card className="shadow-card">
-              <CardContent className="p-6 text-center">
-                <Activity className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">Exercise Program</h3>
-                <p className="text-muted-foreground mb-4">
-                  Your personalized exercise program will be displayed here
-                </p>
-                <Button>View Exercises</Button>
-              </CardContent>
-            </Card>
+            <ExerciseProgram />
           </TabsContent>
 
           <TabsContent value="progress">
-            <Card className="shadow-card">
-              <CardContent className="p-6 text-center">
-                <TrendingUp className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">Progress Tracking</h3>
-                <p className="text-muted-foreground mb-4">
-                  Track your pain levels, exercise completion, and recovery metrics
-                </p>
-                <Button>View Progress Charts</Button>
-              </CardContent>
-            </Card>
+            <ProgressTracker />
           </TabsContent>
 
           <TabsContent value="monitoring">
-            <Card className="shadow-card">
-              <CardContent className="p-6 text-center">
-                <Activity className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">Monitoring & Feedback</h3>
-                <p className="text-muted-foreground mb-4">
-                  Track fatigue (BPE scale), pain (VAS/NAS scales), and get AI feedback
-                </p>
-                <Button>Update Status</Button>
-              </CardContent>
-            </Card>
+            <MonitoringSystem />
           </TabsContent>
 
           <TabsContent value="chat">
-            <div className="grid md:grid-cols-2 gap-6">
-              <Card className="shadow-card">
-                <CardContent className="p-6 text-center">
-                  <MessageSquare className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold mb-2">Chat with Physiotherapists</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Get instant support and guidance from licensed professionals
-                  </p>
-                  <Button>Start Chat</Button>
-                </CardContent>
-              </Card>
-
-              <Card className="shadow-card">
-                <CardContent className="p-6 text-center">
-                  <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold mb-2">Book Session</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Schedule an appointment with a physiotherapist for personalized care
-                  </p>
-                  <Button>Book Now</Button>
-                </CardContent>
-              </Card>
+            <div className="space-y-6">
+              <ChatSystem />
+              <BookingSystem />
             </div>
           </TabsContent>
         </Tabs>

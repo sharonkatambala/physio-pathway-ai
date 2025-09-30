@@ -1,154 +1,83 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
 import { 
   Search, 
   Filter, 
   User, 
-  Activity, 
-  TrendingUp, 
-  Video,
   MessageSquare,
   Calendar,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
   Edit,
   Eye,
-  MoreVertical
+  MoreVertical,
+  Loader2
 } from 'lucide-react';
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface Patient {
   id: string;
-  name: string;
+  user_id: string;
+  first_name: string;
+  last_name: string;
   age: number;
-  condition: string;
-  startDate: string;
-  progress: number;
-  painLevel: number;
-  lastSession: string;
-  status: 'active' | 'pending' | 'completed';
-  avatar: string;
-  completionRate: number;
-  riskLevel: 'low' | 'medium' | 'high';
+  sex: string;
+  occupation: string;
+  phone: string;
+  created_at: string;
 }
 
 const PatientManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'pending' | 'completed'>('all');
-  const [selectedPatient, setSelectedPatient] = useState<string>('');
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  const patients: Patient[] = [
-    {
-      id: '1',
-      name: 'Sarah Johnson',
-      age: 34,
-      condition: 'Lower Back Pain',
-      startDate: '2024-01-15',
-      progress: 85,
-      painLevel: 3,
-      lastSession: '2 days ago',
-      status: 'active',
-      avatar: '',
-      completionRate: 92,
-      riskLevel: 'low'
-    },
-    {
-      id: '2',
-      name: 'Michael Chen',
-      age: 28,
-      condition: 'ACL Rehabilitation',
-      startDate: '2024-02-01',
-      progress: 65,
-      painLevel: 4,
-      lastSession: '1 day ago',
-      status: 'active',
-      avatar: '',
-      completionRate: 78,
-      riskLevel: 'medium'
-    },
-    {
-      id: '3',
-      name: 'Emma Davis',
-      age: 45,
-      condition: 'Shoulder Impingement',
-      startDate: '2024-01-20',
-      progress: 40,
-      painLevel: 6,
-      lastSession: '5 days ago',
-      status: 'active',
-      avatar: '',
-      completionRate: 45,
-      riskLevel: 'high'
-    },
-    {
-      id: '4',
-      name: 'Robert Wilson',
-      age: 52,
-      condition: 'Neck Pain',
-      startDate: '2023-12-10',
-      progress: 95,
-      painLevel: 1,
-      lastSession: '1 week ago',
-      status: 'completed',
-      avatar: '',
-      completionRate: 96,
-      riskLevel: 'low'
-    },
-    {
-      id: '5',
-      name: 'Lisa Martinez',
-      age: 31,
-      condition: 'Post-Surgery Rehab',
-      startDate: '2024-02-10',
-      progress: 25,
-      painLevel: 5,
-      lastSession: 'Never',
-      status: 'pending',
-      avatar: '',
-      completionRate: 0,
-      riskLevel: 'medium'
+  useEffect(() => {
+    fetchPatients();
+  }, []);
+
+  const fetchPatients = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('role', 'patient')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setPatients(data || []);
+    } catch (error) {
+      console.error('Error fetching patients:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load patients.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
   const filteredPatients = patients.filter(patient => {
-    const matchesSearch = patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         patient.condition.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === 'all' || patient.status === filterStatus;
-    return matchesSearch && matchesStatus;
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      patient.first_name?.toLowerCase().includes(searchLower) ||
+      patient.last_name?.toLowerCase().includes(searchLower) ||
+      patient.occupation?.toLowerCase().includes(searchLower)
+    );
   });
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active': return 'bg-success text-white';
-      case 'pending': return 'bg-warning text-white';
-      case 'completed': return 'bg-primary text-white';
-      default: return 'bg-muted text-muted-foreground';
-    }
-  };
-
-  const getRiskColor = (risk: string) => {
-    switch (risk) {
-      case 'low': return 'text-success';
-      case 'medium': return 'text-warning';
-      case 'high': return 'text-destructive';
-      default: return 'text-muted-foreground';
-    }
-  };
-
-  const getRiskIcon = (risk: string) => {
-    switch (risk) {
-      case 'low': return <CheckCircle className="h-4 w-4" />;
-      case 'medium': return <Clock className="h-4 w-4" />;
-      case 'high': return <AlertTriangle className="h-4 w-4" />;
-      default: return <CheckCircle className="h-4 w-4" />;
-    }
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -166,29 +95,14 @@ const PatientManagement = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search patients by name or condition..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <div className="flex gap-2">
-              {['all', 'active', 'pending', 'completed'].map((status) => (
-                <Button
-                  key={status}
-                  variant={filterStatus === status ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setFilterStatus(status as any)}
-                >
-                  <Filter className="h-4 w-4 mr-2" />
-                  {status.charAt(0).toUpperCase() + status.slice(1)}
-                </Button>
-              ))}
-            </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search patients by name or occupation..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
           </div>
         </CardContent>
       </Card>
@@ -201,108 +115,57 @@ const PatientManagement = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src={patient.avatar} />
                     <AvatarFallback>
                       <User className="h-6 w-6" />
                     </AvatarFallback>
                   </Avatar>
                   <div>
                     <div className="flex items-center space-x-2">
-                      <h4 className="font-semibold text-lg">{patient.name}</h4>
-                      <Badge className={getStatusColor(patient.status)}>
-                        {patient.status}
-                      </Badge>
+                      <h4 className="font-semibold text-lg">
+                        {patient.first_name} {patient.last_name}
+                      </h4>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      {patient.condition} • Age {patient.age} • Started {patient.startDate}
+                      {patient.occupation && `${patient.occupation} • `}
+                      {patient.age && `Age ${patient.age}`}
+                      {patient.sex && ` • ${patient.sex}`}
                     </p>
+                    {patient.phone && (
+                      <p className="text-xs text-muted-foreground">{patient.phone}</p>
+                    )}
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-6">
-                  {/* Progress Metrics */}
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground">Progress</p>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-16">
-                        <Progress value={patient.progress} className="h-2" />
-                      </div>
-                      <span className="text-sm font-medium">{patient.progress}%</span>
-                    </div>
-                  </div>
-
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground">Pain Level</p>
-                    <p className={`text-lg font-bold ${
-                      patient.painLevel <= 3 ? 'text-success' : 
-                      patient.painLevel <= 6 ? 'text-warning' : 'text-destructive'
-                    }`}>
-                      {patient.painLevel}/10
-                    </p>
-                  </div>
-
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground">Compliance</p>
-                    <p className="text-lg font-bold text-primary">{patient.completionRate}%</p>
-                  </div>
-
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground">Risk Level</p>
-                    <div className={`flex items-center justify-center space-x-1 ${getRiskColor(patient.riskLevel)}`}>
-                      {getRiskIcon(patient.riskLevel)}
-                      <span className="text-sm font-medium capitalize">{patient.riskLevel}</span>
-                    </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex space-x-2">
-                    <Button size="sm" variant="outline">
-                      <Eye className="h-4 w-4 mr-2" />
-                      View
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit Plan
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      <MessageSquare className="h-4 w-4 mr-2" />
-                      Message
-                    </Button>
-                    <Button size="sm" variant="ghost">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </div>
+                {/* Action Buttons */}
+                <div className="flex space-x-2">
+                  <Button size="sm" variant="outline">
+                    <Eye className="h-4 w-4 mr-2" />
+                    View
+                  </Button>
+                  <Button size="sm" variant="outline">
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Plan
+                  </Button>
+                  <Button size="sm" variant="outline">
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    Message
+                  </Button>
+                  <Button size="sm" variant="ghost">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
 
-              {/* Quick Insights */}
+              {/* Quick Info */}
               <div className="mt-4 pt-4 border-t border-border">
                 <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center space-x-4">
-                    <span className="text-muted-foreground">
-                      Last session: <span className="font-medium">{patient.lastSession}</span>
-                    </span>
-                    {patient.riskLevel === 'high' && (
-                      <Badge variant="destructive" className="text-xs">
-                        <AlertTriangle className="h-3 w-3 mr-1" />
-                        Needs Attention
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button size="sm" variant="ghost">
-                      <Video className="h-4 w-4 mr-2" />
-                      Review Videos
-                    </Button>
-                    <Button size="sm" variant="ghost">
-                      <TrendingUp className="h-4 w-4 mr-2" />
-                      Progress Report
-                    </Button>
-                    <Button size="sm" variant="ghost">
-                      <Calendar className="h-4 w-4 mr-2" />
-                      Schedule
-                    </Button>
-                  </div>
+                  <span className="text-muted-foreground">
+                    Joined: {new Date(patient.created_at).toLocaleDateString()}
+                  </span>
+                  <Button size="sm" variant="ghost">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Schedule
+                  </Button>
                 </div>
               </div>
             </CardContent>
@@ -316,7 +179,9 @@ const PatientManagement = () => {
             <User className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
             <h3 className="text-lg font-semibold mb-2">No Patients Found</h3>
             <p className="text-muted-foreground">
-              No patients match your current search and filter criteria.
+              {patients.length === 0 
+                ? 'No patients have registered yet.' 
+                : 'No patients match your search criteria.'}
             </p>
           </CardContent>
         </Card>

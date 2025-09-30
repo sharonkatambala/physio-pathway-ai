@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,21 +15,33 @@ import {
   Phone,
   MessageSquare,
   Check,
-  X
+  X,
+  Loader2
 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from '@/hooks/useAuth';
 
 interface Physiotherapist {
   id: string;
-  name: string;
-  specialization: string;
-  experience: string;
-  rating: number;
-  reviewCount: number;
-  avatar: string;
-  availability: string[];
-  sessionTypes: ('in-person' | 'video' | 'phone')[];
-  bio: string;
+  user_id: string;
+  first_name: string;
+  last_name: string;
+  occupation: string;
+  phone: string;
+}
+
+interface Appointment {
+  id: string;
+  physiotherapist_id: string;
+  appointment_date: string;
+  appointment_time: string;
+  session_type: 'in-person' | 'video' | 'phone';
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  physiotherapist: {
+    first_name: string;
+    last_name: string;
+  };
 }
 
 interface TimeSlot {
@@ -43,81 +55,74 @@ const BookingSystem = () => {
   const [selectedPhysiotherapist, setSelectedPhysiotherapist] = useState<string>('');
   const [selectedTime, setSelectedTime] = useState<string>('');
   const [sessionType, setSessionType] = useState<'in-person' | 'video' | 'phone'>('video');
+  const [physiotherapists, setPhysiotherapists] = useState<Physiotherapist[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-
-  const physiotherapists: Physiotherapist[] = [
-    {
-      id: '1',
-      name: 'Dr. Emily Rodriguez',
-      specialization: 'Back Pain & Posture Specialist',
-      experience: '8 years',
-      rating: 4.9,
-      reviewCount: 127,
-      avatar: '',
-      availability: ['Monday', 'Wednesday', 'Friday'],
-      sessionTypes: ['in-person', 'video', 'phone'],
-      bio: 'Specializes in lower back pain, postural correction, and workplace ergonomics.'
-    },
-    {
-      id: '2',
-      name: 'Dr. Michael Chen',
-      specialization: 'Sports Injury & Rehabilitation',
-      experience: '12 years',
-      rating: 4.8,
-      reviewCount: 203,
-      avatar: '',
-      availability: ['Tuesday', 'Thursday', 'Saturday'],
-      sessionTypes: ['in-person', 'video'],
-      bio: 'Expert in sports medicine, ACL rehabilitation, and return-to-play protocols.'
-    },
-    {
-      id: '3',
-      name: 'Dr. Sarah Johnson',
-      specialization: 'Geriatric & Neurological Rehab',
-      experience: '15 years',
-      rating: 4.9,
-      reviewCount: 89,
-      avatar: '',
-      availability: ['Monday', 'Tuesday', 'Thursday'],
-      sessionTypes: ['in-person', 'video', 'phone'],
-      bio: 'Specializes in elderly care, stroke recovery, and Parkinson\'s disease management.'
-    }
-  ];
+  const { user, profile } = useAuth();
 
   const timeSlots: TimeSlot[] = [
     { time: '9:00 AM', available: true, type: 'morning' },
-    { time: '10:00 AM', available: false, type: 'morning' },
+    { time: '10:00 AM', available: true, type: 'morning' },
     { time: '11:00 AM', available: true, type: 'morning' },
     { time: '12:00 PM', available: true, type: 'afternoon' },
-    { time: '1:00 PM', available: false, type: 'afternoon' },
+    { time: '1:00 PM', available: true, type: 'afternoon' },
     { time: '2:00 PM', available: true, type: 'afternoon' },
     { time: '3:00 PM', available: true, type: 'afternoon' },
     { time: '4:00 PM', available: true, type: 'afternoon' },
-    { time: '5:00 PM', available: false, type: 'evening' },
+    { time: '5:00 PM', available: true, type: 'evening' },
     { time: '6:00 PM', available: true, type: 'evening' }
   ];
 
-  const upcomingAppointments = [
-    {
-      id: '1',
-      physiotherapist: 'Dr. Emily Rodriguez',
-      date: 'Today',
-      time: '2:00 PM',
-      type: 'video',
-      status: 'confirmed'
-    },
-    {
-      id: '2',
-      physiotherapist: 'Dr. Michael Chen',
-      date: 'Tomorrow',
-      time: '10:00 AM',
-      type: 'in-person',
-      status: 'pending'
-    }
-  ];
+  useEffect(() => {
+    fetchPhysiotherapists();
+    fetchAppointments();
+  }, []);
 
-  const handleBookAppointment = () => {
-    if (!selectedPhysiotherapist || !selectedDate || !selectedTime) {
+  const fetchPhysiotherapists = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('role', 'physiotherapist');
+
+      if (error) throw error;
+      setPhysiotherapists(data || []);
+    } catch (error) {
+      console.error('Error fetching physiotherapists:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load physiotherapists.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchAppointments = async () => {
+    if (!profile?.id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('appointments')
+        .select(`
+          *,
+          physiotherapist:physiotherapist_id(first_name, last_name)
+        `)
+        .eq('patient_id', profile.id)
+        .in('status', ['pending', 'confirmed'])
+        .order('appointment_date', { ascending: true });
+
+      if (error) throw error;
+      setAppointments((data || []) as any);
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
+    }
+  };
+
+  const handleBookAppointment = async () => {
+    if (!selectedPhysiotherapist || !selectedDate || !selectedTime || !profile?.id) {
       toast({
         title: "Missing Information",
         description: "Please select a physiotherapist, date, and time.",
@@ -126,14 +131,37 @@ const BookingSystem = () => {
       return;
     }
 
-    toast({
-      title: "Appointment Booked!",
-      description: `Your ${sessionType} session has been scheduled successfully.`
-    });
+    try {
+      const { error } = await supabase
+        .from('appointments')
+        .insert({
+          patient_id: profile.id,
+          physiotherapist_id: selectedPhysiotherapist,
+          appointment_date: selectedDate.toISOString().split('T')[0],
+          appointment_time: selectedTime,
+          session_type: sessionType,
+          status: 'pending'
+        });
 
-    // Reset form
-    setSelectedPhysiotherapist('');
-    setSelectedTime('');
+      if (error) throw error;
+
+      toast({
+        title: "Appointment Booked!",
+        description: `Your ${sessionType} session has been scheduled successfully.`
+      });
+
+      // Reset form and refresh appointments
+      setSelectedPhysiotherapist('');
+      setSelectedTime('');
+      fetchAppointments();
+    } catch (error) {
+      console.error('Error booking appointment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to book appointment. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const getSessionTypeIcon = (type: string) => {
@@ -144,6 +172,29 @@ const BookingSystem = () => {
       default: return <Video className="h-4 w-4" />;
     }
   };
+
+  const formatAppointmentDate = (date: string) => {
+    const appointmentDate = new Date(date);
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    if (appointmentDate.toDateString() === today.toDateString()) {
+      return 'Today';
+    } else if (appointmentDate.toDateString() === tomorrow.toDateString()) {
+      return 'Tomorrow';
+    } else {
+      return appointmentDate.toLocaleDateString();
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -164,48 +215,45 @@ const BookingSystem = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {physiotherapists.map((therapist) => (
-                  <div 
-                    key={therapist.id}
-                    className={`p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
-                      selectedPhysiotherapist === therapist.id 
-                        ? 'border-primary bg-primary/5' 
-                        : 'border-border'
-                    }`}
-                    onClick={() => setSelectedPhysiotherapist(therapist.id)}
-                  >
-                    <div className="flex items-start space-x-3">
-                      <Avatar className="h-12 w-12">
-                        <AvatarImage src={therapist.avatar} />
-                        <AvatarFallback>
-                          <User className="h-6 w-6" />
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-semibold">{therapist.name}</h4>
-                          <div className="flex items-center space-x-1">
-                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                            <span className="text-sm font-medium">{therapist.rating}</span>
-                            <span className="text-xs text-muted-foreground">({therapist.reviewCount})</span>
+                {physiotherapists.length === 0 ? (
+                  <div className="text-center py-8">
+                    <User className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                    <p className="text-muted-foreground">No physiotherapists available yet.</p>
+                  </div>
+                ) : (
+                  physiotherapists.map((therapist) => (
+                    <div 
+                      key={therapist.id}
+                      className={`p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
+                        selectedPhysiotherapist === therapist.id 
+                          ? 'border-primary bg-primary/5' 
+                          : 'border-border'
+                      }`}
+                      onClick={() => setSelectedPhysiotherapist(therapist.id)}
+                    >
+                      <div className="flex items-start space-x-3">
+                        <Avatar className="h-12 w-12">
+                          <AvatarFallback>
+                            <User className="h-6 w-6" />
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-semibold">
+                              {therapist.first_name} {therapist.last_name}
+                            </h4>
                           </div>
-                        </div>
-                        <p className="text-sm text-primary">{therapist.specialization}</p>
-                        <p className="text-xs text-muted-foreground mb-2">{therapist.experience} experience</p>
-                        <p className="text-sm text-muted-foreground">{therapist.bio}</p>
-                        
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {therapist.sessionTypes.map((type) => (
-                            <Badge key={type} variant="outline" className="text-xs">
-                              {getSessionTypeIcon(type)}
-                              <span className="ml-1 capitalize">{type.replace('-', ' ')}</span>
-                            </Badge>
-                          ))}
+                          {therapist.occupation && (
+                            <p className="text-sm text-primary">{therapist.occupation}</p>
+                          )}
+                          {therapist.phone && (
+                            <p className="text-xs text-muted-foreground">{therapist.phone}</p>
+                          )}
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </CardContent>
             </Card>
 
@@ -301,49 +349,7 @@ const BookingSystem = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {upcomingAppointments.map((appointment) => (
-                  <div key={appointment.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <Avatar className="h-10 w-10">
-                        <AvatarFallback>
-                          <User className="h-5 w-5" />
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium">{appointment.physiotherapist}</p>
-                        <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                          <span>{appointment.date}, {appointment.time}</span>
-                          <Badge variant="outline" className="text-xs">
-                            {getSessionTypeIcon(appointment.type)}
-                            <span className="ml-1 capitalize">{appointment.type.replace('-', ' ')}</span>
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Badge variant={appointment.status === 'confirmed' ? 'default' : 'secondary'}>
-                        {appointment.status === 'confirmed' ? (
-                          <Check className="h-3 w-3 mr-1" />
-                        ) : (
-                          <Clock className="h-3 w-3 mr-1" />
-                        )}
-                        {appointment.status}
-                      </Badge>
-                      <Button size="sm" variant="outline">
-                        <MessageSquare className="h-4 w-4 mr-2" />
-                        Message
-                      </Button>
-                      {appointment.type === 'video' && (
-                        <Button size="sm">
-                          <Video className="h-4 w-4 mr-2" />
-                          Join Call
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-
-                {upcomingAppointments.length === 0 && (
+                {appointments.length === 0 ? (
                   <div className="text-center py-8">
                     <CalendarIcon className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                     <h4 className="font-medium mb-2">No Upcoming Appointments</h4>
@@ -354,6 +360,52 @@ const BookingSystem = () => {
                       Book New Session
                     </Button>
                   </div>
+                ) : (
+                  appointments.map((appointment) => (
+                    <div key={appointment.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center space-x-4">
+                        <Avatar className="h-10 w-10">
+                          <AvatarFallback>
+                            <User className="h-5 w-5" />
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium">
+                            Dr. {appointment.physiotherapist.first_name} {appointment.physiotherapist.last_name}
+                          </p>
+                          <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                            <span>
+                              {formatAppointmentDate(appointment.appointment_date)}, {appointment.appointment_time}
+                            </span>
+                            <Badge variant="outline" className="text-xs">
+                              {getSessionTypeIcon(appointment.session_type)}
+                              <span className="ml-1 capitalize">{appointment.session_type.replace('-', ' ')}</span>
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Badge variant={appointment.status === 'confirmed' ? 'default' : 'secondary'}>
+                          {appointment.status === 'confirmed' ? (
+                            <Check className="h-3 w-3 mr-1" />
+                          ) : (
+                            <Clock className="h-3 w-3 mr-1" />
+                          )}
+                          {appointment.status}
+                        </Badge>
+                        <Button size="sm" variant="outline">
+                          <MessageSquare className="h-4 w-4 mr-2" />
+                          Message
+                        </Button>
+                        {appointment.session_type === 'video' && (
+                          <Button size="sm">
+                            <Video className="h-4 w-4 mr-2" />
+                            Join Call
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))
                 )}
               </div>
             </CardContent>

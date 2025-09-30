@@ -4,6 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import catCamelDemo from '@/assets/exercise-cat-camel.jpg';
+import pelvicTiltDemo from '@/assets/exercise-pelvic-tilt.jpg';
+import kneeChestDemo from '@/assets/exercise-knee-chest.jpg';
+import bridgeDemo from '@/assets/exercise-bridge.jpg';
 import { 
   Play, 
   CheckCircle, 
@@ -34,7 +39,7 @@ interface Exercise {
     time: string;
     type: string;
   };
-  demoVideoUrl?: string;
+  demoImage?: string;
   bodyParts: string[];
   completed: boolean;
 }
@@ -65,6 +70,7 @@ const ExerciseProgram = () => {
         time: '5-10 minutes',
         type: 'Mobility & Flexibility'
       },
+      demoImage: catCamelDemo,
       bodyParts: ['Lower Back', 'Core', 'Spine'],
       completed: false
     },
@@ -89,6 +95,7 @@ const ExerciseProgram = () => {
         time: '3-5 minutes',
         type: 'Core Stabilization'
       },
+      demoImage: pelvicTiltDemo,
       bodyParts: ['Core', 'Lower Back', 'Pelvis'],
       completed: false
     },
@@ -113,6 +120,7 @@ const ExerciseProgram = () => {
         time: '4-6 minutes',
         type: 'Stretching & Mobility'
       },
+      demoImage: kneeChestDemo,
       bodyParts: ['Hip Flexors', 'Lower Back', 'Glutes'],
       completed: false
     }
@@ -250,6 +258,17 @@ const ExerciseProgram = () => {
                   </ol>
                 </div>
 
+                {/* Demo Image Preview */}
+                {exercise.demoImage && (
+                  <div className="rounded-lg overflow-hidden border">
+                    <img 
+                      src={exercise.demoImage} 
+                      alt={`${exercise.name} demonstration`}
+                      className="w-full h-auto"
+                    />
+                  </div>
+                )}
+
                 {/* Action Buttons */}
                 <div className="flex space-x-2">
                   <Button 
@@ -269,10 +288,26 @@ const ExerciseProgram = () => {
                       </>
                     )}
                   </Button>
-                  <Button size="sm" variant="outline">
-                    <Video className="h-4 w-4 mr-2" />
-                    Watch Demo
-                  </Button>
+                  {exercise.demoImage && (
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button size="sm" variant="outline">
+                          <Video className="h-4 w-4 mr-2" />
+                          View Demo
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-3xl">
+                        <DialogHeader>
+                          <DialogTitle>{exercise.name} - Demonstration</DialogTitle>
+                        </DialogHeader>
+                        <img 
+                          src={exercise.demoImage} 
+                          alt={`${exercise.name} demonstration`}
+                          className="w-full h-auto rounded-lg"
+                        />
+                      </DialogContent>
+                    </Dialog>
+                  )}
                   <Button size="sm" variant="ghost">
                     <Info className="h-4 w-4 mr-2" />
                     Details

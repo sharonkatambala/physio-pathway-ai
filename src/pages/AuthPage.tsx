@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,8 +12,18 @@ import { ArrowLeft } from 'lucide-react';
 
 const AuthPage = () => {
   const [loading, setLoading] = useState(false);
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, user, profile } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user && profile) {
+      const dashboardPath = profile.role === 'physiotherapist' 
+        ? '/physiotherapist-dashboard' 
+        : '/patient-dashboard';
+      navigate(dashboardPath, { replace: true });
+    }
+  }, [user, profile, navigate]);
 
   const [loginData, setLoginData] = useState({
     email: '',
@@ -45,15 +55,14 @@ const AuthPage = () => {
         description: error.message,
         variant: "destructive"
       });
+      setLoading(false);
     } else {
       toast({
         title: "Success",
         description: "Logged in successfully!"
       });
-      navigate('/');
+      // Redirect will happen via useEffect when profile loads
     }
-    
-    setLoading(false);
   };
 
   const handleSignup = async (e: React.FormEvent) => {

@@ -33,7 +33,8 @@ import BookingSystem from '@/components/BookingSystem';
 
 const PatientDashboard = () => {
   const { user, profile, loading } = useAuth();
-  const [assessmentStep, setAssessmentStep] = useState<'input' | 'video' | 'questionnaire' | 'results' | 'complete'>('complete');
+  // Start with 'input' to show assessment first for new users
+  const [assessmentStep, setAssessmentStep] = useState<'input' | 'video' | 'questionnaire' | 'results' | 'complete'>('input');
   const [healthData, setHealthData] = useState<any>(null);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [questionnaireAnswers, setQuestionnaireAnswers] = useState<Record<string, string>>({});

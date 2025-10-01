@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import Navigation from '@/components/Navigation';
 import HealthInputForm from '@/components/HealthInputForm';
 import VideoAssessment from '@/components/VideoAssessment';
@@ -30,6 +32,7 @@ import ProgressTracker from '@/components/ProgressTracker';
 import MonitoringSystem from '@/components/MonitoringSystem';
 import ChatSystem from '@/components/ChatSystem';
 import BookingSystem from '@/components/BookingSystem';
+import ExerciseProgramDisplay from '@/components/ExerciseProgramDisplay';
 
 const PatientDashboard = () => {
   const { user, profile, loading } = useAuth();
@@ -38,6 +41,7 @@ const PatientDashboard = () => {
   const [healthData, setHealthData] = useState<any>(null);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [questionnaireAnswers, setQuestionnaireAnswers] = useState<Record<string, string>>({});
+  const [exerciseProgram, setExerciseProgram] = useState<string>('');
 
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
@@ -61,13 +65,42 @@ const PatientDashboard = () => {
     setAssessmentStep('questionnaire');
   };
 
-  const handleQuestionnaireComplete = (answers: Record<string, string>) => {
+  const handleQuestionnaireComplete = async (answers: Record<string, string>) => {
     setQuestionnaireAnswers(answers);
     setAssessmentStep('results');
-    // Simulate AI processing
-    setTimeout(() => {
+    
+    try {
+      const assessmentData = {
+        healthData,
+        questionnaireAnswers: answers,
+        hasVideo: !!videoFile,
+      };
+
+      const { data, error } = await supabase.functions.invoke('generate-exercise-program', {
+        body: { assessmentData }
+      });
+
+      if (error) {
+        console.error('Error generating exercise program:', error);
+        if (error.message?.includes('429')) {
+          toast.error('Rate limit exceeded. Please try again in a moment.');
+        } else if (error.message?.includes('402')) {
+          toast.error('Payment required. Please add credits to continue.');
+        } else {
+          toast.error('Failed to generate exercise program');
+        }
+        setAssessmentStep('questionnaire');
+        return;
+      }
+
+      setExerciseProgram(data.exerciseProgram);
       setAssessmentStep('complete');
-    }, 3000);
+      toast.success('Your personalized exercise program is ready!');
+    } catch (err) {
+      console.error('Error:', err);
+      toast.error('An error occurred. Please try again.');
+      setAssessmentStep('questionnaire');
+    }
   };
 
   const handleQuestionnaireBack = () => {
@@ -79,6 +112,7 @@ const PatientDashboard = () => {
     setHealthData(null);
     setVideoFile(null);
     setQuestionnaireAnswers({});
+    setExerciseProgram('');
   };
 
   // Show assessment flow if not complete
@@ -138,9 +172,9 @@ const PatientDashboard = () => {
             <Card className="shadow-card">
               <CardContent className="p-8 text-center">
                 <div className="animate-spin h-12 w-12 border-4 border-primary border-t-transparent rounded-full mx-auto mb-6"></div>
-                <h3 className="text-xl font-semibold mb-2">AI is Analyzing Your Assessment</h3>
+                <h3 className="text-xl font-semibold mb-2">FIZIO AI is Creating Your Program</h3>
                 <p className="text-muted-foreground">
-                  Our advanced AI is processing your health information, video, and questionnaire responses to create your personalized treatment plan...
+                  Generating your personalized exercise program based on WHO guidelines...
                 </p>
               </CardContent>
             </Card>
@@ -246,36 +280,8 @@ const PatientDashboard = () => {
               </Card>
             </div>
 
-            {/* AI Results Summary */}
-            <Card className="shadow-card">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Brain className="h-6 w-6 text-primary" />
-                  AI Assessment Results
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="p-4 bg-primary/5 rounded-lg border-l-4 border-primary">
-                    <h4 className="font-semibold text-primary mb-2">Condition Assessment</h4>
-                    <p className="text-sm">Based on your assessment, you likely have mechanical lower back pain with mild muscle tension. This is commonly caused by prolonged sitting and poor posture.</p>
-                  </div>
-                  <div className="p-4 bg-success/5 rounded-lg border-l-4 border-success">
-                    <h4 className="font-semibold text-success mb-2">Recommended Category</h4>
-                    <p className="text-sm">Pain & Mobility Relief - Lower Back Pain Exercises focusing on core activation and posture correction.</p>
-                  </div>
-                  <div className="p-4 bg-secondary/5 rounded-lg border-l-4 border-secondary">
-                    <h4 className="font-semibold text-secondary mb-2">FITT Plan</h4>
-                    <p className="text-sm">
-                      <strong>Frequency:</strong> 5 days/week • 
-                      <strong>Intensity:</strong> Moderate • 
-                      <strong>Time:</strong> 15-20 minutes • 
-                      <strong>Type:</strong> Mobility & Strengthening
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            {/* AI-Generated Exercise Program */}
+            {exerciseProgram && <ExerciseProgramDisplay program={exerciseProgram} />}
 
             {/* Today's Tasks */}
             <Card className="shadow-card">

@@ -38,7 +38,7 @@ const ContactSection = () => {
                   </div>
                   <div>
                     <div className="font-medium text-foreground">Phone</div>
-                    <div className="text-muted-foreground">+1 (555) 123-4567</div>
+                    <div className="text-muted-foreground">+255748566062</div>
                   </div>
                 </div>
 
@@ -48,7 +48,7 @@ const ContactSection = () => {
                   </div>
                   <div>
                     <div className="font-medium text-foreground">Address</div>
-                    <div className="text-muted-foreground">123 Health St, Medical District, NY 10001</div>
+                    <div className="text-muted-foreground">Muhimbili, Upanga Magharibi 65001</div>
                   </div>
                 </div>
 
@@ -94,17 +94,17 @@ const ContactSection = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-foreground">First Name</label>
-                  <Input placeholder="John" />
+                  <Input placeholder="Fredrick" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-foreground">Last Name</label>
-                  <Input placeholder="Doe" />
+                  <Input placeholder="Bahati" />
                 </div>
               </div>
               
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">Email</label>
-                <Input type="email" placeholder="john@example.com" />
+                <Input type="email" placeholder="fredbahati12@gmail.com" />
               </div>
               
               <div className="space-y-2">

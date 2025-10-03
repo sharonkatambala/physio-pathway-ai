@@ -13,23 +13,28 @@ serve(async (req) => {
 
   try {
     const { assessmentData } = await req.json();
+    const { healthData, questionnaireAnswers, hasVideo } = assessmentData;
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    const systemPrompt = `You are FIZIO AI, a physiotherapy assistant platform. After a patient assessment, generate a structured exercise program instead of a single exercise. All recommendations must strictly align with World Health Organization (WHO) guidelines on physical activity and rehabilitation.
+    const systemPrompt = `You are FIZIO AI, a physiotherapy assistant platform. After a patient assessment, generate two structured outputs:
 
-Your response must be organized into the following sections:
+1. **AI Assessment Report** with these exact sections:
+   - **Summary of Findings**: Main complaint, location, severity, functional limitation
+   - **Possible Clinical Impression**: Suspected condition, aggravating factors, urgent issues if any
+   - **Risk / Red Flags Alert**: Highlight urgent symptoms if present (use "⚠️" icon for warnings)
+   - **Recommended Management Plan**: Education, exercises, lifestyle modifications
+   - **Progress Tracking Goals**: Measurable goals for follow-up
+   - **Referral Guidance**: When to consult a physiotherapist or doctor
 
-**Warm-up** – Gentle mobility or stretching exercises to prepare the body.
-
-**Main Exercises** – Core recommended activities (strength, balance, aerobic, flexibility), tailored to the patient's condition.
-
-**Cool-down** – Relaxation and light stretching exercises.
-
-**Safety & Notes** – Special considerations, frequency, duration, and intensity based on WHO standards.
+2. **Exercise Program** with these sections:
+   - **Warm-up**: Gentle mobility or stretching exercises to prepare the body
+   - **Main Exercises**: Core recommended activities (strength, balance, aerobic, flexibility), tailored to the patient's condition
+   - **Cool-down**: Relaxation and light stretching exercises
+   - **Safety & Notes**: Special considerations, frequency, duration, and intensity based on WHO standards
 
 For each exercise, provide:
 - Name of exercise
@@ -38,15 +43,25 @@ For each exercise, provide:
 - Intensity level (light, moderate, vigorous)
 - Purpose / Benefit for the patient's condition
 
-Always return multiple suitable exercises (at least 2-3 per section), well-arranged and easy for both patients and physiotherapists to follow. Include variations or alternatives if possible. Do not recommend anything outside WHO-approved guidelines.
+Format your response with clear markdown headings (##) for each main section. All recommendations must strictly align with World Health Organization (WHO) guidelines on physical activity and rehabilitation. Include variations or alternatives if possible.`;
 
-Format your response in clear markdown with proper headings and bullet points for easy reading.`;
+    const userPrompt = `Based on the following patient assessment, create a comprehensive AI Assessment Report and personalized exercise program:
 
-    const userPrompt = `Based on the following patient assessment, generate a complete exercise program:
+Patient Information:
+- Age: ${healthData.age}
+- Sex: ${healthData.sex}
+- Occupation: ${healthData.occupation}
+- Medical Diagnosis: ${healthData.diagnosis || 'Not provided'}
+- Problem Description: ${healthData.problemDescription}
+- Previous Treatment: ${healthData.previousTreatment || 'None reported'}
+- Patient Goals: ${healthData.patientGoals}
 
-${JSON.stringify(assessmentData, null, 2)}
+Assessment Questionnaire Results:
+${Object.entries(questionnaireAnswers).map(([key, value]) => `- ${key}: ${value}`).join('\n')}
 
-Please provide a comprehensive exercise program with warm-up, main exercises, cool-down, and safety notes.`;
+${hasVideo ? 'Note: Patient has provided a video assessment for visual analysis.' : ''}
+
+Please generate a comprehensive AI Assessment Report followed by a structured exercise program. Make sure the exercise recommendations are tailored to help achieve the patient's stated goals.`;
 
     console.log('Calling Lovable AI Gateway with assessment data');
 

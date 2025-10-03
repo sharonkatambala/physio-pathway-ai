@@ -48,18 +48,24 @@ const AIQuestionnaire = ({ onComplete, onBack }: AIQuestionnaireProps) => {
       options: ['Less than 1 week', '1-4 weeks', '1-3 months', '3-6 months', 'More than 6 months']
     },
     {
+      id: 'primary_pain',
+      question: 'What is your primary pain or discomfort?',
+      type: 'multiple',
+      options: ['Sharp pain', 'Dull ache', 'Burning sensation', 'Stiffness', 'Numbness/Tingling', 'Weakness']
+    },
+    {
+      id: 'activity_limitation',
+      question: 'How does it limit your activities?',
+      type: 'multiple',
+      options: ['Walking', 'Standing', 'Sitting', 'Lifting objects', 'Exercise/Sports', 'Sleep', 'Work tasks']
+    },
+    {
       id: 'daily_activities',
       question: 'How much does this problem limit your daily activities?',
       type: 'scale',
       scaleMin: 0,
       scaleMax: 10,
       scaleLabels: { min: 'Not at all', max: 'Completely' }
-    },
-    {
-      id: 'previous_treatment',
-      question: 'Have you received any treatment for this problem before?',
-      type: 'boolean',
-      options: ['Yes', 'No']
     },
     {
       id: 'symptom_pattern',

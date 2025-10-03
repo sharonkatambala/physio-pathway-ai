@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { User, Briefcase, Calendar, FileText, ArrowRight } from 'lucide-react';
+import { User, Briefcase, Calendar, FileText, ArrowRight, Target } from 'lucide-react';
 
 interface HealthData {
   age: string;
@@ -14,6 +14,8 @@ interface HealthData {
   occupation: string;
   diagnosis: string;
   problemDescription: string;
+  previousTreatment: string;
+  patientGoals: string;
 }
 
 interface HealthInputFormProps {
@@ -26,7 +28,9 @@ const HealthInputForm = ({ onSubmit }: HealthInputFormProps) => {
     sex: '',
     occupation: '',
     diagnosis: '',
-    problemDescription: ''
+    problemDescription: '',
+    previousTreatment: '',
+    patientGoals: ''
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -119,6 +123,35 @@ const HealthInputForm = ({ onSubmit }: HealthInputFormProps) => {
               value={formData.problemDescription}
               onChange={(e) => updateField('problemDescription', e.target.value)}
               rows={4}
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="treatment" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Previous Treatment (Optional)
+            </Label>
+            <Textarea
+              id="treatment"
+              placeholder="If you've received treatment for this problem before, please explain what treatment it was (e.g., physical therapy, medications, surgery). Otherwise, leave this blank."
+              value={formData.previousTreatment}
+              onChange={(e) => updateField('previousTreatment', e.target.value)}
+              rows={3}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="goals" className="flex items-center gap-2">
+              <Target className="h-4 w-4" />
+              What Are Your Goals?
+            </Label>
+            <Textarea
+              id="goals"
+              placeholder="What do you hope to achieve? (e.g., reduce pain, return to sports, improve mobility, perform daily activities without discomfort)"
+              value={formData.patientGoals}
+              onChange={(e) => updateField('patientGoals', e.target.value)}
+              rows={3}
               required
             />
           </div>

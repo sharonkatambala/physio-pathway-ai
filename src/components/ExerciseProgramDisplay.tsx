@@ -99,7 +99,7 @@ const ExerciseProgramDisplay = ({ program }: ExerciseProgramDisplayProps) => {
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Activity className="h-6 w-6 text-primary" />
-            AI Assessment Report & Exercise Program
+            Hip Knee Ankle Assessment Report & Exercise Program
           </CardTitle>
           <Badge variant="secondary" className="text-xs">
             WHO Guidelines

@@ -1,9 +1,12 @@
 import { Activity, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 const Footer = () => {
+  const { t } = useLanguage();
+  
   return (
     <footer className="bg-card border-t border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -11,10 +14,15 @@ const Footer = () => {
           {/* Brand Section */}
           <div className="space-y-6">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-hero rounded-lg flex items-center justify-center">
-                <Activity className="h-5 w-5 text-white" />
+              <div className="w-10 h-10 bg-gradient-hero rounded-lg flex items-center justify-center">
+                <Activity className="h-6 w-6 text-white" />
               </div>
-              <span className="text-xl font-bold text-foreground">FIZIO AI</span>
+              <div>
+                <h3 className="text-xl font-bold text-foreground">
+                  ErgoCare<span className="text-primary">+</span>
+                </h3>
+                <p className="text-muted-foreground text-sm">{t('hero.title')}</p>
+              </div>
             </div>
             <p className="text-muted-foreground leading-relaxed">
               Revolutionizing physiotherapy through AI-powered assessments, personalized treatment plans, and professional care.
@@ -85,7 +93,7 @@ const Footer = () => {
             <div className="space-y-2 text-sm text-muted-foreground">
               <div className="flex items-center space-x-2">
                 <Mail className="h-4 w-4" />
-                <span>support@fizioai.com</span>
+                <span>info@ergocare.com</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Phone className="h-4 w-4" />
@@ -103,7 +111,7 @@ const Footer = () => {
         <div className="border-t border-border mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-sm text-muted-foreground">
-              © 2024 FIZIO AI. All rights reserved.
+              © {new Date().getFullYear()} ErgoCare+. {t('footer.rights')}.
             </div>
             <div className="flex space-x-6 text-sm text-muted-foreground">
               <Link to="#" className="hover:text-primary transition-colors">Privacy Policy</Link>

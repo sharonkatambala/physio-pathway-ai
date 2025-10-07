@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { User, Briefcase, Calendar, FileText, ArrowRight, Target } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { User, Briefcase, Calendar, FileText, ArrowRight, Target, History, ChevronDown } from 'lucide-react';
 
 interface HealthData {
   age: string;
@@ -16,6 +17,8 @@ interface HealthData {
   problemDescription: string;
   previousTreatment: string;
   patientGoals: string;
+  pastMedicalHistory: string;
+  pastMedicalCategory: string;
 }
 
 interface HealthInputFormProps {
@@ -30,8 +33,11 @@ const HealthInputForm = ({ onSubmit }: HealthInputFormProps) => {
     diagnosis: '',
     problemDescription: '',
     previousTreatment: '',
-    patientGoals: ''
+    patientGoals: '',
+    pastMedicalHistory: '',
+    pastMedicalCategory: ''
   });
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -155,6 +161,50 @@ const HealthInputForm = ({ onSubmit }: HealthInputFormProps) => {
               required
             />
           </div>
+
+          {/* Past Medical History - Expandable Section */}
+          <Collapsible open={isHistoryOpen} onOpenChange={setIsHistoryOpen} className="space-y-2">
+            <CollapsibleTrigger asChild>
+              <Button variant="outline" className="w-full justify-between" type="button">
+                <span className="flex items-center gap-2">
+                  <History className="h-4 w-4" />
+                  Past Medical History (Optional)
+                </span>
+                <ChevronDown className={`h-4 w-4 transition-transform ${isHistoryOpen ? 'rotate-180' : ''}`} />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-4 pt-2">
+              <div className="space-y-2">
+                <Label htmlFor="medicalCategory">Category</Label>
+                <Select value={formData.pastMedicalCategory} onValueChange={(value) => updateField('pastMedicalCategory', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="musculoskeletal">Musculoskeletal</SelectItem>
+                    <SelectItem value="cardiovascular">Cardiovascular</SelectItem>
+                    <SelectItem value="respiratory">Respiratory</SelectItem>
+                    <SelectItem value="neurological">Neurological</SelectItem>
+                    <SelectItem value="metabolic">Metabolic</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="medicalHistory">Medical History Details</Label>
+                <Textarea
+                  id="medicalHistory"
+                  placeholder="Describe any relevant past medical conditions, surgeries, injuries, or chronic illnesses..."
+                  value={formData.pastMedicalHistory}
+                  onChange={(e) => updateField('pastMedicalHistory', e.target.value)}
+                  rows={4}
+                />
+                <p className="text-sm text-muted-foreground">
+                  Include any information that might be relevant to your current condition.
+                </p>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
 
           <div className="bg-muted/50 p-4 rounded-lg">
             <Badge variant="secondary" className="mb-2">

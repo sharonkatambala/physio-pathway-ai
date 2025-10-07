@@ -1,14 +1,22 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Menu, X, Activity, Calendar, Users, BookOpen, User, LogOut } from 'lucide-react';
+import { Menu, X, Activity, Calendar, Users, BookOpen, User, LogOut, Languages } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/contexts/LanguageContext';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { language, setLanguage, t } = useLanguage();
 
   const handleSignOut = async () => {
     await signOut();
@@ -25,16 +33,16 @@ const Navigation = () => {
     
     if (profile.role === 'patient') {
       return [
-        { name: 'Assessment', href: '/assessment', icon: Activity },
-        { name: 'Exercises', href: '/exercises', icon: BookOpen },
-        { name: 'Progress', href: '/dashboard', icon: Users },
-        { name: 'Book Session', href: '/booking', icon: Calendar },
+        { name: t('nav.assessment'), href: '/assessment', icon: Activity },
+        { name: t('nav.exercises'), href: '/exercises', icon: BookOpen },
+        { name: t('nav.progress'), href: '/dashboard', icon: Users },
+        { name: t('nav.bookSession'), href: '/booking', icon: Calendar },
       ];
     } else {
       return [
-        { name: 'Patients', href: '/physiotherapist-dashboard', icon: Users },
-        { name: 'Exercises', href: '/exercises', icon: BookOpen },
-        { name: 'Sessions', href: '/booking', icon: Calendar },
+        { name: t('nav.patients'), href: '/physiotherapist-dashboard', icon: Users },
+        { name: t('nav.exercises'), href: '/exercises', icon: BookOpen },
+        { name: t('nav.sessions'), href: '/booking', icon: Calendar },
       ];
     }
   };
@@ -50,7 +58,9 @@ const Navigation = () => {
               <div className="w-8 h-8 bg-gradient-hero rounded-lg flex items-center justify-center">
                 <Activity className="h-5 w-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-foreground">FIZIO AI</span>
+              <span className="text-xl font-bold text-foreground">
+                ErgoCare<span className="text-primary">+</span>
+              </span>
             </Link>
           </div>
 
@@ -75,30 +85,48 @@ const Navigation = () => {
               );
             })}
             
+            {/* Language Selector */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="flex items-center space-x-2 ml-2">
+                  <Languages className="h-4 w-4" />
+                  <span className="uppercase">{language}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setLanguage('en')} className="cursor-pointer">
+                  🇬🇧 English
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLanguage('sw')} className="cursor-pointer">
+                  🇹🇿 Kiswahili
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             {/* Auth Buttons */}
             {user ? (
-              <div className="flex items-center space-x-2 ml-4">
+              <div className="flex items-center space-x-2">
                 <Link to={getDashboardLink()}>
                   <Button variant="ghost" size="sm" className="flex items-center space-x-2">
                     <User className="h-4 w-4" />
-                    <span>{profile?.first_name || 'Dashboard'}</span>
+                    <span>{profile?.first_name || t('nav.dashboard')}</span>
                   </Button>
                 </Link>
                 <Button variant="ghost" size="sm" onClick={handleSignOut} className="flex items-center space-x-2">
                   <LogOut className="h-4 w-4" />
-                  <span>Sign Out</span>
+                  <span>{t('nav.signOut')}</span>
                 </Button>
               </div>
             ) : (
-              <div className="flex items-center space-x-2 ml-4">
+              <div className="flex items-center space-x-2">
                 <Link to="/auth">
                   <Button variant="outline" size="sm">
-                    Sign In
+                    {t('nav.signIn')}
                   </Button>
                 </Link>
                 <Link to="/auth">
                   <Button size="sm" className="bg-gradient-hero shadow-soft">
-                    Get Started
+                    {t('nav.getStarted')}
                   </Button>
                 </Link>
               </div>
@@ -140,6 +168,19 @@ const Navigation = () => {
                 );
               })}
               
+              {/* Mobile Language Selector */}
+              <div className="px-3 pt-2 border-t border-border mt-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="w-full justify-start"
+                  onClick={() => setLanguage(language === 'en' ? 'sw' : 'en')}
+                >
+                  <Languages className="h-4 w-4 mr-2" />
+                  {language === 'en' ? '🇬🇧 English' : '🇹🇿 Kiswahili'}
+                </Button>
+              </div>
+
               {/* Mobile Auth Buttons */}
               <div className="flex flex-col space-y-2 px-3 pt-2">
                 {user ? (
@@ -147,24 +188,24 @@ const Navigation = () => {
                     <Link to={getDashboardLink()}>
                       <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => setIsOpen(false)}>
                         <User className="h-4 w-4 mr-2" />
-                        {profile?.first_name || 'Dashboard'}
+                        {profile?.first_name || t('nav.dashboard')}
                       </Button>
                     </Link>
                     <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => { handleSignOut(); setIsOpen(false); }}>
                       <LogOut className="h-4 w-4 mr-2" />
-                      Sign Out
+                      {t('nav.signOut')}
                     </Button>
                   </>
                 ) : (
                   <>
                     <Link to="/auth">
                       <Button variant="outline" size="sm" onClick={() => setIsOpen(false)}>
-                        Sign In
+                        {t('nav.signIn')}
                       </Button>
                     </Link>
                     <Link to="/auth">
                       <Button size="sm" className="bg-gradient-hero shadow-soft" onClick={() => setIsOpen(false)}>
-                        Get Started
+                        {t('nav.getStarted')}
                       </Button>
                     </Link>
                   </>

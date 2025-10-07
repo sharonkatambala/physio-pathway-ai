@@ -123,7 +123,7 @@ const PatientDashboard = () => {
         
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-4">FIZIO AI Assessment</h1>
+            <h1 className="text-3xl font-bold text-foreground mb-4">ErgoCare+ Assessment</h1>
             <div className="flex items-center gap-2 mb-4">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
                 assessmentStep === 'input' ? 'bg-primary text-white' : 
@@ -172,7 +172,7 @@ const PatientDashboard = () => {
             <Card className="shadow-card">
               <CardContent className="p-8 text-center">
                 <div className="animate-spin h-12 w-12 border-4 border-primary border-t-transparent rounded-full mx-auto mb-6"></div>
-                <h3 className="text-xl font-semibold mb-2">FIZIO AI is Creating Your Program</h3>
+                <h3 className="text-xl font-semibold mb-2">ErgoCare+ is Creating Your Program</h3>
                 <p className="text-muted-foreground">
                   Generating your personalized exercise program based on WHO guidelines...
                 </p>
@@ -198,10 +198,6 @@ const PatientDashboard = () => {
                 Welcome back, {profile?.first_name || user.email}!
               </h1>
               <div className="flex flex-wrap gap-4">
-                <Badge variant="secondary" className="px-3 py-1">
-                  <Target className="h-4 w-4 mr-1" />
-                  Lower Back Pain Program
-                </Badge>
                 <Badge variant="outline" className="px-3 py-1">
                   <Calendar className="h-4 w-4 mr-1" />
                   Week 1, Day 3

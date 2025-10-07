@@ -2,8 +2,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Shield, Clock, Users } from 'lucide-react';
 import heroImage from '@/assets/hero-physiotherapy.jpg';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const Hero = () => {
+  const { t } = useLanguage();
+  
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
       {/* Background Image with Overlay */}
@@ -20,25 +23,25 @@ const Hero = () => {
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-8">
             <Badge variant="secondary" className="w-fit">
-              AI-Powered Physiotherapy Platform
+              {t('hero.tagline')}
             </Badge>
             
             <div className="space-y-6">
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground leading-tight">
-                FIZIO AI
+                ErgoCare<span className="text-primary text-5xl sm:text-6xl lg:text-7xl">+</span>
                 <span className="block bg-gradient-hero bg-clip-text text-transparent">
-                  Your AI Physiotherapy Assistant
+                  {t('hero.title')}
                 </span>
               </h1>
               
               <p className="text-xl text-muted-foreground max-w-xl leading-relaxed">
-                Advanced AI-powered physiotherapy platform connecting patients and physiotherapists. Get personalized assessments, exercise programs, and professional monitoring all in one place.
+                {t('hero.description')}
               </p>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
               <Button size="lg" className="bg-gradient-hero shadow-glow text-lg h-14 px-8">
-                Start Free Assessment
+                {t('hero.startAssessment')}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </div>
@@ -46,15 +49,15 @@ const Hero = () => {
             <div className="flex items-center gap-8 pt-4">
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Shield className="h-5 w-5 text-success" />
-                <span className="text-sm">HIPAA Compliant</span>
+                <span className="text-sm">{t('hero.hipaaCompliant')}</span>
               </div>
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Clock className="h-5 w-5 text-primary" />
-                <span className="text-sm">24/7 Available</span>
+                <span className="text-sm">{t('hero.available')}</span>
               </div>
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Users className="h-5 w-5 text-secondary" />
-                <span className="text-sm">10k+ Patients</span>
+                <span className="text-sm">{t('hero.patients')}</span>
               </div>
             </div>
           </div>

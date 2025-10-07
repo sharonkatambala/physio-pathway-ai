@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -10,11 +10,12 @@ import { Brain, ArrowRight, ArrowLeft } from 'lucide-react';
 interface Question {
   id: string;
   question: string;
-  type: 'scale' | 'multiple' | 'boolean';
-  options?: string[];
+  type: 'open' | 'scale';
+  placeholder?: string;
   scaleMin?: number;
   scaleMax?: number;
   scaleLabels?: { min: string; max: string };
+  note?: string;
 }
 
 interface AIQuestionnaireProps {
@@ -29,49 +30,56 @@ const AIQuestionnaire = ({ onComplete, onBack }: AIQuestionnaireProps) => {
   const questions: Question[] = [
     {
       id: 'pain_location',
-      question: 'Where is your pain or discomfort primarily located?',
-      type: 'multiple',
-      options: ['Neck', 'Lower Back', 'Shoulder', 'Knee', 'Hip', 'Ankle', 'Other']
-    },
-    {
-      id: 'pain_intensity',
-      question: 'On a scale of 0-10, how would you rate your current pain level?',
-      type: 'scale',
-      scaleMin: 0,
-      scaleMax: 10,
-      scaleLabels: { min: 'No Pain', max: 'Worst Pain' }
+      question: 'Where is your pain most prominently located?',
+      type: 'open',
+      placeholder: 'Describe the exact location of your pain (e.g., lower back, right knee, left shoulder, etc.)'
     },
     {
       id: 'pain_duration',
       question: 'How long have you been experiencing this problem?',
-      type: 'multiple',
-      options: ['Less than 1 week', '1-4 weeks', '1-3 months', '3-6 months', 'More than 6 months']
-    },
-    {
-      id: 'primary_pain',
-      question: 'What is your primary pain or discomfort?',
-      type: 'multiple',
-      options: ['Sharp pain', 'Dull ache', 'Burning sensation', 'Stiffness', 'Numbness/Tingling', 'Weakness']
+      type: 'open',
+      placeholder: 'Describe how long you\'ve had this problem (e.g., 2 weeks, 3 months, 1 year)'
     },
     {
       id: 'activity_limitation',
       question: 'How does it limit your activities?',
-      type: 'multiple',
-      options: ['Walking', 'Standing', 'Sitting', 'Lifting objects', 'Exercise/Sports', 'Sleep', 'Work tasks']
+      type: 'open',
+      placeholder: 'Describe how your condition affects your daily activities, work, exercise, or hobbies',
+      note: 'Coping questions - This helps us understand your functional limitations'
     },
     {
-      id: 'daily_activities',
-      question: 'How much does this problem limit your daily activities?',
+      id: 'aggravating_activities',
+      question: 'What activities make the pain worse?',
+      type: 'open',
+      placeholder: 'Describe which movements, positions, or activities increase your pain or discomfort'
+    },
+    {
+      id: 'previous_treatments',
+      question: 'Have you tried treatments before? What were the results?',
+      type: 'open',
+      placeholder: 'Describe any previous treatments you\'ve tried (medications, therapy, exercises) and their effectiveness'
+    },
+    {
+      id: 'pain_at_rest',
+      question: 'On a scale of 1-10, how would you rate your pain during rest?',
       type: 'scale',
-      scaleMin: 0,
+      scaleMin: 1,
       scaleMax: 10,
-      scaleLabels: { min: 'Not at all', max: 'Completely' }
+      scaleLabels: { min: 'Minimal Pain', max: 'Severe Pain' }
+    },
+    {
+      id: 'pain_during_activity',
+      question: 'On a scale of 1-10, how would you rate your pain during activity?',
+      type: 'scale',
+      scaleMin: 1,
+      scaleMax: 10,
+      scaleLabels: { min: 'Minimal Pain', max: 'Severe Pain' }
     },
     {
       id: 'symptom_pattern',
-      question: 'When is your pain typically worse?',
-      type: 'multiple',
-      options: ['Morning', 'Evening', 'During activity', 'At rest', 'No specific pattern']
+      question: 'When is your pain typically worse and when does it improve?',
+      type: 'open',
+      placeholder: 'Describe any patterns you\'ve noticed (e.g., worse in morning, improves with movement, worse after sitting)'
     }
   ];
 
@@ -101,7 +109,7 @@ const AIQuestionnaire = ({ onComplete, onBack }: AIQuestionnaireProps) => {
     }
   };
 
-  const isAnswered = answers[currentQ.id] !== undefined;
+  const isAnswered = answers[currentQ.id] !== undefined && answers[currentQ.id].trim() !== '';
   const isLastQuestion = currentQuestion === questions.length - 1;
 
   const renderQuestion = () => {
@@ -113,17 +121,18 @@ const AIQuestionnaire = ({ onComplete, onBack }: AIQuestionnaireProps) => {
               <span>{currentQ.scaleLabels?.min}</span>
               <span>{currentQ.scaleLabels?.max}</span>
             </div>
-            <div className="grid grid-cols-11 gap-2">
+            <div className="grid grid-cols-10 gap-2">
               {Array.from({ length: (currentQ.scaleMax! - currentQ.scaleMin!) + 1 }, (_, i) => {
                 const value = currentQ.scaleMin! + i;
                 return (
                   <button
                     key={value}
                     onClick={() => handleAnswer(value.toString())}
-                    className={`h-12 w-12 rounded-full border-2 transition-colors ${
+                    type="button"
+                    className={`h-12 w-full rounded-lg border-2 transition-all ${
                       answers[currentQ.id] === value.toString()
-                        ? 'border-primary bg-primary text-white'
-                        : 'border-border hover:border-primary/50'
+                        ? 'border-primary bg-primary text-white shadow-md scale-110'
+                        : 'border-border hover:border-primary/50 hover:scale-105'
                     }`}
                   >
                     {value}
@@ -134,23 +143,22 @@ const AIQuestionnaire = ({ onComplete, onBack }: AIQuestionnaireProps) => {
           </div>
         );
 
-      case 'multiple':
-      case 'boolean':
+      case 'open':
         return (
-          <RadioGroup 
-            value={answers[currentQ.id]} 
-            onValueChange={handleAnswer}
-            className="space-y-3"
-          >
-            {currentQ.options?.map((option) => (
-              <div key={option} className="flex items-center space-x-2">
-                <RadioGroupItem value={option} id={option} />
-                <Label htmlFor={option} className="text-base cursor-pointer">
-                  {option}
-                </Label>
-              </div>
-            ))}
-          </RadioGroup>
+          <div className="space-y-2">
+            <Textarea
+              value={answers[currentQ.id] || ''}
+              onChange={(e) => handleAnswer(e.target.value)}
+              placeholder={currentQ.placeholder}
+              rows={5}
+              className="text-base"
+            />
+            {currentQ.note && (
+              <p className="text-sm text-muted-foreground italic">
+                {currentQ.note}
+              </p>
+            )}
+          </div>
         );
 
       default:
@@ -180,15 +188,20 @@ const AIQuestionnaire = ({ onComplete, onBack }: AIQuestionnaireProps) => {
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-6">
-          <h3 className="text-lg font-medium leading-relaxed">
-            {currentQ.question}
-          </h3>
+          <div className="space-y-2">
+            <Label className="text-lg font-medium leading-relaxed">
+              {currentQ.question}
+            </Label>
+            <p className="text-sm text-muted-foreground">
+              Question {currentQuestion + 1} of {questions.length}
+            </p>
+          </div>
           
           {renderQuestion()}
         </div>
 
         <div className="flex justify-between">
-          <Button variant="outline" onClick={handlePrevious}>
+          <Button variant="outline" onClick={handlePrevious} type="button">
             <ArrowLeft className="h-4 w-4 mr-2" />
             {currentQuestion === 0 ? 'Back to Video' : 'Previous'}
           </Button>
@@ -196,6 +209,7 @@ const AIQuestionnaire = ({ onComplete, onBack }: AIQuestionnaireProps) => {
           <Button 
             onClick={handleNext} 
             disabled={!isAnswered}
+            type="button"
           >
             {isLastQuestion ? 'Complete Assessment' : 'Next Question'}
             <ArrowRight className="h-4 w-4 ml-2" />

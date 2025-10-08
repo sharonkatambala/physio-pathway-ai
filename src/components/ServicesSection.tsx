@@ -2,48 +2,51 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Activity, Video, Brain, Calendar, TrendingUp, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const ServicesSection = () => {
+  const { t } = useLanguage();
+  
   const services = [
     {
       icon: Brain,
-      title: "AI Assessment",
-      description: "Advanced AI-powered assessment tools that analyze your condition and create personalized treatment plans.",
+      titleKey: "services.aiAssessment",
+      descKey: "services.aiAssessmentDesc",
       features: ["Video Analysis", "Questionnaire", "Progress Tracking"],
       badge: "AI-Powered"
     },
     {
       icon: Video,
-      title: "Exercise Programs",
-      description: "Personalized exercise programs with demonstration videos based on FITT principles.",
+      titleKey: "services.exercisePrograms",
+      descKey: "services.exerciseProgramsDesc",
       features: ["Video Demonstrations", "Progress Monitoring", "Pain Tracking"],
       badge: "Personalized"
     },
     {
       icon: Calendar,
-      title: "Professional Sessions",
-      description: "Book sessions with certified physiotherapists for hands-on treatment and guidance.",
+      titleKey: "services.professionalSessions",
+      descKey: "services.professionalSessionsDesc",
       features: ["Certified Professionals", "Flexible Scheduling", "Direct Communication"],
       badge: "Expert Care"
     },
     {
       icon: TrendingUp,
-      title: "Progress Monitoring",
-      description: "Comprehensive tracking of your recovery journey with detailed analytics and insights.",
+      titleKey: "services.progressMonitoring",
+      descKey: "services.progressMonitoringDesc",
       features: ["Visual Charts", "Pain Assessment", "Exercise Compliance"],
       badge: "Data-Driven"
     },
     {
       icon: Users,
-      title: "Patient-Physiotherapist Portal",
-      description: "Seamless communication platform connecting patients with their physiotherapists.",
+      titleKey: "services.patientPortal",
+      descKey: "services.patientPortalDesc",
       features: ["Real-time Chat", "Report Sharing", "Appointment Management"],
       badge: "Connected Care"
     },
     {
       icon: Activity,
-      title: "Wearable Integration",
-      description: "Connect with wearable devices for continuous monitoring of movement and progress.",
+      titleKey: "services.wearableIntegration",
+      descKey: "services.wearableIntegrationDesc",
       features: ["Device Sync", "Movement Analysis", "Real-time Feedback"],
       badge: "Smart Tech"
     }
@@ -54,10 +57,10 @@ const ServicesSection = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center space-y-4 mb-16">
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground">
-            Comprehensive Physiotherapy Services
+            {t('services.title')}
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            From AI-powered assessments to professional consultations, we provide everything you need for your recovery journey.
+            {t('services.subtitle')}
           </p>
         </div>
 
@@ -78,10 +81,10 @@ const ServicesSection = () => {
                   
                   <div className="space-y-3">
                     <h3 className="text-xl font-semibold text-foreground">
-                      {service.title}
+                      {t(service.titleKey)}
                     </h3>
                     <p className="text-muted-foreground leading-relaxed">
-                      {service.description}
+                      {t(service.descKey)}
                     </p>
                   </div>
 
@@ -102,7 +105,7 @@ const ServicesSection = () => {
         <div className="text-center mt-16">
           <Link to="/auth">
             <Button size="lg" className="bg-gradient-hero shadow-glow">
-              Get Started Today
+              {t('services.getStarted')}
             </Button>
           </Link>
         </div>

@@ -9,48 +9,51 @@ import {
   Brain,
   Activity
 } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const Features = () => {
+  const { t } = useLanguage();
+  
   const features = [
     {
       icon: Brain,
-      title: "AI Assessment",
-      description: "Advanced AI analyzes your symptoms, movement patterns, and medical history to provide accurate condition assessment."
+      titleKey: "features.aiAssessmentTitle",
+      descKey: "features.aiAssessmentDesc"
     },
     {
       icon: Video,
-      title: "Video Analysis",
-      description: "Upload movement videos for AI-powered posture and movement analysis with personalized feedback."
+      titleKey: "features.videoAnalysis",
+      descKey: "features.videoAnalysisDesc"
     },
     {
       icon: Target,
-      title: "Personalized Exercises",
-      description: "FITT-based exercise programs tailored to your condition, progress level, and daily limitations."
+      titleKey: "features.personalizedExercises",
+      descKey: "features.personalizedExercisesDesc"
     },
     {
       icon: TrendingUp,
-      title: "Progress Tracking",
-      description: "Monitor pain levels, mobility improvements, and exercise adherence with detailed analytics."
+      titleKey: "features.progressTracking",
+      descKey: "features.progressTrackingDesc"
     },
     {
       icon: MessageSquare,
-      title: "24/7 AI Support",
-      description: "Get instant answers to your questions and guidance from our AI physiotherapist anytime."
+      titleKey: "features.aiSupport",
+      descKey: "features.aiSupportDesc"
     },
     {
       icon: Calendar,
-      title: "Book Real Physiotherapists",
-      description: "Schedule sessions with licensed physiotherapists when you need human expertise."
+      titleKey: "features.bookPhysiotherapists",
+      descKey: "features.bookPhysiotherapistsDesc"
     },
     {
       icon: Activity,
-      title: "Real-time Monitoring",
-      description: "Track your daily activities, exercise completion, and recovery metrics automatically."
+      titleKey: "features.realtimeMonitoring",
+      descKey: "features.realtimeMonitoringDesc"
     },
     {
       icon: Shield,
-      title: "Medical Grade Security",
-      description: "HIPAA-compliant platform ensuring your health data is protected and confidential."
+      titleKey: "features.medicalSecurity",
+      descKey: "features.medicalSecurityDesc"
     }
   ];
 
@@ -59,10 +62,10 @@ const Features = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-            Complete Physiotherapy Platform
+            {t('features.title')}
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Everything you need for effective physiotherapy care in one intelligent platform
+            {t('features.subtitle')}
           </p>
         </div>
 
@@ -75,11 +78,11 @@ const Features = () => {
                   <div className="w-12 h-12 bg-gradient-hero rounded-lg flex items-center justify-center mb-4">
                     <Icon className="h-6 w-6 text-white" />
                   </div>
-                  <CardTitle className="text-lg">{feature.title}</CardTitle>
+                  <CardTitle className="text-lg">{t(feature.titleKey)}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground text-sm leading-relaxed">
-                    {feature.description}
+                    {t(feature.descKey)}
                   </p>
                 </CardContent>
               </Card>

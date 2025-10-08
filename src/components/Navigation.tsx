@@ -88,17 +88,16 @@ const Navigation = () => {
             {/* Language Selector */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="flex items-center space-x-2 ml-2">
-                  <Languages className="h-4 w-4" />
-                  <span className="uppercase">{language}</span>
+                <Button variant="ghost" size="sm" className="flex items-center space-x-1 ml-2">
+                  <span className="font-semibold">{language === 'en' ? 'ENG' : 'SW'}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => setLanguage('en')} className="cursor-pointer">
-                  🇬🇧 English
+                  ENG - English
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setLanguage('sw')} className="cursor-pointer">
-                  🇹🇿 Kiswahili
+                  SW - Kiswahili
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -176,8 +175,8 @@ const Navigation = () => {
                   className="w-full justify-start"
                   onClick={() => setLanguage(language === 'en' ? 'sw' : 'en')}
                 >
-                  <Languages className="h-4 w-4 mr-2" />
-                  {language === 'en' ? '🇬🇧 English' : '🇹🇿 Kiswahili'}
+                  <span className="font-semibold mr-2">{language === 'en' ? 'ENG' : 'SW'}</span>
+                  {language === 'en' ? 'English' : 'Kiswahili'}
                 </Button>
               </div>
 

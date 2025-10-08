@@ -33,9 +33,11 @@ import MonitoringSystem from '@/components/MonitoringSystem';
 import ChatSystem from '@/components/ChatSystem';
 import BookingSystem from '@/components/BookingSystem';
 import ExerciseProgramDisplay from '@/components/ExerciseProgramDisplay';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const PatientDashboard = () => {
   const { user, profile, loading } = useAuth();
+  const { t } = useLanguage();
   // Start with 'input' to show assessment first for new users
   const [assessmentStep, setAssessmentStep] = useState<'input' | 'video' | 'questionnaire' | 'results' | 'complete'>('input');
   const [healthData, setHealthData] = useState<any>(null);
@@ -123,7 +125,7 @@ const PatientDashboard = () => {
         
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-4">ErgoCare+ Assessment</h1>
+            <h1 className="text-3xl font-bold text-foreground mb-4">{t('assessment.title')}</h1>
             <div className="flex items-center gap-2 mb-4">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
                 assessmentStep === 'input' ? 'bg-primary text-white' : 
@@ -147,9 +149,9 @@ const PatientDashboard = () => {
               </div>
             </div>
             <div className="flex justify-between text-sm text-muted-foreground max-w-md">
-              <span>Health Info</span>
-              <span>Video (Optional)</span>
-              <span>Questionnaire</span>
+              <span>{t('assessment.healthInfo')}</span>
+              <span>{t('assessment.video')}</span>
+              <span>{t('assessment.questionnaire')}</span>
             </div>
           </div>
 
@@ -172,9 +174,9 @@ const PatientDashboard = () => {
             <Card className="shadow-card">
               <CardContent className="p-8 text-center">
                 <div className="animate-spin h-12 w-12 border-4 border-primary border-t-transparent rounded-full mx-auto mb-6"></div>
-                <h3 className="text-xl font-semibold mb-2">ErgoCare+ is Creating Your Program</h3>
+                <h3 className="text-xl font-semibold mb-2">{t('assessment.generating')}</h3>
                 <p className="text-muted-foreground">
-                  Generating your personalized exercise program based on WHO guidelines...
+                  {t('assessment.generatingDesc')}
                 </p>
               </CardContent>
             </Card>
@@ -195,33 +197,33 @@ const PatientDashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-foreground mb-4">
-                Welcome back, {profile?.first_name || user.email}!
+                {t('patient.welcomeBack')}, {profile?.first_name || user.email}!
               </h1>
               <div className="flex flex-wrap gap-4">
                 <Badge variant="outline" className="px-3 py-1">
                   <Calendar className="h-4 w-4 mr-1" />
-                  Week 1, Day 3
+                  {t('patient.weekDay')}
                 </Badge>
                 <Badge variant="outline" className="px-3 py-1">
                   <TrendingUp className="h-4 w-4 mr-1" />
-                  Good Progress
+                  {t('patient.goodProgress')}
                 </Badge>
               </div>
             </div>
             <Button variant="outline" onClick={startNewAssessment}>
               <RotateCcw className="h-4 w-4 mr-2" />
-              New Assessment
+              {t('patient.newAssessment')}
             </Button>
           </div>
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="exercises">Exercises</TabsTrigger>
-            <TabsTrigger value="progress">Progress</TabsTrigger>
-            <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
-            <TabsTrigger value="chat">Chat & Book</TabsTrigger>
+            <TabsTrigger value="overview">{t('dashboard.overview')}</TabsTrigger>
+            <TabsTrigger value="exercises">{t('dashboard.exercises')}</TabsTrigger>
+            <TabsTrigger value="progress">{t('dashboard.progress')}</TabsTrigger>
+            <TabsTrigger value="monitoring">{t('dashboard.monitoring')}</TabsTrigger>
+            <TabsTrigger value="chat">{t('dashboard.chatBook')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -231,7 +233,7 @@ const PatientDashboard = () => {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-muted-foreground text-sm">Pain Level</p>
+                      <p className="text-muted-foreground text-sm">{t('patient.painLevel')}</p>
                       <p className="text-2xl font-bold text-primary">3/10</p>
                     </div>
                     <Activity className="h-8 w-8 text-primary" />
@@ -243,8 +245,8 @@ const PatientDashboard = () => {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-muted-foreground text-sm">Exercise Streak</p>
-                      <p className="text-2xl font-bold text-success">7 days</p>
+                      <p className="text-muted-foreground text-sm">{t('patient.exerciseStreak')}</p>
+                      <p className="text-2xl font-bold text-success">7 {t('patient.days')}</p>
                     </div>
                     <Target className="h-8 w-8 text-success" />
                   </div>
@@ -255,7 +257,7 @@ const PatientDashboard = () => {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-muted-foreground text-sm">Weekly Progress</p>
+                      <p className="text-muted-foreground text-sm">{t('patient.weeklyProgress')}</p>
                       <p className="text-2xl font-bold text-secondary">85%</p>
                     </div>
                     <TrendingUp className="h-8 w-8 text-secondary" />
@@ -267,8 +269,8 @@ const PatientDashboard = () => {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-muted-foreground text-sm">Next Session</p>
-                      <p className="text-lg font-bold text-accent">Today 2PM</p>
+                      <p className="text-muted-foreground text-sm">{t('patient.nextSession')}</p>
+                      <p className="text-lg font-bold text-accent">{t('patient.today')} 2PM</p>
                     </div>
                     <Calendar className="h-8 w-8 text-accent" />
                   </div>
@@ -282,26 +284,26 @@ const PatientDashboard = () => {
             {/* Today's Tasks */}
             <Card className="shadow-card">
               <CardHeader>
-                <CardTitle>Today's Recommended Actions</CardTitle>
+                <CardTitle>{t('patient.todaysActions')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
                     <CheckCircle className="h-5 w-5 text-success" />
-                    <span>Complete morning stretches (✓ Done)</span>
+                    <span>{t('patient.completedStretches')}</span>
                   </div>
                   <div className="flex items-center gap-3 p-3 border rounded-lg">
                     <Clock className="h-5 w-5 text-primary" />
-                    <span>Core strengthening exercises (15 min)</span>
+                    <span>{t('patient.coreExercises')}</span>
                     <Button size="sm" variant="outline" className="ml-auto">
-                      Start Now
+                      {t('patient.startNow')}
                     </Button>
                   </div>
                   <div className="flex items-center gap-3 p-3 border rounded-lg">
                     <Video className="h-5 w-5 text-accent" />
-                    <span>Upload today's progress video</span>
+                    <span>{t('patient.uploadVideo')}</span>
                     <Button size="sm" variant="outline" className="ml-auto">
-                      Upload
+                      {t('patient.upload')}
                     </Button>
                   </div>
                 </div>

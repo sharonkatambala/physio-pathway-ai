@@ -28,7 +28,7 @@ const Hero = () => {
             
             <div className="space-y-6">
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground leading-tight">
-                ErgoCare<span className="text-primary text-5xl sm:text-6xl lg:text-7xl">+</span>
+                Ergo<span className="text-blue-500">Care</span><span className="text-green-500 text-5xl sm:text-6xl lg:text-7xl">+</span>
                 <span className="block bg-gradient-hero bg-clip-text text-transparent">
                   {t('hero.title')}
                 </span>
@@ -45,43 +45,25 @@ const Hero = () => {
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </div>
-
-            <div className="flex items-center gap-8 pt-4">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Shield className="h-5 w-5 text-success" />
-                <span className="text-sm">{t('hero.hipaaCompliant')}</span>
-              </div>
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Clock className="h-5 w-5 text-primary" />
-                <span className="text-sm">{t('hero.available')}</span>
-              </div>
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Users className="h-5 w-5 text-secondary" />
-                <span className="text-sm">{t('hero.patients')}</span>
-              </div>
-            </div>
           </div>
 
-          {/* Stats Card */}
-          <div className="lg:block hidden">
-            <div className="bg-gradient-card rounded-2xl p-8 shadow-card border border-border/50 backdrop-blur-sm">
-              <div className="grid grid-cols-2 gap-6">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-primary">95%</div>
-                  <div className="text-muted-foreground text-sm">Success Rate</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-secondary">10k+</div>
-                  <div className="text-muted-foreground text-sm">Patients Helped</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-accent">24/7</div>
-                  <div className="text-muted-foreground text-sm">AI Support</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-primary">4.9★</div>
-                  <div className="text-muted-foreground text-sm">Patient Rating</div>
-                </div>
+        </div>
+
+        {/* Bottom Stats Bar */}
+        <div className="absolute bottom-8 left-0 right-0 z-10">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-wrap items-center justify-center gap-8 bg-card/80 backdrop-blur-md rounded-2xl p-6 border border-border/50 shadow-card">
+              <div className="flex items-center gap-2">
+                <Shield className="h-6 w-6 text-success" />
+                <span className="text-sm font-medium">{t('hero.hipaaCompliant')}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="h-6 w-6 text-primary" />
+                <span className="text-sm font-medium">{t('hero.available')}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Users className="h-6 w-6 text-secondary" />
+                <span className="text-sm font-medium">{t('hero.patients')}</span>
               </div>
             </div>
           </div>

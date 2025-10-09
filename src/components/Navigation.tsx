@@ -54,12 +54,12 @@ const Navigation = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
-            <Link to="/" className="flex-shrink-0 flex items-center space-x-2">
+            <Link to="/" className="flex-shrink-0 flex items-center space-x-2 hover:opacity-80 transition-opacity">
               <div className="w-8 h-8 bg-gradient-hero rounded-lg flex items-center justify-center">
                 <Activity className="h-5 w-5 text-white" />
               </div>
               <span className="text-xl font-bold text-foreground">
-                ErgoCare<span className="text-primary">+</span>
+                Ergo<span className="text-blue-500">Care</span><span className="text-green-500">+</span>
               </span>
             </Link>
           </div>

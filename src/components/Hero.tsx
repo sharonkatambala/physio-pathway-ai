@@ -48,23 +48,23 @@ const Hero = () => {
           </div>
 
         </div>
+      </div>
 
-        {/* Bottom Stats Bar */}
-        <div className="absolute bottom-8 left-0 right-0 z-10">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-wrap items-center justify-center gap-8 bg-card/80 backdrop-blur-md rounded-2xl p-6 border border-border/50 shadow-card">
-              <div className="flex items-center gap-2">
-                <Shield className="h-6 w-6 text-success" />
-                <span className="text-sm font-medium">{t('hero.hipaaCompliant')}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock className="h-6 w-6 text-primary" />
-                <span className="text-sm font-medium">{t('hero.available')}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Users className="h-6 w-6 text-secondary" />
-                <span className="text-sm font-medium">{t('hero.patients')}</span>
-              </div>
+      {/* Bottom Stats */}
+      <div className="absolute bottom-8 left-0 right-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-center gap-8">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Shield className="h-5 w-5 text-success" />
+              <span className="text-sm">{t('hero.hipaaCompliant')}</span>
+            </div>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Clock className="h-5 w-5 text-primary" />
+              <span className="text-sm">{t('hero.available')}</span>
+            </div>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Users className="h-5 w-5 text-secondary" />
+              <span className="text-sm">{t('hero.patients')}</span>
             </div>
           </div>
         </div>

@@ -10,18 +10,18 @@ import ContactSection from '@/components/ContactSection';
 import Footer from '@/components/Footer';
 
 const Index = () => {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, role, loading } = useAuth();
   const navigate = useNavigate();
 
   // Redirect authenticated users to their dashboard
   useEffect(() => {
-    if (!loading && user && profile) {
-      const dashboardPath = profile.role === 'physiotherapist' 
+    if (!loading && user && role) {
+      const dashboardPath = role === 'physiotherapist' 
         ? '/physiotherapist-dashboard' 
         : '/patient-dashboard';
       navigate(dashboardPath, { replace: true });
     }
-  }, [user, profile, loading, navigate]);
+  }, [user, role, loading, navigate]);
 
   // Show loading state while checking auth
   if (loading) {

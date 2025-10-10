@@ -12,18 +12,18 @@ import { ArrowLeft } from 'lucide-react';
 
 const AuthPage = () => {
   const [loading, setLoading] = useState(false);
-  const { signIn, signUp, user, profile } = useAuth();
+  const { signIn, signUp, user, profile, role } = useAuth();
   const navigate = useNavigate();
 
   // Redirect if already logged in
   useEffect(() => {
-    if (user && profile) {
-      const dashboardPath = profile.role === 'physiotherapist' 
+    if (user && role) {
+      const dashboardPath = role === 'physiotherapist' 
         ? '/physiotherapist-dashboard' 
         : '/patient-dashboard';
       navigate(dashboardPath, { replace: true });
     }
-  }, [user, profile, navigate]);
+  }, [user, role, navigate]);
 
   const [loginData, setLoginData] = useState({
     email: '',

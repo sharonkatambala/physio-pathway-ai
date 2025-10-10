@@ -42,19 +42,48 @@ const PatientManagement = () => {
 
   const fetchPatients = async () => {
     try {
-      const { data, error } = await supabase
+      // Fetch current user's profile to get their ID
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data: currentProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!currentProfile) throw new Error('Profile not found');
+
+      // First, get all assignments for this physiotherapist
+      const { data: assignments, error: assignError } = await supabase
+        .from('physio_patient_assignments')
+        .select('patient_id')
+        .eq('physio_id', currentProfile.id)
+        .eq('status', 'active');
+
+      if (assignError) throw assignError;
+
+      const patientIds = (assignments || []).map(a => a.patient_id);
+
+      if (patientIds.length === 0) {
+        setPatients([]);
+        return;
+      }
+
+      // Then fetch all the patient profiles
+      const { data: patientProfiles, error: profileError } = await supabase
         .from('profiles')
         .select('*')
-        .eq('role', 'patient')
-        .order('created_at', { ascending: false });
+        .in('id', patientIds);
 
-      if (error) throw error;
-      setPatients(data || []);
+      if (profileError) throw profileError;
+        
+      setPatients(patientProfiles || []);
     } catch (error) {
       console.error('Error fetching patients:', error);
       toast({
         title: "Error",
-        description: "Failed to load patients.",
+        description: "Failed to load assigned patients.",
         variant: "destructive"
       });
     } finally {

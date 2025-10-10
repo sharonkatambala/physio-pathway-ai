@@ -36,7 +36,7 @@ import ExerciseProgramDisplay from '@/components/ExerciseProgramDisplay';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const PatientDashboard = () => {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, role, loading } = useAuth();
   const { t } = useLanguage();
   // Start with 'input' to show assessment first for new users
   const [assessmentStep, setAssessmentStep] = useState<'input' | 'video' | 'questionnaire' | 'results' | 'complete'>('input');
@@ -53,7 +53,7 @@ const PatientDashboard = () => {
     return <Navigate to="/auth" replace />;
   }
 
-  if (profile?.role !== 'patient') {
+  if (role !== 'patient') {
     return <Navigate to="/physiotherapist-dashboard" replace />;
   }
 

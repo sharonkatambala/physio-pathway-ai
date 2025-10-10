@@ -155,6 +155,33 @@ export type Database = {
           },
         ]
       }
+      physio_patient_assignments: {
+        Row: {
+          created_at: string | null
+          id: string
+          patient_id: string
+          physio_id: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          patient_id: string
+          physio_id: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          patient_id?: string
+          physio_id?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           age: number | null
@@ -164,7 +191,6 @@ export type Database = {
           last_name: string | null
           occupation: string | null
           phone: string | null
-          role: Database["public"]["Enums"]["user_role"]
           sex: string | null
           updated_at: string
           user_id: string
@@ -177,7 +203,6 @@ export type Database = {
           last_name?: string | null
           occupation?: string | null
           phone?: string | null
-          role?: Database["public"]["Enums"]["user_role"]
           sex?: string | null
           updated_at?: string
           user_id: string
@@ -190,9 +215,29 @@ export type Database = {
           last_name?: string | null
           occupation?: string | null
           phone?: string | null
-          role?: Database["public"]["Enums"]["user_role"]
           sex?: string | null
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
           user_id?: string
         }
         Relationships: []
@@ -202,7 +247,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["user_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       user_role: "patient" | "physiotherapist"

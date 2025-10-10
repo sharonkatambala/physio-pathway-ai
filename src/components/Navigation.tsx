@@ -13,7 +13,7 @@ import {
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, role, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { language, setLanguage, t } = useLanguage();
@@ -24,14 +24,14 @@ const Navigation = () => {
   };
 
   const getDashboardLink = () => {
-    if (!profile) return '/';
-    return profile.role === 'patient' ? '/patient-dashboard' : '/physiotherapist-dashboard';
+    if (!role) return '/';
+    return role === 'patient' ? '/patient-dashboard' : '/physiotherapist-dashboard';
   };
 
   const getNavigationItems = () => {
-    if (!user || !profile) return [];
+    if (!user || !role) return [];
     
-    if (profile.role === 'patient') {
+    if (role === 'patient') {
       return [
         { name: t('nav.assessment'), href: '/assessment', icon: Activity },
         { name: t('nav.exercises'), href: '/exercises', icon: BookOpen },

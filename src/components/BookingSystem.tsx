@@ -81,10 +81,26 @@ const BookingSystem = () => {
 
   const fetchPhysiotherapists = async () => {
     try {
+      // Get all physiotherapist user IDs from user_roles table
+      const { data: physioRoles, error: roleError } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .eq('role', 'physiotherapist');
+
+      if (roleError) throw roleError;
+
+      const physioUserIds = (physioRoles || []).map(r => r.user_id);
+
+      if (physioUserIds.length === 0) {
+        setPhysiotherapists([]);
+        return;
+      }
+
+      // Then fetch the profiles for those users
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('role', 'physiotherapist');
+        .in('user_id', physioUserIds);
 
       if (error) throw error;
       setPhysiotherapists(data || []);

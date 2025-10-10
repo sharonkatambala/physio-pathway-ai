@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, Video, Activity, Calendar, MessageSquare, TrendingUp, FileText, Settings, Book } from 'lucide-react';
 
 const PhysiotherapistDashboard = () => {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, role, loading } = useAuth();
 
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
@@ -18,7 +18,7 @@ const PhysiotherapistDashboard = () => {
     return <Navigate to="/auth" replace />;
   }
 
-  if (profile?.role !== 'physiotherapist') {
+  if (role !== 'physiotherapist') {
     return <Navigate to="/patient-dashboard" replace />;
   }
 

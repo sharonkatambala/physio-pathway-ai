@@ -75,35 +75,43 @@ const BookingSystem = () => {
   ];
 
   useEffect(() => {
-    fetchPhysiotherapists();
-    fetchAppointments();
-  }, []);
+    if (profile?.id) {
+      fetchPhysiotherapists();
+      fetchAppointments();
+    }
+  }, [profile?.id]);
 
   const fetchPhysiotherapists = async () => {
+    if (!profile?.id) {
+      setLoading(false);
+      return;
+    }
+
     try {
-      // Get all physiotherapist user IDs from user_roles table
-      const { data: physioRoles, error: roleError } = await supabase
-        .from('user_roles')
-        .select('user_id')
-        .eq('role', 'physiotherapist');
+      // Get assigned physiotherapist for this patient
+      const { data: assignment, error: assignmentError } = await supabase
+        .from('physio_patient_assignments')
+        .select('physio_id')
+        .eq('patient_id', profile.id)
+        .eq('status', 'active')
+        .maybeSingle();
 
-      if (roleError) throw roleError;
+      if (assignmentError) throw assignmentError;
 
-      const physioUserIds = (physioRoles || []).map(r => r.user_id);
-
-      if (physioUserIds.length === 0) {
+      if (!assignment) {
         setPhysiotherapists([]);
         return;
       }
 
-      // Then fetch the profiles for those users
+      // Fetch the assigned physiotherapist's profile
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .in('user_id', physioUserIds);
+        .eq('id', assignment.physio_id)
+        .maybeSingle();
 
       if (error) throw error;
-      setPhysiotherapists(data || []);
+      setPhysiotherapists(data ? [data] : []);
     } catch (error) {
       console.error('Error fetching physiotherapists:', error);
       toast({
@@ -234,7 +242,8 @@ const BookingSystem = () => {
                 {physiotherapists.length === 0 ? (
                   <div className="text-center py-8">
                     <User className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                    <p className="text-muted-foreground">No physiotherapists available yet.</p>
+                    <p className="text-muted-foreground font-medium mb-2">No assigned physiotherapist</p>
+                    <p className="text-sm text-muted-foreground">Please contact an admin to be assigned to a physiotherapist.</p>
                   </div>
                 ) : (
                   physiotherapists.map((therapist) => (

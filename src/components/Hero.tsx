@@ -1,14 +1,39 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Shield, Clock, Users } from 'lucide-react';
+import { ArrowRight, Shield, Clock, Users, Languages } from 'lucide-react';
 import heroImage from '@/assets/hero-physiotherapy.jpg';
 import { useLanguage } from '@/contexts/LanguageContext';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Hero = () => {
-  const { t } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
   
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
+      {/* Language Selector - Top Right */}
+      <div className="absolute top-4 right-4 z-20">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="flex items-center space-x-2 bg-card/80 backdrop-blur-sm">
+              <Languages className="h-4 w-4" />
+              <span className="font-semibold">{language === 'en' ? 'ENG' : 'SW'}</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => setLanguage('en')} className="cursor-pointer">
+              ENG - English
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setLanguage('sw')} className="cursor-pointer">
+              SW - Kiswahili
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 z-0">
         <img 

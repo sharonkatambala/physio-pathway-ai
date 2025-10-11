@@ -84,23 +84,6 @@ const Navigation = () => {
                 </Link>
               );
             })}
-            
-            {/* Language Selector */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="flex items-center space-x-1 ml-2">
-                  <span className="font-semibold">{language === 'en' ? 'ENG' : 'SW'}</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setLanguage('en')} className="cursor-pointer">
-                  ENG - English
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setLanguage('sw')} className="cursor-pointer">
-                  SW - Kiswahili
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
 
             {/* Auth Buttons */}
             {user ? (
@@ -166,19 +149,6 @@ const Navigation = () => {
                   </Link>
                 );
               })}
-              
-              {/* Mobile Language Selector */}
-              <div className="px-3 pt-2 border-t border-border mt-2">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="w-full justify-start"
-                  onClick={() => setLanguage(language === 'en' ? 'sw' : 'en')}
-                >
-                  <span className="font-semibold mr-2">{language === 'en' ? 'ENG' : 'SW'}</span>
-                  {language === 'en' ? 'English' : 'Kiswahili'}
-                </Button>
-              </div>
 
               {/* Mobile Auth Buttons */}
               <div className="flex flex-col space-y-2 px-3 pt-2">

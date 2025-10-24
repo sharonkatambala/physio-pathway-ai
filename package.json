@@ -4,14 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-<<<<<<< HEAD
-  "dev": "vite",
-  "test": "vitest",
-  "build": "vite build",
-=======
     "dev": "vite",
+    "test": "vitest",
     "build": "vite build",
->>>>>>> c152a9c29a8f8110d3a980d081535e47a1e7f59c
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -85,11 +80,7 @@
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.38.0",
-<<<<<<< HEAD
     "vite": "^5.4.19",
     "vitest": "^1.4.4"
-=======
-    "vite": "^5.4.19"
->>>>>>> c152a9c29a8f8110d3a980d081535e47a1e7f59c
   }
 }

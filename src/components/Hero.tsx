@@ -1,6 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+<<<<<<< HEAD
 import { ArrowRight, Shield, Clock, Users } from 'lucide-react';
+=======
+import { ArrowRight, Shield, Clock, Users, Languages } from 'lucide-react';
+>>>>>>> c152a9c29a8f8110d3a980d081535e47a1e7f59c
 import heroImage from '@/assets/hero-physiotherapy.jpg';
 import { useLanguage } from '@/contexts/LanguageContext';
 import {
@@ -20,6 +24,10 @@ const Hero = () => {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm" className="flex items-center space-x-2 bg-card/80 backdrop-blur-sm">
+<<<<<<< HEAD
+=======
+              <Languages className="h-4 w-4" />
+>>>>>>> c152a9c29a8f8110d3a980d081535e47a1e7f59c
               <span className="font-semibold">{language === 'en' ? 'ENG' : 'SW'}</span>
             </Button>
           </DropdownMenuTrigger>

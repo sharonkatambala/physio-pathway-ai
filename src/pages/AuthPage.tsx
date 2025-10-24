@@ -17,6 +17,7 @@ const AuthPage = () => {
 
   // Redirect if already logged in
   useEffect(() => {
+<<<<<<< HEAD
     const doRedirect = async () => {
       if (!user || !role) return;
 
@@ -45,6 +46,14 @@ const AuthPage = () => {
     };
 
     doRedirect();
+=======
+    if (user && role) {
+      const dashboardPath = role === 'physiotherapist' 
+        ? '/physiotherapist-dashboard' 
+        : '/patient-dashboard';
+      navigate(dashboardPath, { replace: true });
+    }
+>>>>>>> c152a9c29a8f8110d3a980d081535e47a1e7f59c
   }, [user, role, navigate]);
 
   const [loginData, setLoginData] = useState({

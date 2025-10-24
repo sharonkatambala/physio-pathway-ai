@@ -20,6 +20,7 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
+<<<<<<< HEAD
     const systemPrompt = `You are FIZIO AI, a physiotherapy assistant platform. After a patient assessment, produce a single JSON object ONLY (no extra commentary) with two top-level keys: "assessment_report" and "exercise_program".
 
 Structure exactly as follows (example types shown):
@@ -47,6 +48,50 @@ Structure exactly as follows (example types shown):
 Respond with valid JSON only. If some fields are not applicable, use null or empty arrays. Ensure safety and avoid medical claims beyond general physiotherapy guidance.`;
 
   const userPrompt = `Based on the following patient assessment, produce the JSON structure requested in the system prompt. Only output valid JSON.\n\nPatient Information:\n- Age: ${healthData.age}\n- Sex: ${healthData.sex}\n- Occupation: ${healthData.occupation}\n- Medical Diagnosis: ${healthData.diagnosis || 'Not provided'}\n- Problem Description: ${healthData.problemDescription}\n- Previous Treatment: ${healthData.previousTreatment || 'None reported'}\n- Patient Goals: ${healthData.patientGoals}\n\nAssessment Questionnaire Results:\n${Object.entries(questionnaireAnswers).map(([key, value]) => `- ${key}: ${value}`).join('\n')}\n\n${hasVideo ? 'Note: Patient has provided a video assessment for visual analysis.' : ''}`;
+=======
+    const systemPrompt = `You are FIZIO AI, a physiotherapy assistant platform. After a patient assessment, generate two structured outputs:
+
+1. **AI Assessment Report** with these exact sections:
+   - **Summary of Findings**: Main complaint, location, severity, functional limitation
+   - **Possible Clinical Impression**: Suspected condition, aggravating factors, urgent issues if any
+   - **Risk / Red Flags Alert**: Highlight urgent symptoms if present (use "⚠️" icon for warnings)
+   - **Recommended Management Plan**: Education, exercises, lifestyle modifications
+   - **Progress Tracking Goals**: Measurable goals for follow-up
+   - **Referral Guidance**: When to consult a physiotherapist or doctor
+
+2. **Exercise Program** with these sections:
+   - **Warm-up**: Gentle mobility or stretching exercises to prepare the body
+   - **Main Exercises**: Core recommended activities (strength, balance, aerobic, flexibility), tailored to the patient's condition
+   - **Cool-down**: Relaxation and light stretching exercises
+   - **Safety & Notes**: Special considerations, frequency, duration, and intensity based on WHO standards
+
+For each exercise, provide:
+- Name of exercise
+- Frequency (times per week/day)
+- Duration (minutes/reps)
+- Intensity level (light, moderate, vigorous)
+- Purpose / Benefit for the patient's condition
+
+Format your response with clear markdown headings (##) for each main section. All recommendations must strictly align with World Health Organization (WHO) guidelines on physical activity and rehabilitation. Include variations or alternatives if possible.`;
+
+    const userPrompt = `Based on the following patient assessment, create a comprehensive AI Assessment Report and personalized exercise program:
+
+Patient Information:
+- Age: ${healthData.age}
+- Sex: ${healthData.sex}
+- Occupation: ${healthData.occupation}
+- Medical Diagnosis: ${healthData.diagnosis || 'Not provided'}
+- Problem Description: ${healthData.problemDescription}
+- Previous Treatment: ${healthData.previousTreatment || 'None reported'}
+- Patient Goals: ${healthData.patientGoals}
+
+Assessment Questionnaire Results:
+${Object.entries(questionnaireAnswers).map(([key, value]) => `- ${key}: ${value}`).join('\n')}
+
+${hasVideo ? 'Note: Patient has provided a video assessment for visual analysis.' : ''}
+
+Please generate a comprehensive AI Assessment Report followed by a structured exercise program. Make sure the exercise recommendations are tailored to help achieve the patient's stated goals.`;
+>>>>>>> c152a9c29a8f8110d3a980d081535e47a1e7f59c
 
     console.log('Calling Lovable AI Gateway with assessment data');
 
@@ -87,6 +132,7 @@ Respond with valid JSON only. If some fields are not applicable, use null or emp
     }
 
     const data = await response.json();
+<<<<<<< HEAD
     const content = data.choices?.[0]?.message?.content;
 
     // Try parse the content as JSON
@@ -111,6 +157,16 @@ Respond with valid JSON only. If some fields are not applicable, use null or emp
 
     // Ensure the object has the expected shape; return as JSON
     return new Response(JSON.stringify(parsed), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+=======
+    const exerciseProgram = data.choices[0].message.content;
+
+    console.log('Successfully generated exercise program');
+
+    return new Response(
+      JSON.stringify({ exerciseProgram }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+>>>>>>> c152a9c29a8f8110d3a980d081535e47a1e7f59c
 
   } catch (error) {
     console.error('Error in generate-exercise-program function:', error);

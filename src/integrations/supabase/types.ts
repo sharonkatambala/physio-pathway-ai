@@ -182,7 +182,6 @@ export type Database = {
         }
         Relationships: []
       }
-<<<<<<< HEAD
       assessments: {
         Row: {
           id: string
@@ -336,8 +335,6 @@ export type Database = {
         }
         Relationships: []
       }
-=======
->>>>>>> c152a9c29a8f8110d3a980d081535e47a1e7f59c
       profiles: {
         Row: {
           age: number | null

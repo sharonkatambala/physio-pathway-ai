@@ -2,8 +2,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { User, FileText, Video, Target, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const AssessmentFlow = () => {
+  const navigate = useNavigate();
   const steps = [
     {
       icon: User,
@@ -80,7 +82,7 @@ const AssessmentFlow = () => {
         </div>
 
         <div className="text-center mt-12">
-          <Button size="lg" className="bg-gradient-hero shadow-glow text-lg h-14 px-8">
+          <Button size="lg" className="bg-gradient-hero shadow-glow text-lg h-14 px-8" onClick={() => navigate('/assessment')}>
             Start Your Assessment Now
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>

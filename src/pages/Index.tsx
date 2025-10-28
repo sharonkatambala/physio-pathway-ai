@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 // homepage should remain public; don't auto-redirect authenticated users here
-=======
-import { useEffect } from 'react';
->>>>>>> c152a9c29a8f8110d3a980d081535e47a1e7f59c
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import Navigation from '@/components/Navigation';
@@ -17,19 +13,7 @@ const Index = () => {
   const { user, profile, role, loading } = useAuth();
   const navigate = useNavigate();
 
-<<<<<<< HEAD
   // Keep the public homepage accessible. Post-login redirects are handled on the Auth page.
-=======
-  // Redirect authenticated users to their dashboard
-  useEffect(() => {
-    if (!loading && user && role) {
-      const dashboardPath = role === 'physiotherapist' 
-        ? '/physiotherapist-dashboard' 
-        : '/patient-dashboard';
-      navigate(dashboardPath, { replace: true });
-    }
-  }, [user, role, loading, navigate]);
->>>>>>> c152a9c29a8f8110d3a980d081535e47a1e7f59c
 
   // Show loading state while checking auth
   if (loading) {

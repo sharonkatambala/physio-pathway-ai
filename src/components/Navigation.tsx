@@ -1,10 +1,6 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-<<<<<<< HEAD
 import { Menu, X, Activity, Calendar, Users, BookOpen, User, LogOut, Languages, Target } from 'lucide-react';
-=======
-import { Menu, X, Activity, Calendar, Users, BookOpen, User, LogOut, Languages } from 'lucide-react';
->>>>>>> c152a9c29a8f8110d3a980d081535e47a1e7f59c
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -39,12 +35,8 @@ const Navigation = () => {
       return [
         { name: t('nav.assessment'), href: '/assessment', icon: Activity },
         { name: t('nav.exercises'), href: '/exercises', icon: BookOpen },
-<<<<<<< HEAD
         { name: t('nav.progress'), href: '/progress', icon: Users },
-        { name: t('nav.programs') || 'Programs', href: '/programs', icon: Target },
-=======
-        { name: t('nav.progress'), href: '/dashboard', icon: Users },
->>>>>>> c152a9c29a8f8110d3a980d081535e47a1e7f59c
+        { name: 'My programs', href: '/programs', icon: Target },
         { name: t('nav.bookSession'), href: '/booking', icon: Calendar },
       ];
     } else {
@@ -57,10 +49,7 @@ const Navigation = () => {
   };
 
   const navigation = getNavigationItems();
-<<<<<<< HEAD
   const isHome = location.pathname === '/';
-=======
->>>>>>> c152a9c29a8f8110d3a980d081535e47a1e7f59c
 
   return (
     <nav className="bg-card/80 backdrop-blur-md border-b border-border sticky top-0 z-50">
@@ -79,7 +68,6 @@ const Navigation = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">
-<<<<<<< HEAD
             {isHome ? (
               // Homepage behavior: if user is logged in, show Dashboard CTA and Sign Out; otherwise show public anchors
               user ? (
@@ -161,54 +149,6 @@ const Navigation = () => {
                   </div>
                 )}
               </>
-=======
-            {navigation.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.href;
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`px-4 py-2 rounded-md transition-all duration-200 flex items-center space-x-2 ${
-                    isActive 
-                      ? 'bg-primary text-primary-foreground shadow-sm' 
-                      : 'text-muted-foreground hover:text-primary hover:bg-muted'
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span>{item.name}</span>
-                </Link>
-              );
-            })}
-
-            {/* Auth Buttons */}
-            {user ? (
-              <div className="flex items-center space-x-2">
-                <Link to={getDashboardLink()}>
-                  <Button variant="ghost" size="sm" className="flex items-center space-x-2">
-                    <User className="h-4 w-4" />
-                    <span>{profile?.first_name || t('nav.dashboard')}</span>
-                  </Button>
-                </Link>
-                <Button variant="ghost" size="sm" onClick={handleSignOut} className="flex items-center space-x-2">
-                  <LogOut className="h-4 w-4" />
-                  <span>{t('nav.signOut')}</span>
-                </Button>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-2">
-                <Link to="/auth">
-                  <Button variant="outline" size="sm">
-                    {t('nav.signIn')}
-                  </Button>
-                </Link>
-                <Link to="/auth">
-                  <Button size="sm" className="bg-gradient-hero shadow-soft">
-                    {t('nav.getStarted')}
-                  </Button>
-                </Link>
-              </div>
->>>>>>> c152a9c29a8f8110d3a980d081535e47a1e7f59c
             )}
           </div>
 
@@ -227,36 +167,9 @@ const Navigation = () => {
         {isOpen && (
           <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 bg-card border-t border-border">
-<<<<<<< HEAD
               {isHome ? (
                 user ? (
                   <div className="flex flex-col space-y-2 px-3 pt-2">
-=======
-              {navigation.map((item) => {
-                const Icon = item.icon;
-                const isActive = location.pathname === item.href;
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={`block px-3 py-2 rounded-md text-base transition-all duration-200 flex items-center space-x-2 ${
-                      isActive 
-                        ? 'bg-primary text-primary-foreground' 
-                        : 'text-muted-foreground hover:text-primary hover:bg-muted'
-                    }`}
-                    onClick={() => setIsOpen(false)}
-                  >
-                    <Icon className="h-4 w-4" />
-                    <span>{item.name}</span>
-                  </Link>
-                );
-              })}
-
-              {/* Mobile Auth Buttons */}
-              <div className="flex flex-col space-y-2 px-3 pt-2">
-                {user ? (
-                  <>
->>>>>>> c152a9c29a8f8110d3a980d081535e47a1e7f59c
                     <Link to={getDashboardLink()}>
                       <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => setIsOpen(false)}>
                         <User className="h-4 w-4 mr-2" />
@@ -267,16 +180,10 @@ const Navigation = () => {
                       <LogOut className="h-4 w-4 mr-2" />
                       {t('nav.signOut')}
                     </Button>
-<<<<<<< HEAD
                   </div>
                 ) : (
                   // For visitors: Sign In + Get Started only
                   <div className="flex flex-col space-y-2 px-3 pt-2">
-=======
-                  </>
-                ) : (
-                  <>
->>>>>>> c152a9c29a8f8110d3a980d081535e47a1e7f59c
                     <Link to="/auth">
                       <Button variant="outline" size="sm" onClick={() => setIsOpen(false)}>
                         {t('nav.signIn')}
@@ -287,7 +194,6 @@ const Navigation = () => {
                         {t('nav.getStarted')}
                       </Button>
                     </Link>
-<<<<<<< HEAD
                   </div>
                 )
               ) : (
@@ -343,11 +249,6 @@ const Navigation = () => {
                   </div>
                 </>
               )}
-=======
-                  </>
-                )}
-              </div>
->>>>>>> c152a9c29a8f8110d3a980d081535e47a1e7f59c
             </div>
           </div>
         )}

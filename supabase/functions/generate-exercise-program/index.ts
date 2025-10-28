@@ -1,178 +1,190 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type'
 };
 
-serve(async (req) => {
+// Fallback exercise program
+const FALLBACK_PROGRAM = {
+  title: "General Exercise Program",
+  description: "Here's a general exercise program based on your assessment.",
+  exercises: [
+    {
+      name: "Gentle Stretching",
+      description: "Gentle stretching to improve flexibility and reduce pain.",
+      duration: "10-15 minutes",
+      frequency: "Daily"
+    }
+  ],
+  notes: "This is a general recommendation. For a personalized program, please consult a physiotherapist.",
+  isFallback: true
+};
+
+serve(async (req)=>{
+  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, {
+      headers: corsHeaders
+    });
   }
 
   try {
-    const { assessmentData } = await req.json();
-    const { healthData, questionnaireAnswers, hasVideo } = assessmentData;
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    const { assessmentData, assessmentId } = await req.json();
+    const { healthData, questionnaireAnswers, hasVideo } = assessmentData || {};
 
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+
+    // If no Gemini API key, return fallback program
+    if (!GEMINI_API_KEY) {
+      console.warn('No GEMINI_API_KEY found, using fallback program');
+      return new Response(JSON.stringify({
+        exerciseProgram: FALLBACK_PROGRAM,
+        isFallback: true,
+        message: "AI service not configured - using fallback program"
+      }), {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
+      });
     }
 
-<<<<<<< HEAD
-    const systemPrompt = `You are FIZIO AI, a physiotherapy assistant platform. After a patient assessment, produce a single JSON object ONLY (no extra commentary) with two top-level keys: "assessment_report" and "exercise_program".
-
-Structure exactly as follows (example types shown):
-
+    // System and user prompts geared to produce strict JSON
+    const systemPrompt = `You are FIZIO AI, a physiotherapy assistant. Generate a personalized exercise program based on the patient's assessment.
+Respond ONLY with valid JSON (no backticks or markdown) following this schema:
 {
-  "assessment_report": {
-    "summary_of_findings": "string",
-    "possible_clinical_impression": "string",
-    "risk_red_flags": ["string"],
-    "recommended_management_plan": "string",
-    "progress_tracking_goals": ["string"],
-    "referral_guidance": "string"
-  },
-  "exercise_program": {
-    "title": "string",
-    "duration_weeks": number,
-    "sessions_per_week": number,
-    "warm_up": [ { "name": "string", "duration_minutes": number, "notes": "string" } ],
-    "main_exercises": [ { "name": "string", "frequency_per_week": number, "sets": number, "reps": string, "intensity": "light|moderate|vigorous", "purpose": "string", "video_url": "string|null" } ],
-    "cool_down": [ { "name": "string", "duration_minutes": number, "notes": "string" } ],
-    "safety_and_notes": "string"
-  }
-}
+  "title": "string",
+  "description": "string",
+  "exercises": [
+    {
+      "name": "string",
+      "description": "string",
+      "duration": "string",
+      "frequency": "string",
+      "instructions": ["string"],
+      "precautions": ["string"]
+    }
+  ],
+  "notes": "string"
+}`;
 
-Respond with valid JSON only. If some fields are not applicable, use null or empty arrays. Ensure safety and avoid medical claims beyond general physiotherapy guidance.`;
-
-  const userPrompt = `Based on the following patient assessment, produce the JSON structure requested in the system prompt. Only output valid JSON.\n\nPatient Information:\n- Age: ${healthData.age}\n- Sex: ${healthData.sex}\n- Occupation: ${healthData.occupation}\n- Medical Diagnosis: ${healthData.diagnosis || 'Not provided'}\n- Problem Description: ${healthData.problemDescription}\n- Previous Treatment: ${healthData.previousTreatment || 'None reported'}\n- Patient Goals: ${healthData.patientGoals}\n\nAssessment Questionnaire Results:\n${Object.entries(questionnaireAnswers).map(([key, value]) => `- ${key}: ${value}`).join('\n')}\n\n${hasVideo ? 'Note: Patient has provided a video assessment for visual analysis.' : ''}`;
-=======
-    const systemPrompt = `You are FIZIO AI, a physiotherapy assistant platform. After a patient assessment, generate two structured outputs:
-
-1. **AI Assessment Report** with these exact sections:
-   - **Summary of Findings**: Main complaint, location, severity, functional limitation
-   - **Possible Clinical Impression**: Suspected condition, aggravating factors, urgent issues if any
-   - **Risk / Red Flags Alert**: Highlight urgent symptoms if present (use "⚠️" icon for warnings)
-   - **Recommended Management Plan**: Education, exercises, lifestyle modifications
-   - **Progress Tracking Goals**: Measurable goals for follow-up
-   - **Referral Guidance**: When to consult a physiotherapist or doctor
-
-2. **Exercise Program** with these sections:
-   - **Warm-up**: Gentle mobility or stretching exercises to prepare the body
-   - **Main Exercises**: Core recommended activities (strength, balance, aerobic, flexibility), tailored to the patient's condition
-   - **Cool-down**: Relaxation and light stretching exercises
-   - **Safety & Notes**: Special considerations, frequency, duration, and intensity based on WHO standards
-
-For each exercise, provide:
-- Name of exercise
-- Frequency (times per week/day)
-- Duration (minutes/reps)
-- Intensity level (light, moderate, vigorous)
-- Purpose / Benefit for the patient's condition
-
-Format your response with clear markdown headings (##) for each main section. All recommendations must strictly align with World Health Organization (WHO) guidelines on physical activity and rehabilitation. Include variations or alternatives if possible.`;
-
-    const userPrompt = `Based on the following patient assessment, create a comprehensive AI Assessment Report and personalized exercise program:
-
-Patient Information:
-- Age: ${healthData.age}
-- Sex: ${healthData.sex}
-- Occupation: ${healthData.occupation}
-- Medical Diagnosis: ${healthData.diagnosis || 'Not provided'}
-- Problem Description: ${healthData.problemDescription}
-- Previous Treatment: ${healthData.previousTreatment || 'None reported'}
-- Patient Goals: ${healthData.patientGoals}
-
-Assessment Questionnaire Results:
-${Object.entries(questionnaireAnswers).map(([key, value]) => `- ${key}: ${value}`).join('\n')}
-
+    const userPrompt = `Create a personalized exercise program for a patient with these details:
+- Age: ${healthData?.age ?? 'Not specified'}
+- Gender: ${healthData?.gender || healthData?.sex || 'Not specified'}
+- Main Complaint: ${questionnaireAnswers?.presenting_problem || healthData?.presenting_problem || 'Not specified'}
+- Pain Level: ${questionnaireAnswers?.pain_intensity ?? healthData?.pain_intensity ?? 'Not specified'}/10
+- Duration of Symptoms: ${questionnaireAnswers?.pain_onset ?? healthData?.pain_onset ?? 'Not specified'}
+- Occupation: ${healthData?.occupation ?? 'Not specified'}
+- Primary site(s): ${(Array.isArray(questionnaireAnswers?.primary_sites) ? questionnaireAnswers?.primary_sites.join(', ') : questionnaireAnswers?.primary_sites) || 'Not specified'}
+- Aggravating factors: ${(Array.isArray(healthData?.aggravating_factors) ? healthData?.aggravating_factors.join(', ') : healthData?.aggravating_factors) || 'Not specified'}
+- Relieving factors: ${(Array.isArray(healthData?.relieving_factors) ? healthData?.relieving_factors.join(', ') : healthData?.relieving_factors) || 'Not specified'}
 ${hasVideo ? 'Note: Patient has provided a video assessment for visual analysis.' : ''}
 
-Please generate a comprehensive AI Assessment Report followed by a structured exercise program. Make sure the exercise recommendations are tailored to help achieve the patient's stated goals.`;
->>>>>>> c152a9c29a8f8110d3a980d081535e47a1e7f59c
+Requirements:
+- 3–5 safe exercises tailored to the complaint and stage (acute if <6 weeks)
+- Include warm-up, main, and cool-down suggestions in the list
+- Provide clear instructions (bullet steps) and precautions
+- Keep within home-friendly options; adapt intensity conservatively for safety`;
 
-    console.log('Calling Lovable AI Gateway with assessment data');
+    // Call Gemini generateContent API
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+    const body = {
+      contents: [
+        {
+          role: "user",
+          parts: [
+            { text: systemPrompt },
+            { text: userPrompt }
+          ]
+        }
+      ]
+    };
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-      }),
+      body: JSON.stringify(body)
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('AI Gateway error:', response.status, errorText);
-      
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: 'Payment required. Please add credits to your workspace.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      throw new Error(`AI Gateway error: ${response.status} ${errorText}`);
+      console.error('Gemini API error:', response.status, errorText);
+      // Return 200 with fallback so the frontend flow continues gracefully
+      return new Response(JSON.stringify({
+        exerciseProgram: FALLBACK_PROGRAM,
+        isFallback: true,
+        error: `AI service error: ${response.status} ${errorText}`
+      }), {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
+      });
     }
 
     const data = await response.json();
-<<<<<<< HEAD
-    const content = data.choices?.[0]?.message?.content;
+    // Gemini returns text in candidates[0].content.parts[].text
+    const text = data?.candidates?.[0]?.content?.parts?.map((p: any) => p?.text).join('\n') || '';
 
-    // Try parse the content as JSON
-    let parsed = null;
+    let exerciseProgram = FALLBACK_PROGRAM;
+    let isFallback = true;
     try {
-      parsed = JSON.parse(content);
-    } catch (e) {
-      // Attempt to extract JSON block from markdown
-      const match = content && content.match(/\{[\s\S]*\}/);
-      if (match) {
-        try { parsed = JSON.parse(match[0]); } catch (err) { parsed = null; }
+      if (text) {
+        const jsonTextMatch = text.match(/\{[\s\S]*\}/);
+        const jsonText = jsonTextMatch ? jsonTextMatch[0] : text;
+        const parsed = JSON.parse(jsonText);
+        exerciseProgram = {
+          ...parsed,
+          isFallback: false
+        };
+        isFallback = false;
       }
+    } catch (e) {
+      console.warn('Failed to parse Gemini response, using fallback program', e);
     }
 
-    if (!parsed) {
-      console.error('Could not parse AI response as JSON:', content);
-      return new Response(
-        JSON.stringify({ error: 'AI returned unparsable response', raw: content }),
-        { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    // Try to persist recommendation server-side with service role to bypass RLS
+    try {
+      const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+      const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+      if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY && assessmentId) {
+        const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+        await admin.from('recommendations').insert({
+          assessment_id: assessmentId,
+          program: exerciseProgram,
+          confidence: isFallback ? 0.3 : 0.8,
+          source: isFallback ? 'fallback' : 'ai'
+        });
+      }
+    } catch (e) {
+      console.warn('Edge function could not persist recommendation:', e);
     }
 
-    // Ensure the object has the expected shape; return as JSON
-    return new Response(JSON.stringify(parsed), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-=======
-    const exerciseProgram = data.choices[0].message.content;
-
-    console.log('Successfully generated exercise program');
-
-    return new Response(
-      JSON.stringify({ exerciseProgram }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
->>>>>>> c152a9c29a8f8110d3a980d081535e47a1e7f59c
-
+    return new Response(JSON.stringify({
+      exerciseProgram,
+      isFallback
+    }), {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      }
+    });
   } catch (error) {
-    console.error('Error in generate-exercise-program function:', error);
-    return new Response(
-      JSON.stringify({ error: error.message || 'Unknown error occurred' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    console.error('Error in generate-exercise-program:', error);
+    // Return 200 with fallback so client doesn't treat it as a hard error
+    return new Response(JSON.stringify({
+      exerciseProgram: FALLBACK_PROGRAM,
+      isFallback: true,
+      error: (error as any)?.message || 'Failed to generate exercise program'
+    }), {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json'
+      }
+    });
   }
 });

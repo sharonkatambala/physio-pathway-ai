@@ -1,9 +1,5 @@
-<<<<<<< HEAD
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-=======
-import { useState } from 'react';
->>>>>>> c152a9c29a8f8110d3a980d081535e47a1e7f59c
 import { useAuth } from '@/hooks/useAuth';
 import { Navigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,13 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import Navigation from '@/components/Navigation';
-<<<<<<< HEAD
 // Legacy assessment components removed. New assessment is handled at /assessment route.
-=======
-import HealthInputForm from '@/components/HealthInputForm';
-import VideoAssessment from '@/components/VideoAssessment';
-import AIQuestionnaire from '@/components/AIQuestionnaire';
->>>>>>> c152a9c29a8f8110d3a980d081535e47a1e7f59c
 import { 
   Calendar, 
   Target, 
@@ -47,7 +37,6 @@ import { useLanguage } from '@/contexts/LanguageContext';
 const PatientDashboard = () => {
   const { user, profile, role, loading } = useAuth();
   const { t } = useLanguage();
-<<<<<<< HEAD
   const navigate = useNavigate();
   // Prevent showing the legacy assessment flow by checking for an existing assessment
   const [checkedAssessments, setCheckedAssessments] = useState<boolean>(false);
@@ -82,13 +71,6 @@ const PatientDashboard = () => {
     checkAssessment();
   }, [user, loading, role, navigate]);
   // We removed the legacy inline assessment flow; redirect users to the new /assessment.
-=======
-  // Start with 'input' to show assessment first for new users
-  const [assessmentStep, setAssessmentStep] = useState<'input' | 'video' | 'questionnaire' | 'results' | 'complete'>('input');
-  const [healthData, setHealthData] = useState<any>(null);
-  const [videoFile, setVideoFile] = useState<File | null>(null);
-  const [questionnaireAnswers, setQuestionnaireAnswers] = useState<Record<string, string>>({});
->>>>>>> c152a9c29a8f8110d3a980d081535e47a1e7f59c
   const [exerciseProgram, setExerciseProgram] = useState<string>('');
 
   if (loading) {
@@ -103,7 +85,6 @@ const PatientDashboard = () => {
     return <Navigate to="/physiotherapist-dashboard" replace />;
   }
 
-<<<<<<< HEAD
   // Wait for the assessment existence check to complete before rendering dashboard.
   // This prevents the legacy HealthInputForm flow from briefly rendering for users without assessments.
   if (!checkedAssessments) {
@@ -116,136 +97,6 @@ const PatientDashboard = () => {
   };
 
   // We no longer render the inline assessment flow here. Patients are redirected to /assessment
-=======
-  const handleHealthInput = (data: any) => {
-    setHealthData(data);
-    setAssessmentStep('video');
-  };
-
-  const handleVideoComplete = (file?: File) => {
-    setVideoFile(file || null);
-    setAssessmentStep('questionnaire');
-  };
-
-  const handleQuestionnaireComplete = async (answers: Record<string, string>) => {
-    setQuestionnaireAnswers(answers);
-    setAssessmentStep('results');
-    
-    try {
-      const assessmentData = {
-        healthData,
-        questionnaireAnswers: answers,
-        hasVideo: !!videoFile,
-      };
-
-      const { data, error } = await supabase.functions.invoke('generate-exercise-program', {
-        body: { assessmentData }
-      });
-
-      if (error) {
-        console.error('Error generating exercise program:', error);
-        if (error.message?.includes('429')) {
-          toast.error('Rate limit exceeded. Please try again in a moment.');
-        } else if (error.message?.includes('402')) {
-          toast.error('Payment required. Please add credits to continue.');
-        } else {
-          toast.error('Failed to generate exercise program');
-        }
-        setAssessmentStep('questionnaire');
-        return;
-      }
-
-      setExerciseProgram(data.exerciseProgram);
-      setAssessmentStep('complete');
-      toast.success('Your personalized exercise program is ready!');
-    } catch (err) {
-      console.error('Error:', err);
-      toast.error('An error occurred. Please try again.');
-      setAssessmentStep('questionnaire');
-    }
-  };
-
-  const handleQuestionnaireBack = () => {
-    setAssessmentStep('video');
-  };
-
-  const startNewAssessment = () => {
-    setAssessmentStep('input');
-    setHealthData(null);
-    setVideoFile(null);
-    setQuestionnaireAnswers({});
-    setExerciseProgram('');
-  };
-
-  // Show assessment flow if not complete
-  if (assessmentStep !== 'complete') {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navigation />
-        
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-4">{t('assessment.title')}</h1>
-            <div className="flex items-center gap-2 mb-4">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                assessmentStep === 'input' ? 'bg-primary text-white' : 
-                ['video', 'questionnaire', 'results'].includes(assessmentStep) ? 'bg-success text-white' : 'bg-muted'
-              }`}>
-                {assessmentStep === 'input' ? '1' : <CheckCircle className="h-4 w-4" />}
-              </div>
-              <div className="w-16 h-1 bg-border"></div>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                assessmentStep === 'video' ? 'bg-primary text-white' : 
-                ['questionnaire', 'results'].includes(assessmentStep) ? 'bg-success text-white' : 'bg-muted'
-              }`}>
-                {assessmentStep === 'video' ? '2' : ['questionnaire', 'results'].includes(assessmentStep) ? <CheckCircle className="h-4 w-4" /> : '2'}
-              </div>
-              <div className="w-16 h-1 bg-border"></div>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                assessmentStep === 'questionnaire' ? 'bg-primary text-white' : 
-                assessmentStep === 'results' ? 'bg-success text-white' : 'bg-muted'
-              }`}>
-                {assessmentStep === 'questionnaire' ? '3' : assessmentStep === 'results' ? <CheckCircle className="h-4 w-4" /> : '3'}
-              </div>
-            </div>
-            <div className="flex justify-between text-sm text-muted-foreground max-w-md">
-              <span>{t('assessment.healthInfo')}</span>
-              <span>{t('assessment.video')}</span>
-              <span>{t('assessment.questionnaire')}</span>
-            </div>
-          </div>
-
-          {assessmentStep === 'input' && (
-            <HealthInputForm onSubmit={handleHealthInput} />
-          )}
-
-          {assessmentStep === 'video' && (
-            <VideoAssessment onComplete={handleVideoComplete} />
-          )}
-
-          {assessmentStep === 'questionnaire' && (
-            <AIQuestionnaire 
-              onComplete={handleQuestionnaireComplete}
-              onBack={handleQuestionnaireBack}
-            />
-          )}
-
-          {assessmentStep === 'results' && (
-            <Card className="shadow-card">
-              <CardContent className="p-8 text-center">
-                <div className="animate-spin h-12 w-12 border-4 border-primary border-t-transparent rounded-full mx-auto mb-6"></div>
-                <h3 className="text-xl font-semibold mb-2">{t('assessment.generating')}</h3>
-                <p className="text-muted-foreground">
-                  {t('assessment.generatingDesc')}
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </div>
-    );
-  }
->>>>>>> c152a9c29a8f8110d3a980d081535e47a1e7f59c
 
   // Main dashboard view after assessment is complete
   return (

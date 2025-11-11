@@ -86,7 +86,40 @@ const ProgramsPage = () => {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <pre className="whitespace-pre-wrap text-sm">{JSON.stringify(p.program, null, 2)}</pre>
+                    {p.program?.report && (
+                      <div className="mb-4">
+                        <div className="text-sm text-muted-foreground">Report</div>
+                        <div className="mt-1">
+                          <div className="font-medium">{p.program.report.summary}</div>
+                          <ul className="list-disc pl-5 mt-2 text-sm">
+                            {(p.program.report.findings || []).map((f: string, i: number) => (
+                              <li key={i}>{f}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    )}
+                    <div>
+                      <div className="text-sm text-muted-foreground">Exercises</div>
+                      <ul className="mt-2 space-y-2">
+                        {(p.program.exercises || []).map((ex: any, i: number) => (
+                          <li key={i} className="p-3 rounded-md border border-border/50">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <div className="font-medium">{ex.name}</div>
+                                <div className="text-xs text-muted-foreground">{ex.target_area ? ex.target_area + ' • ' : ''}{ex.difficulty || ex.phase}</div>
+                              </div>
+                              <div className="text-xs text-muted-foreground">{ex.frequency} • {ex.duration}</div>
+                            </div>
+                            {Array.isArray(ex.instructions) && (
+                              <ul className="list-disc pl-5 mt-2 text-sm">
+                                {ex.instructions.map((s: string, j: number) => <li key={j}>{s}</li>)}
+                              </ul>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   </CardContent>
                 </Card>
               ))}

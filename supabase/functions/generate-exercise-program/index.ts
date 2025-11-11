@@ -15,10 +15,17 @@ const FALLBACK_PROGRAM = {
       name: "Gentle Stretching",
       description: "Gentle stretching to improve flexibility and reduce pain.",
       duration: "10-15 minutes",
-      frequency: "Daily"
+      frequency: "Daily",
+      instructions: ["Perform slow, pain-free movements", "Hold each stretch 10–20s"],
+      precautions: ["Stop if you feel sharp pain"]
     }
   ],
   notes: "This is a general recommendation. For a personalized program, please consult a physiotherapist.",
+  report: {
+    summary: "General safety-first advice provided due to unavailable AI.",
+    findings: ["Insufficient data to personalize program"],
+    recommendations: ["Complete a full assessment for tailored plan"]
+  },
   isFallback: true
 };
 
@@ -52,25 +59,38 @@ serve(async (req)=>{
     }
 
     // System and user prompts geared to produce strict JSON
-    const systemPrompt = `You are FIZIO AI, a physiotherapy assistant. Generate a personalized exercise program based on the patient's assessment.
-Respond ONLY with valid JSON (no backticks or markdown) following this schema:
+    const systemPrompt = `You are ErgoCareAI, a physiotherapy assistant. Generate BOTH a concise clinical report and a personalized exercise program based on the patient's assessment. Respond ONLY with valid JSON (no backticks or markdown) following this schema:
 {
   "title": "string",
   "description": "string",
+  "report": {
+    "summary": "string",
+    "findings": ["string"],
+    "recommendations": ["string"]
+  },
   "exercises": [
     {
       "name": "string",
       "description": "string",
       "duration": "string",
       "frequency": "string",
+      "phase": "early" | "intermediate" | "advanced",
+      "difficulty": "Beginner" | "Intermediate" | "Advanced",
+      "target_area": "string",
+      "equipment": "string",
       "instructions": ["string"],
       "precautions": ["string"]
     }
   ],
+  "schedule": {
+    "early": {"summary": "string"},
+    "intermediate": {"summary": "string"},
+    "advanced": {"summary": "string"}
+  },
   "notes": "string"
 }`;
 
-    const userPrompt = `Create a personalized exercise program for a patient with these details:
+    const userPrompt = `Create a personalized exercise program and clinical report for a patient with these details:
 - Age: ${healthData?.age ?? 'Not specified'}
 - Gender: ${healthData?.gender || healthData?.sex || 'Not specified'}
 - Main Complaint: ${questionnaireAnswers?.presenting_problem || healthData?.presenting_problem || 'Not specified'}
@@ -86,10 +106,11 @@ Requirements:
 - 3–5 safe exercises tailored to the complaint and stage (acute if <6 weeks)
 - Include warm-up, main, and cool-down suggestions in the list
 - Provide clear instructions (bullet steps) and precautions
+- Include phases: early, intermediate, advanced, and a weekly schedule summary
 - Keep within home-friendly options; adapt intensity conservatively for safety`;
 
-    // Call Gemini generateContent API (using v1 endpoint with gemini-1.5-pro)
-    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=${GEMINI_API_KEY}`;
+    // Call Gemini generateContent API (v1beta endpoint with latest model)
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${GEMINI_API_KEY}`;
     const body = {
       contents: [
         {

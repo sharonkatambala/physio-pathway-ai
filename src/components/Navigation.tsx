@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Menu, X, Activity, Calendar, Users, BookOpen, User, LogOut, Languages, Target } from 'lucide-react';
+import { Menu, X, Activity, Calendar, Users, BookOpen, LogOut, Languages, Target } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -21,11 +21,6 @@ const Navigation = () => {
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
-  };
-
-  const getDashboardLink = () => {
-    if (!role) return '/';
-    return role === 'patient' ? '/patient-dashboard' : '/physiotherapist-dashboard';
   };
 
   const getNavigationItems = () => {
@@ -69,13 +64,11 @@ const Navigation = () => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">
             {isHome ? (
-              // Homepage behavior: if user is logged in, show Dashboard CTA and Sign Out; otherwise show public anchors
               user ? (
                 <div className="flex items-center space-x-2">
-                  <Link to={getDashboardLink()}>
+                  <Link to="/assessment">
                     <Button variant="ghost" size="sm" className="flex items-center space-x-2">
-                      <User className="h-4 w-4" />
-                      <span>{profile?.first_name || t('nav.dashboard')}</span>
+                      <span>{t('nav.assessment')}</span>
                     </Button>
                   </Link>
                   <Button variant="ghost" size="sm" onClick={handleSignOut} className="flex items-center space-x-2">
@@ -84,7 +77,6 @@ const Navigation = () => {
                   </Button>
                 </div>
               ) : (
-                // For visitors: Sign In + Get Started only
                 <div className="flex items-center space-x-2">
                   <Link to="/auth">
                     <Button variant="outline" size="sm">
@@ -123,12 +115,6 @@ const Navigation = () => {
                 {/* Auth Buttons */}
                 {user ? (
                   <div className="flex items-center space-x-2">
-                    <Link to={getDashboardLink()}>
-                      <Button variant="ghost" size="sm" className="flex items-center space-x-2">
-                        <User className="h-4 w-4" />
-                        <span>{profile?.first_name || t('nav.dashboard')}</span>
-                      </Button>
-                    </Link>
                     <Button variant="ghost" size="sm" onClick={handleSignOut} className="flex items-center space-x-2">
                       <LogOut className="h-4 w-4" />
                       <span>{t('nav.signOut')}</span>
@@ -170,10 +156,9 @@ const Navigation = () => {
               {isHome ? (
                 user ? (
                   <div className="flex flex-col space-y-2 px-3 pt-2">
-                    <Link to={getDashboardLink()}>
+                    <Link to="/assessment">
                       <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => setIsOpen(false)}>
-                        <User className="h-4 w-4 mr-2" />
-                        {profile?.first_name || t('nav.dashboard')}
+                        {t('nav.assessment')}
                       </Button>
                     </Link>
                     <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => { handleSignOut(); setIsOpen(false); }}>
@@ -182,7 +167,6 @@ const Navigation = () => {
                     </Button>
                   </div>
                 ) : (
-                  // For visitors: Sign In + Get Started only
                   <div className="flex flex-col space-y-2 px-3 pt-2">
                     <Link to="/auth">
                       <Button variant="outline" size="sm" onClick={() => setIsOpen(false)}>
@@ -220,18 +204,10 @@ const Navigation = () => {
 
                   <div className="flex flex-col space-y-2 px-3 pt-2">
                     {user ? (
-                      <>
-                        <Link to={getDashboardLink()}>
-                          <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => setIsOpen(false)}>
-                            <User className="h-4 w-4 mr-2" />
-                            {profile?.first_name || t('nav.dashboard')}
-                          </Button>
-                        </Link>
-                        <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => { handleSignOut(); setIsOpen(false); }}>
-                          <LogOut className="h-4 w-4 mr-2" />
-                          {t('nav.signOut')}
-                        </Button>
-                      </>
+                      <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => { handleSignOut(); setIsOpen(false); }}>
+                        <LogOut className="h-4 w-4 mr-2" />
+                        {t('nav.signOut')}
+                      </Button>
                     ) : (
                       <>
                         <Link to="/auth">

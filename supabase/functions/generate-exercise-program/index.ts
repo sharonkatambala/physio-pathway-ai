@@ -88,8 +88,8 @@ Requirements:
 - Provide clear instructions (bullet steps) and precautions
 - Keep within home-friendly options; adapt intensity conservatively for safety`;
 
-    // Call Gemini generateContent API
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+    // Call Gemini generateContent API (using v1 endpoint with gemini-1.5-pro)
+    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=${GEMINI_API_KEY}`;
     const body = {
       contents: [
         {

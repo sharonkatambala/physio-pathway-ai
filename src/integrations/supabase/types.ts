@@ -68,6 +68,51 @@ export type Database = {
           },
         ]
       }
+      assessments: {
+        Row: {
+          chronicity: string | null
+          created_at: string | null
+          data: Json | null
+          functional_score: number | null
+          id: string
+          language: string | null
+          pain_level: number | null
+          patient_user_id: string
+          red_flag: boolean | null
+          region: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          chronicity?: string | null
+          created_at?: string | null
+          data?: Json | null
+          functional_score?: number | null
+          id?: string
+          language?: string | null
+          pain_level?: number | null
+          patient_user_id: string
+          red_flag?: boolean | null
+          region?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          chronicity?: string | null
+          created_at?: string | null
+          data?: Json | null
+          functional_score?: number | null
+          id?: string
+          language?: string | null
+          pain_level?: number | null
+          patient_user_id?: string
+          red_flag?: boolean | null
+          region?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           created_at: string
@@ -109,6 +154,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      drafts: {
+        Row: {
+          created_at: string | null
+          data: Json | null
+          id: string
+          step: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          step?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          step?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      exercise_programs: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          program: Json | null
+          title: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          program?: Json | null
+          title?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          program?: Json | null
+          title?: string | null
+        }
+        Relationships: []
       }
       messages: {
         Row: {
@@ -182,156 +278,33 @@ export type Database = {
         }
         Relationships: []
       }
-      assessments: {
-        Row: {
-          id: string
-          patient_user_id: string
-          created_at: string
-          updated_at: string
-          language: string | null
-          region: string | null
-          chronicity: string | null
-          pain_level: number | null
-          functional_score: number | null
-          red_flag: boolean | null
-          data: Json
-        }
-        Insert: {
-          id?: string
-          patient_user_id: string
-          created_at?: string
-          updated_at?: string
-          language?: string | null
-          region?: string | null
-          chronicity?: string | null
-          pain_level?: number | null
-          functional_score?: number | null
-          red_flag?: boolean | null
-          data?: Json
-        }
-        Update: {
-          id?: string
-          patient_user_id?: string
-          created_at?: string
-          updated_at?: string
-          language?: string | null
-          region?: string | null
-          chronicity?: string | null
-          pain_level?: number | null
-          functional_score?: number | null
-          red_flag?: boolean | null
-          data?: Json
-        }
-        Relationships: []
-      }
-      recommendations: {
-        Row: {
-          id: string
-          assessment_id: string | null
-          created_at: string
-          program: Json
-          confidence: number | null
-          source: string | null
-        }
-        Insert: {
-          id?: string
-          assessment_id?: string | null
-          created_at?: string
-          program?: Json
-          confidence?: number | null
-          source?: string | null
-        }
-        Update: {
-          id?: string
-          assessment_id?: string | null
-          created_at?: string
-          program?: Json
-          confidence?: number | null
-          source?: string | null
-        }
-        Relationships: []
-      }
-      progress_entries: {
-        Row: {
-          id: string
-          patient_user_id: string
-          created_at: string
-          pain_level: number | null
-          completed_exercises_count: number | null
-          notes: string | null
-          data: Json
-        }
-        Insert: {
-          id?: string
-          patient_user_id: string
-          created_at?: string
-          pain_level?: number | null
-          completed_exercises_count?: number | null
-          notes?: string | null
-          data?: Json
-        }
-        Update: {
-          id?: string
-          patient_user_id?: string
-          created_at?: string
-          pain_level?: number | null
-          completed_exercises_count?: number | null
-          notes?: string | null
-          data?: Json
-        }
-        Relationships: []
-      }
       physio_videos: {
         Row: {
-          id: string
-          physio_user_id: string
-          patient_user_id: string | null
-          uploaded_at: string
           caption: string | null
+          id: string
+          patient_user_id: string | null
+          physio_user_id: string
           storage_url: string | null
+          uploaded_at: string | null
           visibility: string | null
         }
         Insert: {
+          caption?: string | null
           id?: string
+          patient_user_id?: string | null
           physio_user_id: string
-          patient_user_id?: string | null
-          uploaded_at?: string
-          caption?: string | null
           storage_url?: string | null
+          uploaded_at?: string | null
           visibility?: string | null
         }
         Update: {
+          caption?: string | null
           id?: string
+          patient_user_id?: string | null
           physio_user_id?: string
-          patient_user_id?: string | null
-          uploaded_at?: string
-          caption?: string | null
           storage_url?: string | null
+          uploaded_at?: string | null
           visibility?: string | null
-        }
-        Relationships: []
-      }
-      exercise_programs: {
-        Row: {
-          id: string
-          title: string | null
-          created_by: string | null
-          created_at: string
-          program: Json
-        }
-        Insert: {
-          id?: string
-          title?: string | null
-          created_by?: string | null
-          created_at?: string
-          program?: Json
-        }
-        Update: {
-          id?: string
-          title?: string | null
-          created_by?: string | null
-          created_at?: string
-          program?: Json
         }
         Relationships: []
       }
@@ -373,6 +346,71 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      progress_entries: {
+        Row: {
+          completed_exercises_count: number | null
+          created_at: string | null
+          data: Json | null
+          id: string
+          notes: string | null
+          pain_level: number | null
+          patient_user_id: string
+        }
+        Insert: {
+          completed_exercises_count?: number | null
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          notes?: string | null
+          pain_level?: number | null
+          patient_user_id: string
+        }
+        Update: {
+          completed_exercises_count?: number | null
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          notes?: string | null
+          pain_level?: number | null
+          patient_user_id?: string
+        }
+        Relationships: []
+      }
+      recommendations: {
+        Row: {
+          assessment_id: string | null
+          confidence: number | null
+          created_at: string | null
+          id: string
+          program: Json | null
+          source: string | null
+        }
+        Insert: {
+          assessment_id?: string | null
+          confidence?: number | null
+          created_at?: string | null
+          id?: string
+          program?: Json | null
+          source?: string | null
+        }
+        Update: {
+          assessment_id?: string | null
+          confidence?: number | null
+          created_at?: string | null
+          id?: string
+          program?: Json | null
+          source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recommendations_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "assessments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

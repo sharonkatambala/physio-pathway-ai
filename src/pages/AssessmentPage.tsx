@@ -888,7 +888,7 @@ const AssessmentPage = () => {
                                             assessmentData: { healthData: formData, questionnaireAnswers: formData, ai_mapping: aiMapping, hasVideo: formData.hasVideo },
                                             assessmentId: inserted.id
                                         };
-                                        const { data: fnData, error: fnError } = await supabase.functions.invoke('generate-exercise-program', { body: JSON.stringify(payload) });
+                                        const { data: fnData, error: fnError } = await supabase.functions.invoke('generate-exercise-program', { body: payload });
 
 										if (fnError) throw fnError;
 

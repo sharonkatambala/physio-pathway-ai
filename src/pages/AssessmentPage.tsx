@@ -904,12 +904,27 @@ const AssessmentPage = () => {
 											exerciseProgram = fnData;
 										}
 
-                                        // Insert now happens inside the Edge Function with service role (bypassing RLS).
+                                        // Try client-side persistence as a fallback (in case Edge Function couldn't insert)
+                                        try {
+                                          const { data: rec, error: recErr } = await supabase
+                                            .from('recommendations')
+                                            .insert({
+                                              assessment_id: inserted.id,
+                                              program: exerciseProgram,
+                                              confidence: (exerciseProgram?.isFallback ? 0.3 : 0.8),
+                                              source: (exerciseProgram?.isFallback ? 'fallback' : 'ai')
+                                            })
+                                            .select('id')
+                                            .single();
+                                          if (recErr) console.warn('Client insert recommendations failed:', recErr);
+                                        } catch (ci) {
+                                          console.warn('Client-side persist error:', ci);
+                                        }
 
-										toast({ title: 'Assessment submitted', description: 'Exercise program created.' });
+                                        toast({ title: 'Assessment submitted', description: 'Exercise program created.' });
 
-										// Navigate patient to My programs to view their plan
-										navigate('/programs');
+                                        // Navigate patient to My programs to view their plan
+                                        navigate('/programs');
 									} catch (err: any) {
 										console.error(err);
 										const message = String(err?.message || err);

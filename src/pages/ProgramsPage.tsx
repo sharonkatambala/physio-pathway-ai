@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import Navigation from '@/components/Navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
+import { FileText } from 'lucide-react';
 
 const ProgramsPage = () => {
+  const navigate = useNavigate();
   const { user, loading } = useAuth();
   const [programs, setPrograms] = useState<any[]>([]);
   const [loadingPrograms, setLoadingPrograms] = useState(false);
@@ -78,7 +81,14 @@ const ProgramsPage = () => {
                         <div className="text-sm text-muted-foreground">Program created</div>
                         <div className="font-medium">{new Date(p.created_at).toLocaleString()}</div>
                       </div>
-                      <div>
+                      <div className="flex gap-2">
+                        <Button 
+                          size="sm" 
+                          onClick={() => navigate(`/report/${p.id}`)}
+                        >
+                          <FileText className="mr-2 h-4 w-4" />
+                          View Full Report
+                        </Button>
                         <Button size="sm" variant="ghost" onClick={() => navigator.clipboard?.writeText(JSON.stringify(p.program, null, 2))}>
                           Copy JSON
                         </Button>

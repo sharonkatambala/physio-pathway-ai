@@ -11,6 +11,7 @@ import PatientVideosPage from "./pages/PatientVideosPage";
 import ProgramsPage from "./pages/ProgramsPage";
 import AdminStatus from "./pages/AdminStatus";
 import AssessmentPage from "./pages/AssessmentPage";
+import AssessmentReportPage from "./pages/AssessmentReportPage";
 
 const App = () => (
   <AuthProvider>
@@ -25,6 +26,7 @@ const App = () => (
       <Route path="/physio-videos" element={<PhysioVideosPage />} />
       <Route path="/patient-videos" element={<PatientVideosPage />} />
       <Route path="/programs" element={<ProgramsPage />} />
+      <Route path="/report/:reportId" element={<AssessmentReportPage />} />
       <Route path="/admin/status" element={<AdminStatus />} />
       <Route path="/booking" element={<BookingPage />} />
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

@@ -1,0 +1,182 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* PhysiotherapyAI Design System - Medical Professional Theme
+All colors MUST be HSL for proper theming.
+*/
+
+@layer base {
+  :root {
+    --font-sans: "Manrope", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+    /* Core Background & Text */
+    --background: 120 25% 98%;
+    --foreground: 140 15% 18%;
+
+    /* Cards & Surfaces */
+    --card: 0 0% 100%;
+    --card-foreground: 140 15% 18%;
+
+    /* Interactive Elements */
+    --popover: 0 0% 100%;
+    --popover-foreground: 140 15% 18%;
+
+    /* Medical Primary - Professional Blue */
+    --primary: 152 45% 38%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 152 55% 48%;
+
+    /* Medical Secondary - Calming Green */
+    --secondary: 152 40% 30%;
+    --secondary-foreground: 0 0% 100%;
+
+    /* Subtle Backgrounds */
+    --muted: 120 20% 96%;
+    --muted-foreground: 140 14% 30%;
+
+    /* Accent - Soft Purple for highlights */
+    --accent: 152 40% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Status Colors */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 158 64% 52%;
+    --warning: 45 93% 58%;
+
+    /* Interactive States */
+    --border: 120 20% 88%;
+    --input: 120 20% 88%;
+    --ring: 152 45% 38%;
+
+    /* Medical Gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(152 45% 38%), hsl(152 55% 48%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(120 25% 98%));
+    --gradient-accent: linear-gradient(135deg, hsl(152 55% 48%), hsl(152 40% 30%));
+
+    /* Shadows for depth */
+    --shadow-soft: 0 6px 24px -10px hsl(152 45% 38% / 0.18);
+    --shadow-card: 0 10px 30px -14px hsl(140 15% 18% / 0.12);
+    --shadow-glow: 0 0 28px hsl(152 55% 48% / 0.18);
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 140 20% 10%;
+    --foreground: 120 30% 92%;
+
+    --card: 140 20% 13%;
+    --card-foreground: 120 30% 92%;
+
+    --popover: 140 20% 13%;
+    --popover-foreground: 120 30% 92%;
+
+    --primary: 152 45% 50%;
+    --primary-foreground: 140 20% 12%;
+    --primary-glow: 152 55% 60%;
+
+    --secondary: 152 35% 28%;
+    --secondary-foreground: 120 30% 95%;
+
+    --muted: 140 18% 18%;
+    --muted-foreground: 120 12% 70%;
+
+    --accent: 152 40% 50%;
+    --accent-foreground: 140 20% 12%;
+
+    --destructive: 0 70% 45%;
+    --destructive-foreground: 120 30% 95%;
+
+    --border: 140 15% 22%;
+    --input: 140 15% 22%;
+    --ring: 152 45% 50%;
+
+    --gradient-hero: linear-gradient(135deg, hsl(152 45% 50%), hsl(152 55% 60%));
+    --gradient-card: linear-gradient(145deg, hsl(140 20% 13%), hsl(140 18% 16%));
+    --gradient-accent: linear-gradient(135deg, hsl(152 55% 60%), hsl(152 35% 28%));
+
+    --shadow-soft: 0 6px 24px -12px hsl(152 45% 50% / 0.25);
+    --shadow-card: 0 12px 30px -16px hsl(140 20% 8% / 0.6);
+    --shadow-glow: 0 0 26px hsl(152 55% 60% / 0.3);
+
+    --sidebar-background: 140 20% 13%;
+    --sidebar-foreground: 120 30% 92%;
+    --sidebar-primary: 152 45% 50%;
+    --sidebar-primary-foreground: 140 20% 12%;
+    --sidebar-accent: 140 18% 18%;
+    --sidebar-accent-foreground: 120 30% 92%;
+    --sidebar-border: 140 15% 22%;
+    --sidebar-ring: 152 45% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    color-scheme: light dark;
+    font-size: var(--base-font-size, 16px);
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    font-weight: 400;
+    line-height: 1.6;
+    letter-spacing: 0.01em;
+    min-height: 100vh;
+    overflow-y: auto;
+  }
+
+  p,
+  li,
+  label,
+  input,
+  textarea,
+  select,
+  option,
+  small {
+    font-weight: 400;
+  }
+
+  #root {
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  .page-shell {
+    @apply mx-auto w-full max-w-screen-2xl px-3 sm:px-5 lg:px-8 xl:px-10;
+  }
+
+  .section-pad {
+    @apply py-16 sm:py-20 lg:py-24;
+  }
+
+  .section-pad-tight {
+    @apply py-12 sm:py-16;
+  }
+}

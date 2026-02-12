@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import Navigation from '@/components/Navigation';
 import { 
   ArrowLeft, 
@@ -27,6 +28,8 @@ const ExercisesPage = () => {
   const [currentPhase, setCurrentPhase] = useState<Phase>('acute');
   const [openVideoId, setOpenVideoId] = useState<string | null>(null);
   const [isCategoryDemoOpen, setIsCategoryDemoOpen] = useState(false);
+  const [openImageUrl, setOpenImageUrl] = useState<string | null>(null);
+  const [openImageAlt, setOpenImageAlt] = useState<string>('');
 
   const phaseInfo = {
     acute: {
@@ -86,6 +89,18 @@ const ExercisesPage = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
+
+        <Dialog open={!!openImageUrl} onOpenChange={(open) => !open && setOpenImageUrl(null)}>
+          <DialogContent className="max-w-4xl p-0 bg-white">
+            {openImageUrl ? (
+              <img
+                src={openImageUrl}
+                alt={openImageAlt}
+                className="w-full h-auto object-contain"
+              />
+            ) : null}
+          </DialogContent>
+        </Dialog>
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Back Button */}
@@ -235,8 +250,12 @@ const ExercisesPage = () => {
                             src={exercise.demoImageUrl}
                             alt={exercise.name}
                             loading="lazy"
-                            className="w-full h-full object-contain"
+                            className="w-full h-full object-contain cursor-zoom-in"
                             style={exercise.demoImagePosition ? { objectPosition: exercise.demoImagePosition } : undefined}
+                            onClick={() => {
+                              setOpenImageUrl(exercise.demoImageUrl ?? null);
+                              setOpenImageAlt(exercise.name);
+                            }}
                           />
                         </div>
                       </div>

@@ -77,6 +77,7 @@ const PatientDashboard = () => {
   const [weeklyProgress, setWeeklyProgress] = useState<number>(0);
   const [nextSession, setNextSession] = useState<{ date: string; time: string } | null>(null);
   const [loadingStats, setLoadingStats] = useState<boolean>(false);
+  const [hasProgressEntries, setHasProgressEntries] = useState<boolean>(false);
 
   const displayName = useMemo(() => {
     const metaFirst = (user?.user_metadata?.first_name as string | undefined) ?? '';
@@ -99,6 +100,7 @@ const PatientDashboard = () => {
           .order('created_at', { ascending: false });
 
         if (progressEntries && progressEntries.length > 0) {
+          setHasProgressEntries(true);
           const latest = progressEntries[0];
           setLatestPain(latest.pain_level ?? null);
 
@@ -126,6 +128,7 @@ const PatientDashboard = () => {
           const weekCount = dates.filter((d) => d >= weekAgo).length;
           setWeeklyProgress(Math.min(100, Math.round((weekCount / 7) * 100)));
         } else {
+          setHasProgressEntries(false);
           setLatestPain(null);
           setExerciseStreak(0);
           setWeeklyProgress(0);
@@ -189,7 +192,7 @@ const PatientDashboard = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="page-shell py-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
@@ -200,11 +203,11 @@ const PatientDashboard = () => {
               <div className="flex flex-wrap gap-4">
                 <Badge variant="outline" className="px-3 py-1">
                   <Calendar className="h-4 w-4 mr-1" />
-                  {t('patient.weekDay')}
+                  {hasProgressEntries ? t('patient.trackingActive') : t('patient.trackingStart')}
                 </Badge>
                 <Badge variant="outline" className="px-3 py-1">
                   <TrendingUp className="h-4 w-4 mr-1" />
-                  {t('patient.goodProgress')}
+                  {weeklyProgress > 0 ? t('patient.goodProgress') : t('patient.startTracking')}
                 </Badge>
               </div>
             </div>
@@ -297,23 +300,19 @@ const PatientDashboard = () => {
                 <CardTitle>{t('patient.todaysActions')}</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                    <CheckCircle className="h-5 w-5 text-success" />
-                    <span>{t('patient.completedStretches')}</span>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 border rounded-lg">
-                    <Clock className="h-5 w-5 text-primary" />
-                    <span>{t('patient.coreExercises')}</span>
-                    <Button size="sm" variant="outline" className="ml-auto">
-                      {t('patient.startNow')}
+                <div className="rounded-lg border border-dashed border-border/60 p-4 text-sm text-muted-foreground">
+                  {hasProgressEntries
+                    ? t('patient.actionsReady')
+                    : t('patient.actionsEmpty')}
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Button size="sm" variant="outline" onClick={() => navigate('/progress')}>
+                      {t('patient.logProgress')}
                     </Button>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 border rounded-lg">
-                    <Video className="h-5 w-5 text-accent" />
-                    <span>{t('patient.uploadVideo')}</span>
-                    <Button size="sm" variant="outline" className="ml-auto">
-                      {t('patient.upload')}
+                    <Button size="sm" variant="outline" onClick={() => navigate('/exercises')}>
+                      {t('patient.viewExercises')}
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => navigate('/booking')}>
+                      {t('patient.bookSession')}
                     </Button>
                   </div>
                 </div>

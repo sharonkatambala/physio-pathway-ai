@@ -5,8 +5,10 @@ import { supabase } from '@/integrations/supabase/client';
 interface Profile {
   id: string;
   user_id: string;
+  email?: string | null;
   first_name: string | null;
   last_name: string | null;
+  avatar_url?: string | null;
   phone: string | null;
   age: number | null;
   sex: string | null;

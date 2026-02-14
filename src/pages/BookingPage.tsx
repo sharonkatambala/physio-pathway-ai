@@ -8,8 +8,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import Navigation from '@/components/Navigation';
-import { Calendar, Clock, MapPin, Mail, Phone, Users, Award, CheckCircle, Loader2 } from 'lucide-react';
+import { Calendar, Clock, Mail, Phone, Users, Award, CheckCircle, User } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from '@/hooks/useAuth';
@@ -23,6 +24,7 @@ type Physiotherapist = {
   occupation?: string | null;
   phone?: string | null;
   email?: string | null;
+  avatar_url?: string | null;
 };
 
 const BookingPage = () => {
@@ -61,7 +63,7 @@ const BookingPage = () => {
 
         const { data, error } = await supabase
           .from('profiles')
-          .select('*')
+          .select('id, user_id, first_name, last_name, occupation, phone, email, avatar_url')
           .in('user_id', userIds);
 
         if (error) throw error;
@@ -187,7 +189,7 @@ const BookingPage = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="page-shell py-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">{tr('Book a Session', 'Weka Kikao')}</h1>
@@ -207,8 +209,21 @@ const BookingPage = () => {
               <CardContent>
                 <div className="space-y-4">
                   {isLoadingPhysios ? (
-                    <div className="flex items-center justify-center py-8">
-                      <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                    <div className="space-y-4">
+                      {Array.from({ length: 2 }).map((_, i) => (
+                        <Card key={i} className="border border-border/60">
+                          <CardContent className="p-4 sm:p-6">
+                            <div className="flex items-center gap-4">
+                              <Skeleton className="h-24 w-24 rounded-full" />
+                              <div className="flex-1 space-y-2">
+                                <Skeleton className="h-4 w-40" />
+                                <Skeleton className="h-3 w-28" />
+                                <Skeleton className="h-3 w-48" />
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
                     </div>
                   ) : physiotherapists.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
@@ -233,19 +248,21 @@ const BookingPage = () => {
                           }`}
                           onClick={() => setSelectedPhysio(physio.id)}
                         >
-                          <CardContent className="p-6">
-                            <div className="flex items-start gap-4">
-                              <Avatar className="w-16 h-16">
-                                <AvatarImage src="/placeholder.svg" alt={displayName} />
-                                <AvatarFallback>{displayName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                          <CardContent className="p-4 sm:p-6">
+                            <div className="flex items-center gap-4">
+                              <Avatar className="h-24 w-24 ring-2 ring-primary/25">
+                                <AvatarImage src={physio.avatar_url || undefined} alt={displayName} />
+                                <AvatarFallback className="bg-white/70 text-muted-foreground border border-border/60">
+                                  <User className="h-10 w-10" />
+                                </AvatarFallback>
                               </Avatar>
                               
                               <div className="flex-1">
-                                <div className="flex items-start justify-between mb-2">
-                                  <div>
-                                    <h3 className="text-lg font-semibold">{displayName}</h3>
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="space-y-1">
+                                    <h3 className="text-base font-semibold leading-tight">{displayName}</h3>
                                     {physio.occupation ? (
-                                      <p className="text-primary font-medium">{physio.occupation}</p>
+                                      <p className="text-xs uppercase tracking-wide text-primary/80">{physio.occupation}</p>
                                     ) : null}
                                   </div>
                                   {selectedPhysio === physio.id && (
@@ -253,7 +270,7 @@ const BookingPage = () => {
                                   )}
                                 </div>
                                 
-                                <div className="flex flex-col gap-2 text-sm text-muted-foreground">
+                                <div className="mt-2 grid gap-1 text-sm text-muted-foreground">
                                   {physio.phone ? (
                                     <div className="flex items-center gap-2">
                                       <Phone className="h-4 w-4" />
@@ -268,7 +285,7 @@ const BookingPage = () => {
                                   ) : null}
                                 </div>
 
-                                <div className="mt-3">
+                                <div className="mt-2">
                                   <Badge variant="secondary" className="text-xs">
                                     <Award className="h-3 w-3 mr-1" />
                                     {tr('Verified', 'Imethibitishwa')}

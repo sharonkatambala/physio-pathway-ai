@@ -17,6 +17,7 @@ import PhysiotherapistDashboard from "./pages/PhysiotherapistDashboard";
 import PhysioPatientsPage from "./pages/PhysioPatientsPage";
 import PhysioSessionsPage from "./pages/PhysioSessionsPage";
 import PhysioResourcesPage from "./pages/PhysioResourcesPage";
+import PhysioSettingsPage from "./pages/PhysioSettingsPage";
 
 const App = () => (
   <AuthProvider>
@@ -32,6 +33,7 @@ const App = () => (
       <Route path="/physio-patients" element={<PhysioPatientsPage />} />
       <Route path="/physio-sessions" element={<PhysioSessionsPage />} />
       <Route path="/physio-resources" element={<PhysioResourcesPage />} />
+      <Route path="/physio-settings" element={<PhysioSettingsPage />} />
       <Route path="/patient-videos" element={<PatientVideosPage />} />
       <Route path="/programs" element={<ProgramsPage />} />
       <Route path="/report/:reportId" element={<AssessmentReportPage />} />

@@ -31,13 +31,13 @@ const AboutSection = () => {
             <div className="grid grid-cols-2 gap-6">
               <div className="text-center p-6 bg-card rounded-xl border border-border">
                 <Users className="h-8 w-8 text-primary mx-auto mb-2" />
-                <div className="text-2xl font-bold text-foreground">10k+</div>
-                <div className="text-sm text-muted-foreground">{t('about.patientsTreated')}</div>
+                <div className="text-base font-semibold text-foreground">{t('about.patientsTreated')}</div>
+                <div className="text-sm text-muted-foreground">{t('about.patientCentered')}</div>
               </div>
               <div className="text-center p-6 bg-card rounded-xl border border-border">
                 <Award className="h-8 w-8 text-secondary mx-auto mb-2" />
-                <div className="text-2xl font-bold text-foreground">95%</div>
-                <div className="text-sm text-muted-foreground">{t('about.successRate')}</div>
+                <div className="text-base font-semibold text-foreground">{t('about.successRate')}</div>
+                <div className="text-sm text-muted-foreground">{t('about.evidenceBased')}</div>
               </div>
             </div>
           </div>

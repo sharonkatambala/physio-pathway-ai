@@ -35,7 +35,7 @@ All colors MUST be HSL for proper theming.
 
     /* Subtle Backgrounds */
     --muted: 120 20% 96%;
-    --muted-foreground: 140 14% 30%;
+    --muted-foreground: 140 14% 36%;
 
     /* Accent - Soft Purple for highlights */
     --accent: 152 40% 50%;
@@ -99,7 +99,7 @@ All colors MUST be HSL for proper theming.
     --secondary-foreground: 120 30% 95%;
 
     --muted: 140 18% 18%;
-    --muted-foreground: 120 12% 70%;
+    --muted-foreground: 120 12% 72%;
 
     --accent: 152 40% 50%;
     --accent-foreground: 140 20% 12%;
@@ -153,13 +153,16 @@ All colors MUST be HSL for proper theming.
 
   p,
   li,
-  label,
   input,
   textarea,
   select,
   option,
   small {
     font-weight: 400;
+  }
+
+  label {
+    font-weight: 500;
   }
 
   #root {

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Activity, Video, Brain, Calendar, TrendingUp, Users } from 'lucide-react';
+import { Video, Brain, Calendar, TrendingUp, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -42,13 +42,6 @@ const ServicesSection = () => {
       descKey: "services.patientPortalDesc",
       features: ["Real-time Chat", "Report Sharing", "Appointment Management"],
       badge: "Connected Care"
-    },
-    {
-      icon: Activity,
-      titleKey: "services.wearableIntegration",
-      descKey: "services.wearableIntegrationDesc",
-      features: ["Device Sync", "Movement Analysis", "Real-time Feedback"],
-      badge: "Smart Tech"
     }
   ];
 

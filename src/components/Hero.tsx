@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Shield, Clock, Users } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import heroImage from '@/assets/hero-physiotherapy.jpg';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -40,9 +41,11 @@ const Hero = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" className="bg-gradient-hero shadow-glow text-lg h-14 px-8">
-                {t('hero.startAssessment')}
-                <ArrowRight className="ml-2 h-5 w-5" />
+              <Button asChild size="lg" className="bg-gradient-hero shadow-glow text-lg h-14 px-8">
+                <Link to="/auth">
+                  {t('hero.startAssessment')}
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
               </Button>
             </div>
 

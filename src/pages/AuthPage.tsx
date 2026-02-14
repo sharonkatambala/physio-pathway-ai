@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/components/ui/use-toast';
 import { ArrowLeft } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { supabase } from '@/integrations/supabase/client';
 
 const AuthPage = () => {
   const [loading, setLoading] = useState(false);
@@ -66,6 +67,7 @@ const AuthPage = () => {
     sex: '',
     occupation: ''
   });
+  const [physioPhoto, setPhysioPhoto] = useState<File | null>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,7 +103,50 @@ const AuthPage = () => {
       return;
     }
     
+    if (signupData.role === 'physiotherapist' && !signupData.phone.trim()) {
+      toast({
+        title: t('auth.error'),
+        description: 'Phone number is required for physiotherapists.',
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (signupData.role === 'physiotherapist' && !physioPhoto) {
+      toast({
+        title: t('auth.error'),
+        description: 'Profile photo is required for physiotherapists.',
+        variant: "destructive"
+      });
+      return;
+    }
+
     setLoading(true);
+
+    let avatarUrl: string | null = null;
+    if (signupData.role === 'physiotherapist' && physioPhoto) {
+      try {
+        const fileExt = physioPhoto.name.split('.').pop();
+        const fileName = `physio-${Date.now()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from('profile-photos')
+          .upload(fileName, physioPhoto, { upsert: true });
+
+        if (uploadError) throw uploadError;
+
+        avatarUrl = supabase.storage
+          .from('profile-photos')
+          .getPublicUrl(fileName).data.publicUrl;
+      } catch (err: any) {
+        toast({
+          title: t('auth.error'),
+          description: err?.message || 'Failed to upload profile photo.',
+          variant: "destructive"
+        });
+        setLoading(false);
+        return;
+      }
+    }
     
     const userData = {
       first_name: signupData.firstName,
@@ -110,7 +155,9 @@ const AuthPage = () => {
       phone: signupData.phone || null,
       age: signupData.age ? parseInt(signupData.age) : null,
       sex: signupData.sex || null,
-      occupation: signupData.occupation || null
+      occupation: signupData.occupation || null,
+      avatar_url: avatarUrl,
+      email: signupData.email
     };
 
     const { error } = await signUp(signupData.email, signupData.password, userData);
@@ -315,8 +362,22 @@ const AuthPage = () => {
                         type="tel"
                         value={signupData.phone}
                         onChange={(e) => setSignupData({...signupData, phone: e.target.value})}
+                        required={signupData.role === 'physiotherapist'}
                       />
                     </div>
+
+                    {signupData.role === 'physiotherapist' && (
+                      <div className="space-y-2">
+                        <Label htmlFor="physio-photo">Profile Photo</Label>
+                        <Input
+                          id="physio-photo"
+                          type="file"
+                          accept="image/*"
+                          onChange={(e: any) => setPhysioPhoto(e.target.files?.[0] ?? null)}
+                          required
+                        />
+                      </div>
+                    )}
 
                     <Button type="submit" className="w-full" disabled={loading}>
                       {loading ? t('auth.creatingAccount') : t('auth.createAccount')}

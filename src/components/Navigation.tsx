@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Menu, X, Activity, Calendar, Users, BookOpen, LogOut, Languages, Target, Moon, Sun, Video, LayoutDashboard, FileText } from 'lucide-react';
+import { Menu, X, Activity, Calendar, Users, BookOpen, LogOut, Languages, Target, Moon, Sun, Video, LayoutDashboard, FileText, Settings } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -53,6 +53,7 @@ const Navigation = () => {
         { name: t('nav.sessions'), href: '/physio-sessions', icon: Calendar },
         { name: t('nav.videos'), href: '/physio-videos', icon: Video },
         { name: t('nav.resources'), href: '/physio-resources', icon: FileText },
+        { name: t('nav.settings'), href: '/physio-settings', icon: Settings },
       ];
     }
   };

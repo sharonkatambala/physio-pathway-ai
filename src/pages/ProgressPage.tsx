@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Dialog,
   DialogContent,
@@ -258,7 +259,7 @@ const ProgressPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <div className="page-shell py-8 space-y-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h1 className="text-3xl font-semibold text-foreground">{tr('Progress Dashboard', 'Dashibodi ya Maendeleo')}</h1>
@@ -280,48 +281,64 @@ const ProgressPage = () => {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="border-border/60 shadow-card">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground">{tr('Entries Logged', 'Rekodi Zilizowekwa')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-semibold">{metrics.totalEntries}</div>
-              <p className="text-xs text-muted-foreground mt-2">
-                {metrics.lastEntry
-                  ? tr('Last update', 'Sasisho la mwisho') + ` - ${metrics.lastEntry.toLocaleDateString()}`
-                  : tr('No entries yet', 'Bado hakuna rekodi')}
-              </p>
-            </CardContent>
-          </Card>
-          <Card className="border-border/60 shadow-card">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground">{tr('Average Pain', 'Wastani wa Maumivu')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-semibold">{metrics.avgPain ?? '-'}</div>
-              <p className="text-xs text-muted-foreground mt-2">{tr('Scale 0-10', 'Kiwango 0-10')}</p>
-            </CardContent>
-          </Card>
-          <Card className="border-border/60 shadow-card">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground">{tr('Exercises Completed', 'Mazoezi Yaliyokamilika')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-semibold">{metrics.totalCompleted}</div>
-              <p className="text-xs text-muted-foreground mt-2">{tr('All-time count', 'Jumla ya muda wote')}</p>
-            </CardContent>
-          </Card>
-          <Card className="border-border/60 shadow-card">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground">{tr('Weekly Adherence', 'Ufuatiliaji wa Wiki')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-semibold">{metrics.adherence}%</div>
-              <div className="mt-2 h-2 rounded-full bg-muted">
-                <div className="h-full rounded-full bg-primary" style={{ width: `${metrics.adherence}%` }} />
-              </div>
-            </CardContent>
-          </Card>
+          {loading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <Card key={i} className="border-border/60 shadow-card">
+                <CardHeader className="pb-2">
+                  <Skeleton className="h-4 w-24" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-8 w-20" />
+                  <Skeleton className="mt-3 h-3 w-28" />
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <>
+              <Card className="border-border/60 shadow-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-muted-foreground">{tr('Entries Logged', 'Rekodi Zilizowekwa')}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-semibold">{metrics.totalEntries}</div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {metrics.lastEntry
+                      ? tr('Last update', 'Sasisho la mwisho') + ` - ${metrics.lastEntry.toLocaleDateString()}`
+                      : tr('No entries yet', 'Bado hakuna rekodi')}
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="border-border/60 shadow-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-muted-foreground">{tr('Average Pain', 'Wastani wa Maumivu')}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-semibold">{metrics.avgPain ?? '-'}</div>
+                  <p className="text-xs text-muted-foreground mt-2">{tr('Scale 0-10', 'Kiwango 0-10')}</p>
+                </CardContent>
+              </Card>
+              <Card className="border-border/60 shadow-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-muted-foreground">{tr('Exercises Completed', 'Mazoezi Yaliyokamilika')}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-semibold">{metrics.totalCompleted}</div>
+                  <p className="text-xs text-muted-foreground mt-2">{tr('All-time count', 'Jumla ya muda wote')}</p>
+                </CardContent>
+              </Card>
+              <Card className="border-border/60 shadow-card">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-muted-foreground">{tr('Weekly Adherence', 'Ufuatiliaji wa Wiki')}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-semibold">{metrics.adherence}%</div>
+                  <div className="mt-2 h-2 rounded-full bg-muted">
+                    <div className="h-full rounded-full bg-primary" style={{ width: `${metrics.adherence}%` }} />
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
         </div>
 
         <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr),minmax(0,1fr)]">
@@ -403,7 +420,9 @@ const ProgressPage = () => {
               <CardTitle>{tr('Pain Trend (Last 14)', 'Mwenendo wa Maumivu (Siku 14)')}</CardTitle>
             </CardHeader>
             <CardContent>
-              {chartData.length === 0 ? (
+              {loading ? (
+                <Skeleton className="h-[240px] w-full" />
+              ) : chartData.length === 0 ? (
                 <div className="text-sm text-muted-foreground">
                   {tr('Add entries to see your pain trend.', 'Ongeza rekodi ili kuona mwenendo wa maumivu.')}
                 </div>
@@ -448,7 +467,11 @@ const ProgressPage = () => {
             </CardHeader>
             <CardContent>
               {loading ? (
-                <div>{tr('Loading...', 'Inapakia...')}</div>
+                <div className="space-y-3">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <Skeleton key={i} className="h-16 w-full" />
+                  ))}
+                </div>
               ) : entries.length === 0 ? (
                 <div className="space-y-3 text-sm text-muted-foreground">
                   <div className="rounded-lg border border-dashed border-border/60 p-4">

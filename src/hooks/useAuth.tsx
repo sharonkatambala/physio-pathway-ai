@@ -39,6 +39,97 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [role, setRole] = useState<'patient' | 'physiotherapist' | 'admin' | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const normalize = (value: unknown) =>
+    typeof value === 'string' ? value.trim() : '';
+
+  const isPlaceholderName = (value: string | null | undefined) => {
+    const normalized = normalize(value).toLowerCase();
+    return normalized === 'yourfirst' || normalized === 'yourlast';
+  };
+
+  const syncProfileFromMetadata = async (authUser: User) => {
+    const meta = (authUser.user_metadata || {}) as Record<string, any>;
+    const metaFirst = normalize(meta.first_name);
+    const metaLast = normalize(meta.last_name);
+    const metaRole = normalize(meta.role);
+    const metaPhone = normalize(meta.phone);
+    const metaSex = normalize(meta.sex);
+    const metaOccupation = normalize(meta.occupation);
+    const metaAvatarUrl = normalize(meta.avatar_url);
+    const metaEmail = normalize(meta.email) || normalize(authUser.email);
+    const metaAge = typeof meta.age === 'number' ? meta.age : Number(meta.age) || null;
+
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('user_id', authUser.id)
+      .single();
+
+    const profilePayload: Partial<Profile> & { user_id: string } = {
+      user_id: authUser.id,
+      email: metaEmail || null,
+      first_name: metaFirst || null,
+      last_name: metaLast || null,
+      phone: metaPhone || null,
+      age: metaAge ?? null,
+      sex: metaSex || null,
+      occupation: metaOccupation || null,
+      avatar_url: metaAvatarUrl || null,
+    };
+
+    if (!existingProfile) {
+      if (metaFirst || metaLast || metaEmail) {
+        const { data: inserted } = await supabase
+          .from('profiles')
+          .insert(profilePayload)
+          .select()
+          .single();
+        if (inserted) setProfile(inserted as Profile);
+      }
+    } else {
+      const updatePayload: Partial<Profile> = {};
+      if ((!existingProfile.first_name || isPlaceholderName(existingProfile.first_name)) && metaFirst) {
+        updatePayload.first_name = metaFirst;
+      }
+      if ((!existingProfile.last_name || isPlaceholderName(existingProfile.last_name)) && metaLast) {
+        updatePayload.last_name = metaLast;
+      }
+      if (!existingProfile.email && metaEmail) updatePayload.email = metaEmail;
+      if (!existingProfile.phone && metaPhone) updatePayload.phone = metaPhone;
+      if (!existingProfile.age && metaAge !== null) updatePayload.age = metaAge;
+      if (!existingProfile.sex && metaSex) updatePayload.sex = metaSex;
+      if (!existingProfile.occupation && metaOccupation) updatePayload.occupation = metaOccupation;
+      if (!existingProfile.avatar_url && metaAvatarUrl) updatePayload.avatar_url = metaAvatarUrl;
+
+      if (Object.keys(updatePayload).length > 0) {
+        const { data: updated } = await supabase
+          .from('profiles')
+          .update(updatePayload)
+          .eq('id', existingProfile.id)
+          .select()
+          .single();
+        if (updated) setProfile(updated as Profile);
+      } else {
+        setProfile(existingProfile as Profile);
+      }
+    }
+
+    const { data: roleData } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', authUser.id)
+      .single();
+
+    if (roleData?.role) {
+      setRole(roleData.role || null);
+    } else if (metaRole === 'patient' || metaRole === 'physiotherapist' || metaRole === 'admin') {
+      await supabase.from('user_roles').insert({ user_id: authUser.id, role: metaRole });
+      setRole(metaRole as 'patient' | 'physiotherapist' | 'admin');
+    } else {
+      setRole(null);
+    }
+  };
+
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -47,21 +138,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch profile and role data
           setTimeout(async () => {
-            const { data: profileData } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('user_id', session.user.id)
-              .single();
-            setProfile(profileData);
-
-            const { data: roleData } = await supabase
-              .from('user_roles')
-              .select('role')
-              .eq('user_id', session.user.id)
-              .single();
-            setRole(roleData?.role || null);
+            await syncProfileFromMetadata(session.user);
           }, 0);
         } else {
           setProfile(null);
@@ -92,7 +170,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signUp = async (email: string, password: string, userData: any) => {
     const redirectUrl = `${window.location.origin}/`;
     
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -100,6 +178,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         data: userData
       }
     });
+    if (!error && data?.session?.user) {
+      await syncProfileFromMetadata(data.session.user);
+    }
     return { error };
   };
 

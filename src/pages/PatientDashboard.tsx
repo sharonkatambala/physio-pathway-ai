@@ -78,6 +78,7 @@ const PatientDashboard = () => {
   const [nextSession, setNextSession] = useState<{ date: string; time: string } | null>(null);
   const [loadingStats, setLoadingStats] = useState<boolean>(false);
   const [hasProgressEntries, setHasProgressEntries] = useState<boolean>(false);
+  const [hasAssessment, setHasAssessment] = useState<boolean>(false);
 
   const displayName = useMemo(() => {
     const metaFirst = (user?.user_metadata?.first_name as string | undefined) ?? '';
@@ -101,6 +102,7 @@ const PatientDashboard = () => {
 
         if (progressEntries && progressEntries.length > 0) {
           setHasProgressEntries(true);
+          setHasAssessment(false);
           const latest = progressEntries[0];
           setLatestPain(latest.pain_level ?? null);
 
@@ -132,6 +134,20 @@ const PatientDashboard = () => {
           setLatestPain(null);
           setExerciseStreak(0);
           setWeeklyProgress(0);
+
+          const { data: assessments } = await supabase
+            .from('assessments')
+            .select('pain_level, created_at')
+            .eq('patient_user_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(1);
+
+          if (assessments && assessments.length > 0) {
+            setHasAssessment(true);
+            setLatestPain(assessments[0].pain_level ?? null);
+          } else {
+            setHasAssessment(false);
+          }
         }
 
         const { data: appointments } = await supabase
@@ -203,7 +219,7 @@ const PatientDashboard = () => {
               <div className="flex flex-wrap gap-4">
                 <Badge variant="outline" className="px-3 py-1">
                   <Calendar className="h-4 w-4 mr-1" />
-                  {hasProgressEntries ? t('patient.trackingActive') : t('patient.trackingStart')}
+                  {(hasProgressEntries || hasAssessment) ? t('patient.trackingActive') : t('patient.trackingStart')}
                 </Badge>
                 <Badge variant="outline" className="px-3 py-1">
                   <TrendingUp className="h-4 w-4 mr-1" />

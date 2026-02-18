@@ -583,7 +583,7 @@ export const exerciseCategories: ExerciseCategory[] = [
           time: '2 sets + 3-4 passes',
           type: 'Functional strength & balance'
         },
-          demoImageUrl: '/exercises/Sit-to-Stand%20+%20Heel-To-Toe%20Walk.png',
+          demoImageUrl: '/exercises/Sit-to-Stand%20Heel-To-Toe%20Walk.png',
         demoVideoUrl: 'https://www.youtube.com/watch?v=USUqkjIaR_Y'
       },
       {

@@ -1118,7 +1118,7 @@ export const exerciseCategories: ExerciseCategory[] = [
           time: '8-12 minutes',
           type: 'Mobility & recovery'
         },
-        demoImageUrl: '/exercises/yoga-woman-8472379.jpg',
+        demoImageUrl: '/exercises/Dynamic%20Mobility%20Flow.png',
         demoVideoUrl: 'https://www.youtube.com/watch?v=KK-9C_Wt0hw'
       },
       {
@@ -1141,7 +1141,7 @@ export const exerciseCategories: ExerciseCategory[] = [
           time: '10-20 minutes',
           type: 'Aerobic endurance'
         },
-        demoImageUrl: '/exercises/walking-exercise.jpg',
+        demoImageUrl: '/exercises/Brisk%20Walk.png',
         demoVideoUrl: 'https://www.youtube.com/watch?v=_Y_FTROkP-U'
       },
       {
@@ -1164,7 +1164,7 @@ export const exerciseCategories: ExerciseCategory[] = [
           time: '15-30 seconds per stretch',
           type: 'Flexibility'
         },
-        demoImageUrl: '/exercises/thoracic-extension.png',
+        demoImageUrl: '/exercises/Gentle%20Stretch%20Series.png',
         demoVideoUrl: 'https://www.youtube.com/watch?v=_ftNKYfWY10'
       },
       {
@@ -1210,7 +1210,7 @@ export const exerciseCategories: ExerciseCategory[] = [
           time: '2-3 sets of 10-12 reps',
           type: 'Strength & posture'
         },
-        demoImageUrl: '/exercises/cable-seated-rows-1.png',
+        demoImageUrl: '/exercises/Resistance%20Band%20Row.png',
         demoVideoUrl: 'https://www.youtube.com/watch?v=EuteHJq7z40'
       },
       {

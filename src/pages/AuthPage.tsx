@@ -5,12 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/components/ui/use-toast';
 import { ArrowLeft } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { supabase } from '@/integrations/supabase/client';
 
 const AuthPage = () => {
   const [loading, setLoading] = useState(false);
@@ -68,6 +67,8 @@ const AuthPage = () => {
     occupation: ''
   });
   const [physioPhoto, setPhysioPhoto] = useState<File | null>(null);
+  const inputClass =
+    "bg-background border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-primary/40";
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,41 +113,7 @@ const AuthPage = () => {
       return;
     }
 
-    if (signupData.role === 'physiotherapist' && !physioPhoto) {
-      toast({
-        title: t('auth.error'),
-        description: 'Profile photo is required for physiotherapists.',
-        variant: "destructive"
-      });
-      return;
-    }
-
     setLoading(true);
-
-    let avatarUrl: string | null = null;
-    if (signupData.role === 'physiotherapist' && physioPhoto) {
-      try {
-        const fileExt = physioPhoto.name.split('.').pop();
-        const fileName = `physio-${Date.now()}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage
-          .from('profile-photos')
-          .upload(fileName, physioPhoto, { upsert: true });
-
-        if (uploadError) throw uploadError;
-
-        avatarUrl = supabase.storage
-          .from('profile-photos')
-          .getPublicUrl(fileName).data.publicUrl;
-      } catch (err: any) {
-        toast({
-          title: t('auth.error'),
-          description: err?.message || 'Failed to upload profile photo.',
-          variant: "destructive"
-        });
-        setLoading(false);
-        return;
-      }
-    }
     
     const userData = {
       first_name: signupData.firstName,
@@ -156,7 +123,6 @@ const AuthPage = () => {
       age: signupData.age ? parseInt(signupData.age) : null,
       sex: signupData.sex || null,
       occupation: signupData.occupation || null,
-      avatar_url: avatarUrl,
       email: signupData.email
     };
 
@@ -171,12 +137,16 @@ const AuthPage = () => {
     } else {
       toast({
         title: t('auth.success'),
-        description: t('auth.signupSuccess')
+        description: signupData.role === 'physiotherapist'
+          ? 'Account created. You can upload a profile photo later in settings.'
+          : t('auth.signupSuccess')
       });
     }
     
     setLoading(false);
   };
+
+  const [authTab, setAuthTab] = useState<'login' | 'signup'>('login');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10">
@@ -190,48 +160,61 @@ const AuthPage = () => {
           {t('auth.backHome')}
         </Button>
 
-        <div className="max-w-md mx-auto">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+        <div className="max-w-xl mx-auto">
+          <div className="text-center mb-10">
+            <h1 className="text-4xl sm:text-5xl font-bold text-foreground">
               {t('auth.welcomeTitle')}
             </h1>
-            <p className="text-muted-foreground mt-2">
+            <p className="text-muted-foreground mt-3 text-base sm:text-lg">
               {t('auth.welcomeSubtitle')}
             </p>
           </div>
 
-          <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">{t('auth.loginTab')}</TabsTrigger>
-              <TabsTrigger value="signup">{t('auth.signupTab')}</TabsTrigger>
-            </TabsList>
+          <Tabs value={authTab} onValueChange={(value) => setAuthTab(value as 'login' | 'signup')} className="w-full">
+            <TabsList className="hidden" />
 
             <TabsContent value="login">
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t('auth.loginTitle')}</CardTitle>
+              <Card className="bg-card/90 text-foreground border border-border shadow-2xl rounded-2xl">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-2xl sm:text-3xl font-semibold text-foreground">
+                      Log in
+                    </CardTitle>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    New user?{' '}
+                    <button
+                      type="button"
+                      className="text-primary hover:underline"
+                      onClick={() => setAuthTab('signup')}
+                    >
+                      Register Now
+                    </button>
+                  </p>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-4 space-y-4">
                   <form onSubmit={handleLogin} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="login-email">{t('auth.email')}</Label>
+                      <Label htmlFor="login-email" className="text-foreground">{t('auth.email')}</Label>
                       <Input
                         id="login-email"
                         type="email"
                         value={loginData.email}
                         onChange={(e) => setLoginData({...loginData, email: e.target.value})}
                         required
+                        className={inputClass}
                       />
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="login-password">{t('auth.password')}</Label>
+                      <Label htmlFor="login-password" className="text-foreground">{t('auth.password')}</Label>
                       <Input
                         id="login-password"
                         type="password"
                         value={loginData.password}
                         onChange={(e) => setLoginData({...loginData, password: e.target.value})}
                         required
+                        className={inputClass}
                       />
                     </div>
 
@@ -244,35 +227,51 @@ const AuthPage = () => {
             </TabsContent>
 
             <TabsContent value="signup">
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t('auth.signupTitle')}</CardTitle>
+              <Card className="bg-card/90 text-foreground border border-border shadow-2xl rounded-2xl">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-2xl sm:text-3xl font-semibold text-foreground">
+                      Create Account
+                    </CardTitle>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Already have an account?{' '}
+                    <button
+                      type="button"
+                      className="text-primary hover:underline"
+                      onClick={() => setAuthTab('login')}
+                    >
+                      Log in
+                    </button>
+                  </p>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-4">
                   <form onSubmit={handleSignup} className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="firstName">{t('auth.firstName')}</Label>
+                        <Label htmlFor="firstName" className="text-foreground">{t('auth.firstName')}</Label>
                         <Input
                           id="firstName"
                           value={signupData.firstName}
                           onChange={(e) => setSignupData({...signupData, firstName: e.target.value})}
                           required
+                          className={inputClass}
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="lastName">{t('auth.lastName')}</Label>
+                        <Label htmlFor="lastName" className="text-foreground">{t('auth.lastName')}</Label>
                         <Input
                           id="lastName"
                           value={signupData.lastName}
                           onChange={(e) => setSignupData({...signupData, lastName: e.target.value})}
                           required
+                          className={inputClass}
                         />
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="role">{t('auth.roleLabel')}</Label>
+                      <Label htmlFor="role" className="text-foreground">{t('auth.roleLabel')}</Label>
                       <Select value={signupData.role} onValueChange={(value: 'patient' | 'physiotherapist') => setSignupData({...signupData, role: value})}>
                         <SelectTrigger>
                           <SelectValue />
@@ -285,35 +284,38 @@ const AuthPage = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="email">{t('auth.email')}</Label>
+                      <Label htmlFor="email" className="text-foreground">{t('auth.email')}</Label>
                       <Input
                         id="email"
                         type="email"
                         value={signupData.email}
                         onChange={(e) => setSignupData({...signupData, email: e.target.value})}
                         required
+                        className={inputClass}
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="password">{t('auth.password')}</Label>
+                      <Label htmlFor="password" className="text-foreground">{t('auth.password')}</Label>
                       <Input
                         id="password"
                         type="password"
                         value={signupData.password}
                         onChange={(e) => setSignupData({...signupData, password: e.target.value})}
                         required
+                        className={inputClass}
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="confirmPassword">{t('auth.confirmPassword')}</Label>
+                      <Label htmlFor="confirmPassword" className="text-foreground">{t('auth.confirmPassword')}</Label>
                       <Input
                         id="confirmPassword"
                         type="password"
                         value={signupData.confirmPassword}
                         onChange={(e) => setSignupData({...signupData, confirmPassword: e.target.value})}
                         required
+                        className={inputClass}
                       />
                     </div>
 
@@ -321,16 +323,17 @@ const AuthPage = () => {
                       <>
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
-                            <Label htmlFor="age">{t('auth.age')}</Label>
+                            <Label htmlFor="age" className="text-foreground">{t('auth.age')}</Label>
                             <Input
                               id="age"
                               type="number"
                               value={signupData.age}
                               onChange={(e) => setSignupData({...signupData, age: e.target.value})}
+                              className={inputClass}
                             />
                           </div>
                           <div className="space-y-2">
-                            <Label htmlFor="sex">{t('auth.sex')}</Label>
+                            <Label htmlFor="sex" className="text-foreground">{t('auth.sex')}</Label>
                             <Select value={signupData.sex} onValueChange={(value) => setSignupData({...signupData, sex: value})}>
                               <SelectTrigger>
                               <SelectValue placeholder={t('auth.sexSelect')} />
@@ -345,36 +348,38 @@ const AuthPage = () => {
                         </div>
 
                         <div className="space-y-2">
-                          <Label htmlFor="occupation">{t('auth.occupation')}</Label>
+                          <Label htmlFor="occupation" className="text-foreground">{t('auth.occupation')}</Label>
                           <Input
                             id="occupation"
                             value={signupData.occupation}
                             onChange={(e) => setSignupData({...signupData, occupation: e.target.value})}
+                            className={inputClass}
                           />
                         </div>
                       </>
                     )}
 
                     <div className="space-y-2">
-                      <Label htmlFor="phone">{t('auth.phone')}</Label>
+                      <Label htmlFor="phone" className="text-foreground">{t('auth.phone')}</Label>
                       <Input
                         id="phone"
                         type="tel"
                         value={signupData.phone}
                         onChange={(e) => setSignupData({...signupData, phone: e.target.value})}
                         required={signupData.role === 'physiotherapist'}
+                        className={inputClass}
                       />
                     </div>
 
                     {signupData.role === 'physiotherapist' && (
                       <div className="space-y-2">
-                        <Label htmlFor="physio-photo">Profile Photo</Label>
+                        <Label htmlFor="physio-photo" className="text-foreground">Profile Photo</Label>
                         <Input
                           id="physio-photo"
                           type="file"
                           accept="image/*"
                           onChange={(e: any) => setPhysioPhoto(e.target.files?.[0] ?? null)}
-                          required
+                          className={inputClass}
                         />
                       </div>
                     )}

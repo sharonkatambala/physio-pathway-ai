@@ -1,7 +1,5 @@
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Video, Brain, Calendar, TrendingUp, Users } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const ServicesSection = () => {
@@ -95,13 +93,6 @@ const ServicesSection = () => {
           })}
         </div>
 
-        <div className="text-center mt-16">
-          <Link to="/auth">
-            <Button size="lg" className="bg-gradient-hero shadow-glow">
-              {t('services.getStarted')}
-            </Button>
-          </Link>
-        </div>
       </div>
     </section>
   );

@@ -154,7 +154,7 @@ export const exerciseCategories: ExerciseCategory[] = [
           time: '8-10 repetitions per side',
           type: 'Mobility & flexibility'
         },
-        demoImageUrl: '/exercises/neck-bends.png',
+        demoImageUrl: '/exercises/Neck%20Bends.png',
         demoVideoUrl: 'https://www.youtube.com/watch?v=54y0JAT46vE'
       },
       {
@@ -178,7 +178,7 @@ export const exerciseCategories: ExerciseCategory[] = [
           time: '10-12 repetitions per side',
           type: 'Mobility & control'
         },
-        demoImageUrl: '/exercises/lower-trunk-rotation.png',
+        demoImageUrl: '/exercises/Lower%20Trunk%20Rotation.png',
         demoVideoUrl: 'https://www.youtube.com/watch?v=LC1rtQrd6m0'
       },
       {
@@ -202,7 +202,7 @@ export const exerciseCategories: ExerciseCategory[] = [
           time: '8-10 repetitions',
           type: 'Mobility & posture'
         },
-        demoImageUrl: '/exercises/Thoracic%20Extension.jpg',
+        demoImageUrl: '/exercises/Thoracic%20Extension.png',
         demoVideoUrl: 'https://www.youtube.com/watch?v=wyAPLCyLntg'
       }
     ]
@@ -235,7 +235,7 @@ export const exerciseCategories: ExerciseCategory[] = [
           time: '10-15 repetitions',
           type: 'Active assisted range of motion'
         },
-        demoImageUrl: '/exercises/heel-sliding-exercise.png',
+        demoImageUrl: '/exercises/Knee%20Range%20of%20Motion.png',
         demoVideoUrl: 'https://www.youtube.com/watch?v=zlxxgZqZuPQ'
       },
       {
@@ -259,7 +259,7 @@ export const exerciseCategories: ExerciseCategory[] = [
           time: '10 repetitions, 3 sets',
           type: 'Isometric strengthening'
         },
-        demoImageUrl: '/exercises/Hip%20adduction.jpg',
+        demoImageUrl: '/exercises/Hip%20Abduction.jpg',
         demoVideoUrl: 'https://www.youtube.com/watch?v=dBeyU0RddP4'
       },
       {
@@ -282,7 +282,7 @@ export const exerciseCategories: ExerciseCategory[] = [
           time: '10-15 repetitions',
           type: 'Isometric strengthening'
         },
-        demoImageUrl: '/exercises/knee-injury-8880798.png',
+        demoImageUrl: '/exercises/Seated%20Quad%20Sets.jpg',
         demoVideoUrl: 'https://www.youtube.com/watch?v=KZ1mC5zg2TI'
       },
       {

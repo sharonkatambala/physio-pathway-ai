@@ -16,7 +16,8 @@ import {
   User,
   Award
 } from 'lucide-react';
-import { exerciseCategories } from '@/data/exerciseCategories';
+import { exerciseCategories, type ExerciseDifficulty } from '@/data/exerciseCategories';
+import { exerciseTranslations } from '@/data/exerciseTranslations';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 type Phase = 'acute' | 'intermediate' | 'advanced';
@@ -30,6 +31,66 @@ const ExercisesPage = () => {
   const [isCategoryDemoOpen, setIsCategoryDemoOpen] = useState(false);
   const [openImageUrl, setOpenImageUrl] = useState<string | null>(null);
   const [openImageAlt, setOpenImageAlt] = useState<string>('');
+
+  const bodyPartLabels: Record<string, string> = {
+    'adductors': 'ndani ya mapaja',
+    'ankles': 'vifundo vya miguu',
+    'arm': 'mkono',
+    'arms': 'mikono',
+    'calves': 'ndama',
+    'cardio': 'moyo na mapafu',
+    'core': 'kiini',
+    'diaphragm': 'diaframu',
+    'feet': 'miguu',
+    'full-body': 'mwili mzima',
+    'glutes': 'makalio',
+    'hamstrings': 'misuli ya nyuma ya paja',
+    'hip': 'nyonga',
+    'hips': 'nyonga',
+    'knee': 'goti',
+    'knees': 'magoti',
+    'legs': 'miguu',
+    'lower-back': 'mgongo wa chini',
+    'neck': 'shingo',
+    'pelvis': 'nyonga',
+    'quadriceps': 'misuli ya paja',
+    'shoulder': 'bega',
+    'shoulders': 'mabega',
+    'thigh': 'paja',
+    'trunk': 'kiwiliwili',
+    'upper-back': 'mgongo wa juu'
+  };
+
+  const difficultyLabels: Record<ExerciseDifficulty, string> = {
+    Beginner: 'Mwanzo',
+    Intermediate: 'Kati',
+    Advanced: 'Juu'
+  };
+
+  const getBodyPartLabel = (part: string) => {
+    if (language !== 'sw') return part.replace('-', ' ');
+    return bodyPartLabels[part] ?? part.replace('-', ' ');
+  };
+
+  const getExerciseCopy = (exercise: (typeof exerciseCategories)[number]['exercises'][number]) => {
+    if (language !== 'sw') return exercise;
+    const sw = exerciseTranslations.sw[exercise.id];
+    if (!sw) return exercise;
+    return {
+      ...exercise,
+      name: sw.name ?? exercise.name,
+      description: sw.description ?? exercise.description,
+      duration: sw.duration ?? exercise.duration,
+      category: sw.category ?? exercise.category,
+      instructions: sw.instructions ?? exercise.instructions,
+      fittPrinciple: {
+        frequency: sw.fittPrinciple?.frequency ?? exercise.fittPrinciple.frequency,
+        intensity: sw.fittPrinciple?.intensity ?? exercise.fittPrinciple.intensity,
+        time: sw.fittPrinciple?.time ?? exercise.fittPrinciple.time,
+        type: sw.fittPrinciple?.type ?? exercise.fittPrinciple.type
+      }
+    };
+  };
 
   const phaseInfo = {
     acute: {
@@ -222,6 +283,7 @@ const ExercisesPage = () => {
               </div>
             ) : (
               filteredExercises.map((exercise) => {
+                const exerciseCopy = getExerciseCopy(exercise);
                 const demoUrl = exercise.demoVideoUrl || category.demoVideoUrl;
                 const embedUrl = getYouTubeEmbedUrl(demoUrl);
                 const isOpen = openVideoId === exercise.id;
@@ -230,15 +292,17 @@ const ExercisesPage = () => {
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div>
-                        <CardTitle className="text-lg">{exercise.name}</CardTitle>
+                        <CardTitle className="text-lg">{exerciseCopy.name}</CardTitle>
                         <div className="flex gap-2 mt-2">
-                          <Badge variant="secondary" className="text-xs">{exercise.difficulty}</Badge>
-                          <Badge variant="outline" className="text-xs">{exercise.category}</Badge>
+                          <Badge variant="secondary" className="text-xs">
+                            {language === 'sw' ? (difficultyLabels[exercise.difficulty] ?? exercise.difficulty) : exercise.difficulty}
+                          </Badge>
+                          <Badge variant="outline" className="text-xs">{exerciseCopy.category}</Badge>
                         </div>
                       </div>
                       <div className="flex items-center gap-1 text-muted-foreground">
                         <Clock className="h-4 w-4" />
-                        <span className="text-sm">{exercise.duration}</span>
+                        <span className="text-sm">{exerciseCopy.duration}</span>
                       </div>
                     </div>
                   </CardHeader>
@@ -248,19 +312,19 @@ const ExercisesPage = () => {
                         <div className="w-full h-72 sm:h-80 md:h-96 flex items-center justify-center bg-white">
                           <img
                             src={exercise.demoImageUrl}
-                            alt={exercise.name}
+                            alt={exerciseCopy.name}
                             loading="lazy"
                             className="w-full h-full object-contain cursor-zoom-in"
                             style={exercise.demoImagePosition ? { objectPosition: exercise.demoImagePosition } : undefined}
                             onClick={() => {
                               setOpenImageUrl(exercise.demoImageUrl ?? null);
-                              setOpenImageAlt(exercise.name);
+                              setOpenImageAlt(exerciseCopy.name);
                             }}
                           />
                         </div>
                       </div>
                     ) : null}
-                    <p className="text-muted-foreground text-xs mb-3">{exercise.description}</p>
+                    <p className="text-muted-foreground text-xs mb-3">{exerciseCopy.description}</p>
                     
                     {/* FITT Principle */}
                     <div className="bg-muted/50 rounded-lg p-3 mb-3 space-y-2">
@@ -271,19 +335,19 @@ const ExercisesPage = () => {
                       <div className="grid grid-cols-2 gap-2 text-[11px]">
                         <div>
                           <span className="text-muted-foreground">{tr('Frequency', 'Mara')}: </span>
-                          <p className="font-medium">{exercise.fittPrinciple.frequency}</p>
+                          <p className="font-medium">{exerciseCopy.fittPrinciple.frequency}</p>
                         </div>
                         <div>
                           <span className="text-muted-foreground">{tr('Intensity', 'Nguvu')}: </span>
-                          <p className="font-medium">{exercise.fittPrinciple.intensity}</p>
+                          <p className="font-medium">{exerciseCopy.fittPrinciple.intensity}</p>
                         </div>
                         <div>
                           <span className="text-muted-foreground">{tr('Time', 'Muda')}: </span>
-                          <p className="font-medium">{exercise.fittPrinciple.time}</p>
+                          <p className="font-medium">{exerciseCopy.fittPrinciple.time}</p>
                         </div>
                         <div>
                           <span className="text-muted-foreground">{tr('Type', 'Aina')}: </span>
-                          <p className="font-medium">{exercise.fittPrinciple.type}</p>
+                          <p className="font-medium">{exerciseCopy.fittPrinciple.type}</p>
                         </div>
                       </div>
                     </div>
@@ -294,7 +358,7 @@ const ExercisesPage = () => {
                       <div className="flex flex-wrap gap-1">
                         {exercise.bodyPart.map((part) => (
                           <Badge key={part} variant="outline" className="text-[11px] capitalize">
-                            {part.replace('-', ' ')}
+                            {getBodyPartLabel(part)}
                           </Badge>
                         ))}
                       </div>
@@ -304,7 +368,7 @@ const ExercisesPage = () => {
                     <div className="space-y-2 mb-3">
                       <h4 className="font-medium text-sm">{tr('Instructions', 'Maelekezo')}:</h4>
                       <ol className="text-xs text-muted-foreground space-y-1 pl-4">
-                        {exercise.instructions.map((instruction, index) => (
+                        {exerciseCopy.instructions.map((instruction, index) => (
                           <li key={index} className="list-decimal">{instruction}</li>
                         ))}
                       </ol>
@@ -335,7 +399,7 @@ const ExercisesPage = () => {
                       <div className="mt-4 rounded-lg overflow-hidden border bg-black">
                         <iframe
                           src={embedUrl}
-                          title={`${exercise.name} demo`}
+                          title={`${exerciseCopy.name} demo`}
                           className="w-full aspect-video"
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                           allowFullScreen

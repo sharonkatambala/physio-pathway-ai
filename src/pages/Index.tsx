@@ -3,9 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import Navigation from '@/components/Navigation';
 import Hero from '@/components/Hero';
-import AboutSection from '@/components/AboutSection';
-import ServicesSection from '@/components/ServicesSection';
-import Features from '@/components/Features';
 import ContactSection from '@/components/ContactSection';
 import Footer from '@/components/Footer';
 
@@ -32,9 +29,6 @@ const Index = () => {
       <Navigation />
       <main>
         <Hero />
-        <AboutSection />
-        <ServicesSection />
-        <Features />
         <ContactSection />
       </main>
       <Footer />

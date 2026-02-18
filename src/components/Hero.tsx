@@ -1,12 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Shield, Clock, Users } from 'lucide-react';
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { ArrowRight, Shield, Clock, Users, Info } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import heroImage from '@/assets/hero-physiotherapy.jpg';
 import { useLanguage } from '@/contexts/LanguageContext';
+import AboutSection from '@/components/AboutSection';
+import ServicesSection from '@/components/ServicesSection';
 
 const Hero = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   
   return (
     <section className="relative overflow-hidden bg-background">
@@ -66,6 +69,32 @@ const Hero = () => {
           </div>
         </div>
       </div>
+
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button
+            type="button"
+            className="group absolute bottom-16 right-6 md:bottom-20 md:right-10 z-20 h-16 w-16 rounded-full p-0 bg-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.65)] ring-2 ring-emerald-200/70 hover:scale-105 transition-transform"
+            aria-label={language === 'sw' ? 'Angalia Kuhusu na Huduma' : 'View About and Services'}
+          >
+            <span className="absolute -inset-4 rounded-full border-2 border-emerald-300/80 blur-[1px] animate-pulse [animation-duration:3.2s]" aria-hidden="true" />
+            <span className="absolute -inset-6 rounded-full bg-emerald-400/25 blur-2xl animate-pulse [animation-duration:3.2s]" aria-hidden="true" />
+            <span className="absolute inset-0 rounded-full ring-2 ring-emerald-200/40 animate-ping [animation-duration:2.6s]" aria-hidden="true" />
+            <span className="absolute inset-1 rounded-full bg-emerald-900/25 backdrop-blur-sm" aria-hidden="true" />
+            <span className="absolute inset-0 rounded-full border border-white/35" aria-hidden="true" />
+            <Info className="h-6 w-6 text-white drop-shadow" />
+            <span className="sr-only">
+              {language === 'sw' ? 'Angalia Kuhusu na Huduma' : 'View About and Services'}
+            </span>
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="w-[min(94vw,1200px)] max-w-6xl max-h-[85vh] overflow-y-auto p-0">
+          <div className="bg-background">
+            <AboutSection />
+            <ServicesSection />
+          </div>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };

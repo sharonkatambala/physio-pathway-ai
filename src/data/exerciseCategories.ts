@@ -306,7 +306,7 @@ export const exerciseCategories: ExerciseCategory[] = [
           time: '10-12 repetitions',
           type: 'Active assisted range of motion'
         },
-        demoImageUrl: '/exercises/towel-slides.png',
+        demoImageUrl: '/exercises/Towel%20Slides.png',
         demoVideoUrl: 'https://www.youtube.com/watch?v=vK3pu3n1JLk'
       },
       {
@@ -410,7 +410,7 @@ export const exerciseCategories: ExerciseCategory[] = [
           time: '12-15 repetitions',
           type: 'Mobility & control'
         },
-        demoImageUrl: '/exercises/ankle-bends.png',
+        demoImageUrl: '/exercises/Ankle%20Bends.png',
         demoVideoUrl: 'https://www.youtube.com/watch?v=gUgG_hfS_nQ'
       },
       {
@@ -456,7 +456,7 @@ export const exerciseCategories: ExerciseCategory[] = [
           time: '10-12 taps per side',
           type: 'Balance & coordination'
         },
-        demoImageUrl: '/exercises/toe-taps.png',
+        demoImageUrl: '/exercises/Toe%20Taps.png',
         demoVideoUrl: 'https://www.youtube.com/watch?v=OQ-a6ByYhuc'
       },
       {
@@ -536,7 +536,7 @@ export const exerciseCategories: ExerciseCategory[] = [
           time: '8-12 repetitions',
           type: 'Resistance & mobility'
         },
-        demoImageUrl: '/exercises/chair-squat.png',
+          demoImageUrl: '/exercises/Chair-Based%20Strength.png',
         demoVideoUrl: 'https://www.youtube.com/watch?v=FQxLxN2e5Hc'
       },
       {
@@ -559,7 +559,7 @@ export const exerciseCategories: ExerciseCategory[] = [
           time: '15-20 repetitions',
           type: 'Mobility & circulation'
         },
-        demoImageUrl: '/exercises/toe-taps.png',
+          demoImageUrl: '/exercises/Seated%20Toe%20Taps.png',
         demoVideoUrl: 'https://www.youtube.com/watch?v=Q2a6a7EOYw4'
       },
       {
@@ -583,7 +583,7 @@ export const exerciseCategories: ExerciseCategory[] = [
           time: '2 sets + 3-4 passes',
           type: 'Functional strength & balance'
         },
-        demoImageUrl: '/exercises/chair-squat.png',
+          demoImageUrl: '/exercises/Sit-to-Stand%20+%20Heel-To-Toe%20Walk.png',
         demoVideoUrl: 'https://www.youtube.com/watch?v=USUqkjIaR_Y'
       },
       {
@@ -631,7 +631,7 @@ export const exerciseCategories: ExerciseCategory[] = [
           time: '10-20 seconds per hold',
           type: 'Balance & proprioception'
         },
-        demoImageUrl: '/exercises/stork-stand.png',
+          demoImageUrl: '/exercises/Standing%20Balance%20Reach.png',
         demoVideoUrl: 'https://www.youtube.com/watch?v=4p5Q2y3b3t4'
       },
       {
@@ -686,7 +686,7 @@ export const exerciseCategories: ExerciseCategory[] = [
           time: '6-8 minutes',
           type: 'Balance & stability'
         },
-        demoImageUrl: '/exercises/stork-stand.png',
+        demoImageUrl: '/exercises/Single-Leg%20Balance%20Holds.png',
         demoVideoUrl: 'https://www.youtube.com/watch?v=7SF7AYh2_Yw'
       },
       {
@@ -709,7 +709,7 @@ export const exerciseCategories: ExerciseCategory[] = [
           time: '1-2 alphabets per foot',
           type: 'Active mobility'
         },
-        demoImageUrl: '/exercises/ankle-rotation.png',
+        demoImageUrl: '/exercises/Ankle%20Alphabet.png',
         demoVideoUrl: 'https://www.youtube.com/watch?v=ro0eWSYbSuY'
       },
       {
@@ -778,7 +778,7 @@ export const exerciseCategories: ExerciseCategory[] = [
           time: '10 circles each direction',
           type: 'Mobility & control'
         },
-        demoImageUrl: '/exercises/ankle-circles.svg',
+        demoImageUrl: '/exercises/Ankle%20Circles.png',
         demoVideoUrl: 'https://www.youtube.com/watch?v=uV0I5adTRXw'
       },
       {
@@ -848,7 +848,7 @@ export const exerciseCategories: ExerciseCategory[] = [
           time: '2-3 sets of 6-10 reps',
           type: 'Strength & control'
         },
-        demoImageUrl: '/exercises/single-leg-squat.png',
+        demoImageUrl: '/exercises/Single-Leg%20Squat%20to%20Box.png',
         demoVideoUrl: 'https://www.youtube.com/watch?v=_BX9SwZTurA'
       },
       {
@@ -871,7 +871,7 @@ export const exerciseCategories: ExerciseCategory[] = [
           time: '2-3 sets of 8-12 hops',
           type: 'Plyometric & agility'
         },
-        demoImageUrl: '/exercises/skater-jump.jpg',
+        demoImageUrl: '/exercises/Skater%20Hops.png',
         demoVideoUrl: 'https://www.youtube.com/watch?v=8S3BvdEC1bU'
       }
     ]
@@ -902,7 +902,7 @@ export const exerciseCategories: ExerciseCategory[] = [
           time: '10-15 minutes',
           type: 'Aerobic endurance'
         },
-        demoImageUrl: '/exercises/walking-exercise.jpg',
+        demoImageUrl: '/exercises/Interval%20Walk.png',
         demoVideoUrl: 'https://www.youtube.com/watch?v=G7_rtJpW9m4'
       },
       {
@@ -925,7 +925,7 @@ export const exerciseCategories: ExerciseCategory[] = [
           time: '2-3 rounds',
           type: 'Mobility & circulation'
         },
-        demoImageUrl: '/exercises/march-in-place-us-navy.jpg',
+        demoImageUrl: '/exercises/Marching%20in%20Place.png',
         demoVideoUrl: 'https://www.youtube.com/watch?v=ENk9GSf8e2w'
       },
       {
@@ -971,7 +971,7 @@ export const exerciseCategories: ExerciseCategory[] = [
           time: '8-10 minutes',
           type: 'Strength & joint support'
         },
-        demoImageUrl: '/exercises/chair-squat.png',
+        demoImageUrl: '/exercises/Supported%20Mini%20Squat.png',
         demoVideoUrl: 'https://www.youtube.com/watch?v=aclHkVaku9U'
       },
       {
@@ -994,7 +994,7 @@ export const exerciseCategories: ExerciseCategory[] = [
           time: '2-3 sets of 10-12 reps',
           type: 'Strength & posture'
         },
-        demoImageUrl: '/exercises/cable-seated-rows-1.png',
+        demoImageUrl: '/exercises/Resistance%20Band%20Row%202.png',
         demoVideoUrl: 'https://www.youtube.com/watch?v=6Eec2P5G9xQ'
       },
       {
@@ -1017,7 +1017,7 @@ export const exerciseCategories: ExerciseCategory[] = [
           time: '2-3 sets of 8-10 reps',
           type: 'Strength & stability'
         },
-        demoImageUrl: '/exercises/bridge-exercise-usda.jpg',
+        demoImageUrl: '/exercises/Glute%20Bridge%20Holds.png',
         demoVideoUrl: 'https://www.youtube.com/watch?v=XPQ5JDwK85Y'
       },
       {
@@ -1040,7 +1040,7 @@ export const exerciseCategories: ExerciseCategory[] = [
           time: '15-20 minutes',
           type: 'Aerobic endurance'
         },
-        demoImageUrl: '/exercises/walking-exercise.jpg',
+        demoImageUrl: '/exercises/Progressive%20Interval%20Walk.png',
         demoVideoUrl: 'https://www.youtube.com/watch?v=G7_rtJpW9m4'
       },
       {
@@ -1086,7 +1086,7 @@ export const exerciseCategories: ExerciseCategory[] = [
           time: '2-3 rounds per side',
           type: 'Balance & coordination'
         },
-        demoImageUrl: '/exercises/stork-stand.png',
+          demoImageUrl: '/exercises/Standing%20Balance%20Reach.png',
         demoVideoUrl: 'https://www.youtube.com/watch?v=7SF7AYh2_Yw'
       }
     ]
@@ -1256,7 +1256,7 @@ export const exerciseCategories: ExerciseCategory[] = [
           time: '8-10 minutes',
           type: 'Strength & endurance'
         },
-        demoImageUrl: '/exercises/bridge-exercise-usda.jpg',
+        demoImageUrl: '/exercises/Bridge%20March.png',
         demoVideoUrl: 'https://www.youtube.com/watch?v=dVjj5RMCg4Y'
       },
       {

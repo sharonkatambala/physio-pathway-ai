@@ -84,7 +84,7 @@ const translations = {
     'assess.step.occupation': 'Occupation',
     'assess.step.presentAcute': 'Present Acute Symptoms',
     'assess.step.painAssessment': 'Pain Assessment',
-    'assess.step.ergonomics': 'Ergonomics',
+    'assess.step.ergonomics': 'Ergonomiki',
     'assess.step.functional': 'Functional Limitations',
     'assess.step.history': 'History',
     'assess.step.explanation': 'Explanation',

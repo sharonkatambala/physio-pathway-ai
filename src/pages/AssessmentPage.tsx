@@ -129,7 +129,7 @@ const AssessmentPage = () => {
 			const { data: userData } = await supabase.auth.getUser();
 			const user = userData?.user;
 			if (!user) {
-				toast({ title: 'Not signed in', description: 'Please sign in to save your assessment to the server.', variant: 'destructive' });
+				toast({ title: tr('Not signed in', 'Hujaingia'), description: tr('Please sign in to save your assessment to the server.', 'Tafadhali ingia ili kuhifadhi tathmini yako kwenye seva.'), variant: 'destructive' });
 				return false;
 			}
 
@@ -154,24 +154,24 @@ const AssessmentPage = () => {
 						};
 						const { error: assError } = await (supabase as any).from('assessments').upsert(draftBody);
 						if (assError) {
-							toast({ title: 'Save failed', description: String(assError.message || assError), variant: 'destructive' });
+							toast({ title: tr('Save failed', 'Hifadhi imeshindikana'), description: String(assError.message || assError), variant: 'destructive' });
 							console.error('Fallback assessments upsert failed', assError);
 							return false;
 						}
 						return true;
 					} catch (e) {
-						toast({ title: 'Save failed', description: 'Could not save assessment to server.', variant: 'destructive' });
+						toast({ title: tr('Save failed', 'Hifadhi imeshindikana'), description: tr('Could not save assessment to server.', 'Imeshindikana kuhifadhi tathmini kwenye seva.'), variant: 'destructive' });
 						console.error('Fallback save exception', e);
 						return false;
 					}
 				}
-				toast({ title: 'Save failed', description: String(error.message || error), variant: 'destructive' });
+				toast({ title: tr('Save failed', 'Hifadhi imeshindikana'), description: String(error.message || error), variant: 'destructive' });
 				console.error('Draft save error', error);
 				return false;
 			}
 			return true;
 		} catch (e: any) {
-			toast({ title: 'Save failed', description: 'Unexpected error while saving.', variant: 'destructive' });
+			toast({ title: tr('Save failed', 'Hifadhi imeshindikana'), description: tr('Unexpected error while saving.', 'Hitilafu isiyotarajiwa wakati wa kuhifadhi.'), variant: 'destructive' });
 			console.error('Draft save exception', e);
 			return false;
 		}
@@ -222,6 +222,17 @@ const AssessmentPage = () => {
 		t('assess.discomfort.fatigue'),
 	];
 
+	const WORK_POSTURE_OPTIONS = [
+		{ value: 'mostly_sitting', label: tr('Mostly sitting (desk/computer)', 'Kukaa muda mwingi (meza/kompyuta)') },
+		{ value: 'mostly_standing', label: tr('Mostly standing', 'Kusimama muda mwingi') },
+		{ value: 'sit_stand_mix', label: tr('Alternating sit/stand', 'Kubadilisha kukaa/kusimama') },
+		{ value: 'bending_twisting', label: tr('Frequent bending/twisting', 'Kupinda/kuzungusha mara kwa mara') },
+		{ value: 'manual_lifting', label: tr('Manual labor / lifting', 'Kazi nzito / kubeba mizigo') },
+		{ value: 'driving', label: tr('Driving / operating machinery', 'Kuendesha / kuendesha mashine') },
+		{ value: 'overhead_work', label: tr('Overhead work', 'Kazi juu ya kichwa') },
+		{ value: 'other', label: tr('Other', 'Nyingine') },
+	];
+
 	const nextStep = async () => {
 		// require consent before proceeding beyond the willingness screen
 		if (!formData.consent && currentStep !== 0) {
@@ -237,7 +248,7 @@ const AssessmentPage = () => {
 			if (!formData.posture_ability) missing.push('posture_ability');
 			if (missing.length > 0) {
 				setTouched(prev => ({...prev, section6: true}));
-				toast({ title: 'Please complete Section 6', description: `Please answer required questions`, variant: 'destructive' });
+				toast({ title: tr('Please complete Section 6', 'Tafadhali kamilisha Sehemu ya 6'), description: tr('Please answer required questions', 'Tafadhali jibu maswali ya lazima'), variant: 'destructive' });
 				return;
 			}
 		}
@@ -421,7 +432,18 @@ const AssessmentPage = () => {
 									</div>
 									<div>
 										<Label>{tr('Work posture', 'Mkao wa kazi')}</Label>
-										<Input value={formData.work_posture || ''} onChange={(e) => setFormData({...formData, work_posture: e.target.value})} />
+										<Select value={formData.work_posture || ''} onValueChange={(v: any) => setFormData({...formData, work_posture: v})}>
+											<SelectTrigger>
+												<SelectValue placeholder={t('assess.select')} />
+											</SelectTrigger>
+											<SelectContent>
+												{WORK_POSTURE_OPTIONS.map((opt) => (
+													<SelectItem key={opt.value} value={opt.value}>
+														{opt.label}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
 									</div>
 								</div>
 								<div>
@@ -457,12 +479,13 @@ const AssessmentPage = () => {
 								<div>
 									<Label>{tr('Onset of pain/discomfort', 'Mwanzo wa maumivu/usumbufu')}</Label>
 									<Select value={formData.pain_onset || ''} onValueChange={(v: any) => setFormData({...formData, pain_onset: v})}>
-										<SelectTrigger><SelectValue placeholder={tr('Select', 'Chagua')} /></SelectTrigger>
+									<SelectTrigger><SelectValue placeholder={tr('Select', 'Chagua')} /></SelectTrigger>
 										<SelectContent>
-											<SelectItem value="<1w">{tr('<1 week', '< wiki 1')}</SelectItem>
-											<SelectItem value="1-3w">{tr('1-3 weeks', 'wiki 1-3')}</SelectItem>
+											<SelectItem value="<1w">{tr('<1 week (acute)', '< wiki 1 (ghafla)')}</SelectItem>
+											<SelectItem value="1-3w">{tr('1-3 weeks (subacute)', 'wiki 1-3 (ya kati)')}</SelectItem>
 											<SelectItem value="3-6w">{tr('3-6 weeks', 'wiki 3-6')}</SelectItem>
-											<SelectItem value=">6w">{tr('>6 weeks', '> wiki 6')}</SelectItem>
+											<SelectItem value=">6w">{tr('>6 weeks (chronic)', '> wiki 6 (sugu)')}</SelectItem>
+											<SelectItem value="unknown">{tr('Not sure / gradual', 'Sijui / taratibu')}</SelectItem>
 										</SelectContent>
 									</Select>
 								</div>
@@ -472,9 +495,9 @@ const AssessmentPage = () => {
 									<div className="mt-2">
 										<DropdownMenu>
 											<DropdownMenuTrigger asChild>
-												<Button accessKey="p" aria-label="Select primary sites of pain (Alt+P)" variant="outline" className="w-full text-left">
+												<Button accessKey="p" aria-label={tr('Select primary sites of pain (Alt+P)', 'Chagua maeneo ya maumivu (Alt+P)')} variant="outline" className="w-full text-left">
 													{(formData.primary_sites || []).length > 0
-														? (formData.primary_sites as string[]).map(k => PRIMARY_SITE_OPTIONS.find(o => o.key === k)?.label || k).slice(0,2).join(', ') + ((formData.primary_sites || []).length > 2 ? ` +${(formData.primary_sites || []).length - 2} more` : '')
+														? (formData.primary_sites as string[]).map(k => PRIMARY_SITE_OPTIONS.find(o => o.key === k)?.label || k).slice(0,2).join(', ') + ((formData.primary_sites || []).length > 2 ? ` +${(formData.primary_sites || []).length - 2} ${tr('more', 'zaidi')}` : '')
 														: tr('Select primary sites', 'Chagua maeneo ya maumivu')
 													}
 												</Button>
@@ -504,34 +527,35 @@ const AssessmentPage = () => {
 
 								<div className="grid md:grid-cols-2 gap-4">
 									<div>
-										<Label>Pain intensity (0 = none, 10 = worst possible)</Label>
-										<Input type="number" min={0} max={10} placeholder="e.g. 6" value={formData.pain_intensity ?? ''} onChange={(e) => setFormData({...formData, pain_intensity: Number(e.target.value) || null})} />
+									<Label>{tr('Pain intensity (0 = none, 10 = worst possible)', 'Kiwango cha maumivu (0 = hakuna, 10 = makali sana)')}</Label>
+									<Input type="number" min={0} max={10} placeholder={tr('e.g. 6', 'mf. 6')} value={formData.pain_intensity ?? ''} onChange={(e) => setFormData({...formData, pain_intensity: Number(e.target.value) || null})} />
 									</div>
-									<div>
-										<Label>Pain pattern</Label>
-										<Select value={formData.pain_pattern || ''} onValueChange={(v: any) => setFormData({...formData, pain_pattern: v})}>
-											<SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-											<SelectContent>
-												<SelectItem value="constant">Constant</SelectItem>
-												<SelectItem value="intermittent">Intermittent</SelectItem>
-												<SelectItem value="work_activity">Only during work or activity</SelectItem>
-											</SelectContent>
-										</Select>
-									</div>
+								<div>
+									<Label>{tr('Pain pattern', 'Muundo wa maumivu')}</Label>
+									<Select value={formData.pain_pattern || ''} onValueChange={(v: any) => setFormData({...formData, pain_pattern: v})}>
+										<SelectTrigger><SelectValue placeholder={tr('Select', 'Chagua')} /></SelectTrigger>
+										<SelectContent>
+											<SelectItem value="constant">{tr('Constant (all day)', 'Ya kudumu (siku nzima)')}</SelectItem>
+											<SelectItem value="intermittent">{tr('Intermittent', 'Hujirudia mara kwa mara')}</SelectItem>
+											<SelectItem value="work_activity">{tr('Only during activity/work', 'Wakati wa shughuli/kazi tu')}</SelectItem>
+											<SelectItem value="night_rest">{tr('Worse at night/rest', 'Huzidi usiku/ukipumzika')}</SelectItem>
+										</SelectContent>
+									</Select>
+								</div>
 								</div>
 
 								<div className="grid md:grid-cols-3 gap-4">
 									<div>
-										<Label>Does pain worsen with activity?</Label>
-										<div className="mt-2"><Button variant={formData.pain_worse_with_activity ? 'default' : 'outline'} size="sm" onClick={() => setFormData({...formData, pain_worse_with_activity: !formData.pain_worse_with_activity})}>{formData.pain_worse_with_activity ? 'Yes' : 'No'}</Button></div>
+									<Label>{tr('Does pain worsen with activity?', 'Maumivu huongezeka wakati wa shughuli?')}</Label>
+										<div className="mt-2"><Button variant={formData.pain_worse_with_activity ? 'default' : 'outline'} size="sm" onClick={() => setFormData({...formData, pain_worse_with_activity: !formData.pain_worse_with_activity})}>{formData.pain_worse_with_activity ? tr('Yes', 'Ndiyo') : tr('No', 'Hapana')}</Button></div>
 									</div>
 									<div>
-										<Label>Does pain improve with rest?</Label>
-										<div className="mt-2"><Button variant={formData.pain_improve_with_rest ? 'default' : 'outline'} size="sm" onClick={() => setFormData({...formData, pain_improve_with_rest: !formData.pain_improve_with_rest})}>{formData.pain_improve_with_rest ? 'Yes' : 'No'}</Button></div>
+									<Label>{tr('Does pain improve with rest?', 'Maumivu hupungua ukipumzika?')}</Label>
+										<div className="mt-2"><Button variant={formData.pain_improve_with_rest ? 'default' : 'outline'} size="sm" onClick={() => setFormData({...formData, pain_improve_with_rest: !formData.pain_improve_with_rest})}>{formData.pain_improve_with_rest ? tr('Yes', 'Ndiyo') : tr('No', 'Hapana')}</Button></div>
 									</div>
 									<div>
-										<Label>Presence of numbness, tingling, swelling, or loss of motion</Label>
-										<div className="mt-2"><Button variant={(formData.presence_numbness_tingling || formData.numbness) ? 'default' : 'outline'} size="sm" onClick={() => setFormData({...formData, presence_numbness_tingling: !formData.presence_numbness_tingling})}>{(formData.presence_numbness_tingling || formData.numbness) ? 'Yes' : 'No'}</Button></div>
+									<Label>{tr('Presence of numbness, tingling, swelling, or loss of motion', 'Kuwepo kwa ganzi, kufa ganzi/kuwasha, uvimbe, au upungufu wa mwendo')}</Label>
+										<div className="mt-2"><Button variant={(formData.presence_numbness_tingling || formData.numbness) ? 'default' : 'outline'} size="sm" onClick={() => setFormData({...formData, presence_numbness_tingling: !formData.presence_numbness_tingling})}>{(formData.presence_numbness_tingling || formData.numbness) ? tr('Yes', 'Ndiyo') : tr('No', 'Hapana')}</Button></div>
 									</div>
 								</div>
 							</div>
@@ -541,60 +565,62 @@ const AssessmentPage = () => {
 						{currentStep === 5 && (
 							<div className="space-y-4">
 								<div>
-									<Label>Type of workstation/device used</Label>
+									<Label>{tr('Type of workstation/device used', 'Aina ya kituo/kifaa cha kazi')}</Label>
 									<Select value={formData.workstation_type || ''} onValueChange={(v) => setFormData({...formData, workstation_type: v})}>
-										<SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+										<SelectTrigger><SelectValue placeholder={tr('Select', 'Chagua')} /></SelectTrigger>
 										<SelectContent>
-											<SelectItem value="laptop">Laptop</SelectItem>
-											<SelectItem value="desktop">Desktop</SelectItem>
-											<SelectItem value="tablet">Tablet</SelectItem>
-											<SelectItem value="standing">Standing desk</SelectItem>
-											<SelectItem value="other">Other</SelectItem>
+											<SelectItem value="laptop">{tr('Laptop', 'Kompyuta mpakato')}</SelectItem>
+											<SelectItem value="desktop">{tr('Desktop', 'Kompyuta mezani')}</SelectItem>
+											<SelectItem value="tablet">{tr('Tablet', 'Tablet')}</SelectItem>
+											<SelectItem value="mobile">{tr('Phone / mobile device', 'Simu / kifaa cha mkononi')}</SelectItem>
+											<SelectItem value="standing">{tr('Standing desk', 'Meza ya kusimama')}</SelectItem>
+											<SelectItem value="none">{tr('No fixed workstation / field work', 'Hakuna kituo maalum / kazi ya uwanjani')}</SelectItem>
+											<SelectItem value="other">{tr('Other', 'Nyingine')}</SelectItem>
 										</SelectContent>
 									</Select>
 								</div>
 								<div className="grid md:grid-cols-2 gap-4">
 									<div>
-										<Label>Frequency of repetitive motions</Label>
+										<Label>{tr('Frequency of repetitive motions', 'Mara kwa mara ya harakati za kurudia')}</Label>
 										<Select value={formData.repetitive_motion_freq || ''} onValueChange={(v: any) => setFormData({...formData, repetitive_motion_freq: v})}>
-											<SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+											<SelectTrigger><SelectValue placeholder={tr('Select', 'Chagua')} /></SelectTrigger>
 											<SelectContent>
-												<SelectItem value="rare">Rare</SelectItem>
-												<SelectItem value="sometimes">Sometimes</SelectItem>
-												<SelectItem value="often">Often</SelectItem>
-												<SelectItem value="constant">Constant</SelectItem>
+												<SelectItem value="rare">{tr('Rare', 'Mara chache')}</SelectItem>
+												<SelectItem value="sometimes">{tr('Sometimes', 'Wakati mwingine')}</SelectItem>
+												<SelectItem value="often">{tr('Often', 'Mara nyingi')}</SelectItem>
+												<SelectItem value="constant">{tr('Constant', 'Kila wakati')}</SelectItem>
 											</SelectContent>
 										</Select>
 									</div>
 									<div>
-										<Label>Overhead arm work</Label>
+										<Label>{tr('Overhead arm work', 'Kazi ya mikono juu ya kichwa')}</Label>
 										<div className="mt-2">
-											<Button variant={formData.overhead_arm_work ? 'default' : 'outline'} size="sm" onClick={() => setFormData({...formData, overhead_arm_work: !formData.overhead_arm_work})}>{formData.overhead_arm_work ? 'Yes' : 'No'}</Button>
+											<Button variant={formData.overhead_arm_work ? 'default' : 'outline'} size="sm" onClick={() => setFormData({...formData, overhead_arm_work: !formData.overhead_arm_work})}>{formData.overhead_arm_work ? tr('Yes', 'Ndiyo') : tr('No', 'Hapana')}</Button>
 										</div>
 									</div>
 								</div>
 								<div className="grid md:grid-cols-2 gap-4">
 									<div>
-										<Label>Prolonged static postures (sitting/standing)</Label>
+										<Label>{tr('Prolonged static postures (sitting/standing)', 'Mikao ya muda mrefu bila kubadilika (kukaa/kusimama)')}</Label>
 										<div className="mt-2">
-											<Button variant={formData.prolonged_static_posture ? 'default' : 'outline'} size="sm" onClick={() => setFormData({...formData, prolonged_static_posture: !formData.prolonged_static_posture})}>{formData.prolonged_static_posture ? 'Yes' : 'No'}</Button>
+											<Button variant={formData.prolonged_static_posture ? 'default' : 'outline'} size="sm" onClick={() => setFormData({...formData, prolonged_static_posture: !formData.prolonged_static_posture})}>{formData.prolonged_static_posture ? tr('Yes', 'Ndiyo') : tr('No', 'Hapana')}</Button>
 										</div>
 									</div>
 									<div>
-										<Label>Use of vibrating tools or machinery</Label>
+										<Label>{tr('Use of vibrating tools or machinery', 'Matumizi ya zana/mashine zenye mtikisiko')}</Label>
 										<div className="mt-2">
-											<Button variant={formData.vibrating_tools ? 'default' : 'outline'} size="sm" onClick={() => setFormData({...formData, vibrating_tools: !formData.vibrating_tools})}>{formData.vibrating_tools ? 'Yes' : 'No'}</Button>
+											<Button variant={formData.vibrating_tools ? 'default' : 'outline'} size="sm" onClick={() => setFormData({...formData, vibrating_tools: !formData.vibrating_tools})}>{formData.vibrating_tools ? tr('Yes', 'Ndiyo') : tr('No', 'Hapana')}</Button>
 										</div>
 									</div>
 								</div>
 								<div>
-									<Label>Frequency of micro-breaks / stretching</Label>
+									<Label>{tr('Frequency of micro-breaks / stretching', 'Muda wa mapumziko mafupi / kunyoosha')}</Label>
 									<Select value={formData.microbreak_frequency || ''} onValueChange={(v: any) => setFormData({...formData, microbreak_frequency: v})}>
-										<SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+										<SelectTrigger><SelectValue placeholder={tr('Select', 'Chagua')} /></SelectTrigger>
 										<SelectContent>
-											<SelectItem value="30min">Every 30 min</SelectItem>
-											<SelectItem value="1hr">Every 1 hr</SelectItem>
-											<SelectItem value="rare">Rarely / never</SelectItem>
+											<SelectItem value="30min">{tr('Every 30 minutes', 'Kila dakika 30')}</SelectItem>
+											<SelectItem value="1hr">{tr('Every 1 hour', 'Kila saa 1')}</SelectItem>
+											<SelectItem value="rare">{tr('Rarely / never', 'Mara chache / kamwe')}</SelectItem>
 										</SelectContent>
 									</Select>
 								</div>
@@ -605,17 +631,17 @@ const AssessmentPage = () => {
 						{currentStep === 6 && (
 							<div className="space-y-4">
 								<div>
-									<Label>24. Can you perform normal daily activities comfortably?</Label>
+									<Label>{tr('24. Can you perform normal daily activities comfortably?', '24. Je, unaweza kufanya shughuli za kawaida za kila siku kwa urahisi?')}</Label>
 									<Select value={formData.daily_activities_comfort || ''} onValueChange={(v: any) => setFormData({...formData, daily_activities_comfort: v})}>
-										<SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+										<SelectTrigger><SelectValue placeholder={tr('Select', 'Chagua')} /></SelectTrigger>
 										<SelectContent>
-											<SelectItem value="yes">Yes</SelectItem>
-											<SelectItem value="mild">Mild discomfort</SelectItem>
-											<SelectItem value="no">No</SelectItem>
+											<SelectItem value="yes">{tr('Yes, comfortably', 'Ndiyo, bila shida')}</SelectItem>
+											<SelectItem value="mild">{tr('Some difficulty', 'Shida kidogo')}</SelectItem>
+											<SelectItem value="no">{tr('No, difficult/unable', 'Hapana, ni vigumu / siwezi')}</SelectItem>
 										</SelectContent>
 									</Select>
 									{touched.section6 && !formData.daily_activities_comfort && (
-										<div className="text-sm text-destructive mt-1">Please select whether you can perform normal daily activities comfortably.</div>
+										<div className="text-sm text-destructive mt-1">{tr('Please select whether you can perform normal daily activities comfortably.', 'Tafadhali chagua kama unaweza kufanya shughuli za kila siku kwa urahisi.')}</div>
 									)}
 								</div>
 
@@ -624,9 +650,9 @@ const AssessmentPage = () => {
 									<div className="mt-2">
 										<DropdownMenu>
 											<DropdownMenuTrigger asChild>
-												<Button accessKey="a" aria-label="Select activities limited by pain (Alt+A)" variant="outline" className="w-full text-left">
+												<Button accessKey="a" aria-label={tr('Select activities limited by pain (Alt+A)', 'Chagua shughuli zinazozuiliwa (Alt+A)')} variant="outline" className="w-full text-left">
 													{(formData.activities_limited || []).length > 0
-														? (formData.activities_limited as string[]).map(k => ACTIVITIES_OPTIONS.find(o => o.key === k)?.label || k).slice(0,2).join(', ') + ((formData.activities_limited || []).length > 2 ? ` +${(formData.activities_limited || []).length - 2} more` : '')
+														? (formData.activities_limited as string[]).map(k => ACTIVITIES_OPTIONS.find(o => o.key === k)?.label || k).slice(0,2).join(', ') + ((formData.activities_limited || []).length > 2 ? ` +${(formData.activities_limited || []).length - 2} ${tr('more', 'zaidi')}` : '')
 														: tr('Select activities', 'Chagua shughuli')
 													}
 												</Button>
@@ -652,18 +678,6 @@ const AssessmentPage = () => {
 											</DropdownMenuContent>
 										</DropdownMenu>
 									</div>
-									{/* Show selected as badges for quick scanning */}
-									{(formData.activities_limited || []).length > 0 && (
-										<div className="flex flex-wrap gap-2 mt-2">
-											{(formData.activities_limited as string[]).map(k => (
-													<Badge key={k} variant="secondary" className="cursor-pointer" aria-label={`Remove ${ACTIVITIES_OPTIONS.find(o => o.key === k)?.label || k}`} onClick={() => {
-														const next = new Set(formData.activities_limited || []);
-														next.delete(k);
-														setFormData({...formData, activities_limited: Array.from(next)});
-													}}>{ACTIVITIES_OPTIONS.find(o => o.key === k)?.label || k}</Badge>
-											))}
-										</div>
-									)}
 								</div>
 
 								<div>
@@ -737,7 +751,7 @@ const AssessmentPage = () => {
 									<div className="mt-2">
 										<DropdownMenu>
 											<DropdownMenuTrigger asChild>
-												<Button accessKey="d" aria-label="Select discomfort types (Alt+D)" variant="outline" className="w-full text-left">{tr('Select discomfort types', 'Chagua aina za usumbufu')}</Button>
+												<Button accessKey="d" aria-label={tr('Select discomfort types (Alt+D)', 'Chagua aina za usumbufu (Alt+D)')} variant="outline" className="w-full text-left">{tr('Select discomfort types', 'Chagua aina za usumbufu')}</Button>
 											</DropdownMenuTrigger>
 											<DropdownMenuContent>
 												<DropdownMenuLabel>{tr('Discomfort', 'Usumbufu')}</DropdownMenuLabel>
@@ -780,7 +794,7 @@ const AssessmentPage = () => {
 									<div className="mt-2">
 										<DropdownMenu>
 											<DropdownMenuTrigger asChild>
-												<Button accessKey="g" aria-label="Select aggravating factors (Alt+G)" variant="outline" className="w-full text-left">{tr('Select aggravating factors', 'Chagua vichochezi')}</Button>
+												<Button accessKey="g" aria-label={tr('Select aggravating factors (Alt+G)', 'Chagua vichochezi (Alt+G)')} variant="outline" className="w-full text-left">{tr('Select aggravating factors', 'Chagua vichochezi')}</Button>
 											</DropdownMenuTrigger>
 											<DropdownMenuContent>
 												<DropdownMenuLabel>{tr('Aggravating', 'Vichochezi')}</DropdownMenuLabel>
@@ -820,7 +834,7 @@ const AssessmentPage = () => {
 									<div className="mt-2">
 										<DropdownMenu>
 											<DropdownMenuTrigger asChild>
-												<Button accessKey="r" aria-label="Select relieving factors (Alt+R)" variant="outline" className="w-full text-left">{tr('Select relieving factors', 'Chagua vinavyopunguza')}</Button>
+												<Button accessKey="r" aria-label={tr('Select relieving factors (Alt+R)', 'Chagua vinavyopunguza (Alt+R)')} variant="outline" className="w-full text-left">{tr('Select relieving factors', 'Chagua vinavyopunguza')}</Button>
 											</DropdownMenuTrigger>
 											<DropdownMenuContent>
 												<DropdownMenuLabel>{tr('Relieving', 'Vinavyopunguza')}</DropdownMenuLabel>
@@ -914,7 +928,7 @@ const AssessmentPage = () => {
 								</Button>
 
 								<div className="text-xs text-muted-foreground hidden sm:block">
-									Step {currentStep + 1} of {steps.length}
+									{tr('Step', 'Hatua')} {currentStep + 1} {tr('of', 'ya')} {steps.length}
 								</div>
 								
 								{currentStep < steps.length - 1 ? (
@@ -958,7 +972,7 @@ const AssessmentPage = () => {
 										} catch (ie: any) {
 											const msg = String(ie?.message || ie || '').toLowerCase();
 											if (import.meta.env.DEV && (msg.includes('could not find the table') || msg.includes('schema cache') || msg.includes('relation "assessments"'))) {
-												toast({ title: 'Dev fallback', description: 'Assessments table missing — running AI generation locally without saving to database (dev only).', variant: 'default' });
+												toast({ title: tr('Dev fallback', 'Mbinu ya dharura (dev)'), description: tr('Assessments table missing — running AI generation locally without saving to database (dev only).', 'Jedwali la tathmini halipo — inaunda mpango wa AI ndani ya kifaa bila kuhifadhi kwenye hifadhidata (dev tu).'), variant: 'default' });
 												inserted = { id: 'dev-local-' + Date.now().toString() };
 											} else {
 												throw ie;
@@ -973,7 +987,7 @@ const AssessmentPage = () => {
 												source: 'flagged'
 											});
 
-											toast({ title: 'Red flag detected', description: 'Your answers indicate urgent symptoms. A physiotherapist has been notified for review.', variant: 'destructive' });
+											toast({ title: tr('Red flag detected', 'Dalili hatarishi zimegunduliwa'), description: tr('Your answers indicate urgent symptoms. A physiotherapist has been notified for review.', 'Majibu yako yanaonyesha dalili za dharura. Mtaalamu wa tiba amepewa taarifa kwa ukaguzi.'), variant: 'destructive' });
 											return;
 										}
 
@@ -1025,7 +1039,7 @@ const AssessmentPage = () => {
 										if (message.toLowerCase().includes('could not find the table') || message.toLowerCase().includes('schema cache')) {
 											toast({
 												title: tr('Submission error', 'Hitilafu ya kuwasilisha'),
-												description: 'The assessments table was not found in your Supabase project. Please deploy the migrations or create the table in the Supabase dashboard. See README-ASSESSMENT.md for migration steps.',
+												description: tr('The assessments table was not found in your Supabase project. Please deploy the migrations or create the table in the Supabase dashboard. See README-ASSESSMENT.md for migration steps.', 'Jedwali la tathmini halijapatikana kwenye mradi wako wa Supabase. Tafadhali tumia migrations au tengeneza jedwali hilo kwenye Supabase dashboard. Angalia README-ASSESSMENT.md kwa hatua.'),
 												variant: 'destructive'
 											});
 											console.error('Schema issue: ensure supabase migrations have been applied or the table exists in the project.');
@@ -1047,7 +1061,7 @@ const AssessmentPage = () => {
 				<div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
 					<Card>
 						<CardHeader>
-							<CardTitle>Generated Exercise Program</CardTitle>
+							<CardTitle>{tr('Generated Exercise Program', 'Mpango wa mazoezi ulioundwa')}</CardTitle>
 						</CardHeader>
 						<CardContent>
 							<pre className="whitespace-pre-wrap text-sm">{JSON.stringify(generatedProgram, null, 2)}</pre>

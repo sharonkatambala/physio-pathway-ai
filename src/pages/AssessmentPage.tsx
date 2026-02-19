@@ -652,9 +652,10 @@ const AssessmentPage = () => {
 											<DropdownMenuTrigger asChild>
 												<Button accessKey="a" aria-label={tr('Select activities limited by pain (Alt+A)', 'Chagua shughuli zinazozuiliwa (Alt+A)')} variant="outline" className="w-full text-left">
 													{(formData.activities_limited || []).length > 0
-														? (formData.activities_limited as string[]).map(k => ACTIVITIES_OPTIONS.find(o => o.key === k)?.label || k).slice(0,2).join(', ') + ((formData.activities_limited || []).length > 2 ? ` +${(formData.activities_limited || []).length - 2} ${tr('more', 'zaidi')}` : '')
-														: tr('Select activities', 'Chagua shughuli')
-													}
+														? (formData.activities_limited as string[])
+																.map(k => ACTIVITIES_OPTIONS.find(o => o.key === k)?.label || k)
+																.join(', ')
+														: tr('Select activities limited by pain', 'Chagua shughuli zinazozuiliwa na maumivu')}
 												</Button>
 											</DropdownMenuTrigger>
 											<DropdownMenuContent>
@@ -751,7 +752,16 @@ const AssessmentPage = () => {
 									<div className="mt-2">
 										<DropdownMenu>
 											<DropdownMenuTrigger asChild>
-												<Button accessKey="d" aria-label={tr('Select discomfort types (Alt+D)', 'Chagua aina za usumbufu (Alt+D)')} variant="outline" className="w-full text-left">{tr('Select discomfort types', 'Chagua aina za usumbufu')}</Button>
+												<Button
+													accessKey="d"
+													aria-label={tr('Select discomfort types (Alt+D)', 'Chagua aina za usumbufu (Alt+D)')}
+													variant="outline"
+													className="w-full text-left"
+												>
+													{(formData.discomfort_types || []).length > 0
+														? (formData.discomfort_types as string[]).join(', ')
+														: tr('Select discomfort types', 'Chagua aina za usumbufu')}
+												</Button>
 											</DropdownMenuTrigger>
 											<DropdownMenuContent>
 												<DropdownMenuLabel>{tr('Discomfort', 'Usumbufu')}</DropdownMenuLabel>
@@ -775,18 +785,6 @@ const AssessmentPage = () => {
 											</DropdownMenuContent>
 										</DropdownMenu>
 									</div>
-									{/* removable badges for discomfort */}
-									{(formData.discomfort_types || []).length > 0 && (
-										<div className="flex flex-wrap gap-2 mt-2">
-											{(formData.discomfort_types as string[]).map(k => (
-													<Badge key={k} variant="secondary" className="cursor-pointer" aria-label={`Remove ${k}`} onClick={() => {
-														const next = new Set(formData.discomfort_types || []);
-														next.delete(k);
-														setFormData({...formData, discomfort_types: Array.from(next)});
-													}}>{k}</Badge>
-											))}
-										</div>
-									)}
 								</div>
 
 								<div>
@@ -794,7 +792,16 @@ const AssessmentPage = () => {
 									<div className="mt-2">
 										<DropdownMenu>
 											<DropdownMenuTrigger asChild>
-												<Button accessKey="g" aria-label={tr('Select aggravating factors (Alt+G)', 'Chagua vichochezi (Alt+G)')} variant="outline" className="w-full text-left">{tr('Select aggravating factors', 'Chagua vichochezi')}</Button>
+												<Button
+													accessKey="g"
+													aria-label={tr('Select aggravating factors (Alt+G)', 'Chagua vichochezi (Alt+G)')}
+													variant="outline"
+													className="w-full text-left"
+												>
+													{(formData.aggravating_factors || []).length > 0
+														? (formData.aggravating_factors as string[]).join(', ')
+														: tr('Select aggravating factors', 'Chagua vichochezi')}
+												</Button>
 											</DropdownMenuTrigger>
 											<DropdownMenuContent>
 												<DropdownMenuLabel>{tr('Aggravating', 'Vichochezi')}</DropdownMenuLabel>
@@ -834,7 +841,16 @@ const AssessmentPage = () => {
 									<div className="mt-2">
 										<DropdownMenu>
 											<DropdownMenuTrigger asChild>
-												<Button accessKey="r" aria-label={tr('Select relieving factors (Alt+R)', 'Chagua vinavyopunguza (Alt+R)')} variant="outline" className="w-full text-left">{tr('Select relieving factors', 'Chagua vinavyopunguza')}</Button>
+												<Button
+													accessKey="r"
+													aria-label={tr('Select relieving factors (Alt+R)', 'Chagua vinavyopunguza (Alt+R)')}
+													variant="outline"
+													className="w-full text-left"
+												>
+													{(formData.relieving_factors || []).length > 0
+														? (formData.relieving_factors as string[]).join(', ')
+														: tr('Select relieving factors', 'Chagua vinavyopunguza')}
+												</Button>
 											</DropdownMenuTrigger>
 											<DropdownMenuContent>
 												<DropdownMenuLabel>{tr('Relieving', 'Vinavyopunguza')}</DropdownMenuLabel>

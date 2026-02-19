@@ -10,12 +10,16 @@ const corsHeaders = {
 const FALLBACK_PROGRAM = {
   title: "General Exercise Program",
   description: "Here's a general exercise program based on your assessment.",
+  phase: "early",
+  weekly_target: 3,
   exercises: [
     {
+      id: "gentle-stretching",
       name: "Gentle Stretching",
       description: "Gentle stretching to improve flexibility and reduce pain.",
       duration: "10-15 minutes",
       frequency: "Daily",
+      sessions_per_week: 5,
       instructions: ["Perform slow, pain-free movements", "Hold each stretch 10–20s"],
       precautions: ["Stop if you feel sharp pain"]
     }
@@ -25,6 +29,12 @@ const FALLBACK_PROGRAM = {
     summary: "General safety-first advice provided due to unavailable AI.",
     findings: ["Insufficient data to personalize program"],
     recommendations: ["Complete a full assessment for tailored plan"]
+  },
+  schedule: {
+    current_phase: "early",
+    early: { summary: "Build tolerance with gentle movement." },
+    intermediate: { summary: "Add strength and control." },
+    advanced: { summary: "Progress to higher challenge." }
   },
   isFallback: true
 };
@@ -39,6 +49,7 @@ serve(async (req)=>{
 
   try {
     const { assessmentData, assessmentId } = await req.json();
+    console.log("assessmentData:", JSON.stringify(assessmentData));
     const { healthData, questionnaireAnswers, hasVideo } = assessmentData || {};
 
     const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
@@ -63,6 +74,8 @@ serve(async (req)=>{
 {
   "title": "string",
   "description": "string",
+  "phase": "early" | "intermediate" | "advanced",
+  "weekly_target": number,
   "report": {
     "summary": "string",
     "findings": ["string"],
@@ -70,10 +83,12 @@ serve(async (req)=>{
   },
   "exercises": [
     {
+      "id": "string",
       "name": "string",
       "description": "string",
       "duration": "string",
       "frequency": "string",
+      "sessions_per_week": number,
       "phase": "early" | "intermediate" | "advanced",
       "difficulty": "Beginner" | "Intermediate" | "Advanced",
       "target_area": "string",
@@ -83,6 +98,7 @@ serve(async (req)=>{
     }
   ],
   "schedule": {
+    "current_phase": "early" | "intermediate" | "advanced",
     "early": {"summary": "string"},
     "intermediate": {"summary": "string"},
     "advanced": {"summary": "string"}
@@ -107,10 +123,12 @@ Requirements:
 - Include warm-up, main, and cool-down suggestions in the list
 - Provide clear instructions (bullet steps) and precautions
 - Include phases: early, intermediate, advanced, and a weekly schedule summary
+- Provide a weekly_target number (sessions per week) and sessions_per_week for each exercise
+- Provide a stable id slug for each exercise (lowercase, hyphenated)
 - Keep within home-friendly options; adapt intensity conservatively for safety`;
 
     // Call Gemini generateContent API (v1beta endpoint with latest model)
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${GEMINI_API_KEY}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-001:generateContent?key=${GEMINI_API_KEY}`;
     const body = {
       contents: [
         {
@@ -158,8 +176,32 @@ Requirements:
         const jsonTextMatch = text.match(/\{[\s\S]*\}/);
         const jsonText = jsonTextMatch ? jsonTextMatch[0] : text;
         const parsed = JSON.parse(jsonText);
+        const slugify = (value: string) =>
+          String(value || '')
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)+/g, '');
+
+        const parsedExercises = Array.isArray(parsed?.exercises) ? parsed.exercises : [];
+        const normalizedExercises = parsedExercises.map((ex: any, idx: number) => {
+          const name = ex?.name || `Exercise ${idx + 1}`;
+          return {
+            ...ex,
+            name,
+            id: ex?.id || slugify(name) || `exercise-${idx + 1}`,
+            sessions_per_week: typeof ex?.sessions_per_week === 'number' ? ex.sessions_per_week : 3,
+          };
+        });
+
         exerciseProgram = {
           ...parsed,
+          phase: parsed?.phase || parsed?.schedule?.current_phase || 'early',
+          weekly_target: typeof parsed?.weekly_target === 'number' ? parsed.weekly_target : 3,
+          schedule: {
+            current_phase: parsed?.schedule?.current_phase || parsed?.phase || 'early',
+            ...(parsed?.schedule || {})
+          },
+          exercises: normalizedExercises,
           isFallback: false
         };
         isFallback = false;

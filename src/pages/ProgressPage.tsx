@@ -1,591 +1,563 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import Navigation from '@/components/Navigation';
-import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Slider } from '@/components/ui/slider';
-import { Skeleton } from '@/components/ui/skeleton';
+﻿import { useEffect, useMemo, useState } from "react";
+import Navigation from "@/components/Navigation";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { motion } from "framer-motion";
+import { TrendingDown, TrendingUp, Activity, Calendar, Flame, HeartPulse, Plus } from "lucide-react";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { Area, Bar, CartesianGrid, ComposedChart, XAxis, YAxis } from 'recharts';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  BarChart,
+  Bar,
+} from "recharts";
+
+interface ProgressEntry {
+  id: string;
+  created_at: string;
+  pain_level: number | null;
+  energy_level: number | null;
+  adherence: number | null;
+  notes: string | null;
+}
+
+interface RecommendationSummary {
+  id: string;
+  created_at: string | null;
+  program: any;
+  source?: string | null;
+  confidence?: number | null;
+}
+
+const mockTrendData = [
+  { date: "Week 1", pain: 6, energy: 4 },
+  { date: "Week 2", pain: 5, energy: 5 },
+  { date: "Week 3", pain: 4, energy: 6 },
+  { date: "Week 4", pain: 3, energy: 7 },
+];
+
+const mockAdherenceData = [
+  { label: "Mon", value: 1 },
+  { label: "Tue", value: 0 },
+  { label: "Wed", value: 1 },
+  { label: "Thu", value: 1 },
+  { label: "Fri", value: 0 },
+  { label: "Sat", value: 1 },
+  { label: "Sun", value: 1 },
+];
 
 const ProgressPage = () => {
-  const { language } = useLanguage();
-  const tr = (en: string, sw: string) => (language === 'sw' ? sw : en);
-  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
-  const [entries, setEntries] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [latestReport, setLatestReport] = useState<any | null>(null);
-  const [open, setOpen] = useState(false);
-  const [editingEntry, setEditingEntry] = useState<any | null>(null);
-  const [saving, setSaving] = useState(false);
+  const { user, loading: authLoading } = useAuth();
+  const [entries, setEntries] = useState<ProgressEntry[]>([]);
+  const [latestRecommendation, setLatestRecommendation] = useState<RecommendationSummary | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState({
-    pain: 5,
-    completed: 0,
-    energy: 5,
-    sleep: 5,
-    notes: '',
+    pain_level: "",
+    energy_level: "",
+    adherence: "",
+    notes: "",
   });
 
-  useEffect(() => {
-    if (!user || authLoading) return;
-    const fetchEntries = async () => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('progress_entries')
-        .select('*')
-        .eq('patient_user_id', user.id)
-        .order('created_at', { ascending: true });
-      if (error) {
-        console.error('Error fetching progress', error);
-      } else {
-        setEntries(data as any[]);
-      }
-      setLoading(false);
-    };
+  const latestEntry = entries[0];
 
-    fetchEntries();
-  }, [user, authLoading]);
-
-  useEffect(() => {
-    if (!user || authLoading) return;
-    const fetchLatestReport = async () => {
-      try {
-        const { data: assessments, error: aErr } = await supabase
-          .from('assessments')
-          .select('id, created_at, pain_level, red_flag')
-          .eq('patient_user_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(1);
-        if (aErr) throw aErr;
-        const latestAssessment = (assessments || [])[0];
-        if (!latestAssessment) {
-          setLatestReport(null);
-          return;
-        }
-
-        const { data: recs, error: rErr } = await supabase
-          .from('recommendations')
-          .select('id, created_at, program')
-          .eq('assessment_id', latestAssessment.id)
-          .order('created_at', { ascending: false })
-          .limit(1);
-        if (rErr) throw rErr;
-        const latestRec = (recs || [])[0] || null;
-        setLatestReport({
-          assessment: latestAssessment,
-          recommendation: latestRec,
-        });
-      } catch (e) {
-        console.error('Error loading latest report', e);
-        setLatestReport(null);
-      }
-    };
-
-    fetchLatestReport();
-  }, [user, authLoading]);
-
-  const metrics = useMemo(() => {
-    const totalEntries = entries.length;
-    const painValues = entries
-      .map((e) => (typeof e.pain_level === 'number' ? e.pain_level : null))
-      .filter((v) => v !== null) as number[];
-    const avgPain = painValues.length
-      ? Math.round((painValues.reduce((a, b) => a + b, 0) / painValues.length) * 10) / 10
-      : null;
-    const totalCompleted = entries.reduce((acc, e) => acc + (e.completed_exercises_count ?? 0), 0);
-    const lastEntry = entries.length
-      ? new Date(entries[entries.length - 1].created_at)
-      : null;
-    const last7Days = entries.filter((e) => {
-      const created = new Date(e.created_at).getTime();
-      const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
-      return created >= cutoff;
-    });
-    const adherence = last7Days.length
-      ? Math.min(100, Math.round((last7Days.length / 7) * 100))
-      : 0;
-    const latestEntry = entries.length ? entries[entries.length - 1] : null;
-
-    return {
-      totalEntries,
-      avgPain,
-      totalCompleted,
-      lastEntry,
-      last7Days,
-      adherence,
-      latestEntry,
-    };
+  const averagePain = useMemo(() => {
+    const values = entries.map((entry) => entry.pain_level).filter((value): value is number => value !== null);
+    if (!values.length) return null;
+    return Math.round((values.reduce((sum, value) => sum + value, 0) / values.length) * 10) / 10;
   }, [entries]);
 
-  const chartData = useMemo(() => {
-    return entries
-      .slice(-14)
-      .map((e) => ({
-        date: new Date(e.created_at).toLocaleDateString(),
-        pain: typeof e.pain_level === 'number' ? e.pain_level : null,
-        completed: e.completed_exercises_count ?? 0,
+  const averageEnergy = useMemo(() => {
+    const values = entries.map((entry) => entry.energy_level).filter((value): value is number => value !== null);
+    if (!values.length) return null;
+    return Math.round((values.reduce((sum, value) => sum + value, 0) / values.length) * 10) / 10;
+  }, [entries]);
+
+  const adherenceScore = useMemo(() => {
+    const values = entries.map((entry) => entry.adherence).filter((value): value is number => value !== null);
+    if (!values.length) return null;
+    return Math.round((values.reduce((sum, value) => sum + value, 0) / values.length) * 10) / 10;
+  }, [entries]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      if (authLoading) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const { data: recommendationData } = await supabase
+          .from("recommendations")
+          .select("id, created_at, program, source, confidence, assessments!inner(patient_user_id)")
+          .eq("assessments.patient_user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        setLatestRecommendation(recommendationData ?? null);
+
+        const { data: progressData } = await supabase
+          .from("progress_entries")
+          .select("id, created_at, pain_level, energy_level, adherence, notes")
+          .eq("patient_user_id", user.id)
+          .order("created_at", { ascending: false });
+
+        setEntries(progressData ?? []);
+      } catch (error) {
+        toast({
+          title: "Unable to load progress",
+          description: "Please refresh the page and try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [toast, user, authLoading]);
+
+  const handleCreateEntry = async () => {
+    const payload = {
+      pain_level: form.pain_level ? Number(form.pain_level) : null,
+      energy_level: form.energy_level ? Number(form.energy_level) : null,
+      adherence: form.adherence ? Number(form.adherence) : null,
+      notes: form.notes.trim() || null,
+    };
+
+    const { error, data } = await supabase
+      .from("progress_entries")
+      .insert(payload)
+      .select("id, created_at, pain_level, energy_level, adherence, notes")
+      .single();
+
+    if (error) {
+      toast({
+        title: "Could not save entry",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setEntries((prev) => [data, ...prev]);
+    setForm({ pain_level: "", energy_level: "", adherence: "", notes: "" });
+    setDialogOpen(false);
+    toast({
+      title: "Progress entry added",
+      description: "Your latest update has been saved.",
+    });
+  };
+
+  const trendData = useMemo(() => {
+    if (!entries.length) return mockTrendData;
+    return [...entries]
+      .reverse()
+      .slice(-6)
+      .map((entry, index) => ({
+        date: `Entry ${index + 1}`,
+        pain: entry.pain_level ?? 0,
+        energy: entry.energy_level ?? 0,
       }));
   }, [entries]);
 
-  const handleSave = async () => {
-    if (!user) {
-      toast({
-        title: tr('Not signed in', 'Hujaingia'),
-        description: tr('Please sign in to log your progress.', 'Tafadhali ingia ili kurekodi maendeleo.'),
-        variant: 'destructive',
-      });
-      return;
-    }
-    setSaving(true);
-    const payload = {
-      patient_user_id: user.id,
-      pain_level: form.pain,
-      completed_exercises_count: form.completed,
-      notes: form.notes,
-      data: {
-        energy: form.energy,
-        sleep: form.sleep,
-      },
-    };
-    const { error } = editingEntry
-      ? await supabase.from('progress_entries').update(payload).eq('id', editingEntry.id)
-      : await supabase.from('progress_entries').insert(payload);
-    if (error) {
-      toast({
-        title: tr('Save failed', 'Imeshindikana kuhifadhi'),
-        description: error.message,
-        variant: 'destructive',
-      });
-    } else {
-      toast({
-        title: editingEntry ? tr('Progress updated', 'Maendeleo yamesasishwa') : tr('Progress saved', 'Maendeleo yamehifadhiwa'),
-        description: tr('Nice work! Keep logging to improve your plan.', 'Kazi nzuri! Endelea kurekodi ili kuboresha mpango.'),
-      });
-      setOpen(false);
-      setEditingEntry(null);
-      setForm({ pain: 5, completed: 0, energy: 5, sleep: 5, notes: '' });
-      const { data } = await supabase
-        .from('progress_entries')
-        .select('*')
-        .eq('patient_user_id', user.id)
-        .order('created_at', { ascending: true });
-      setEntries(data || []);
-    }
-    setSaving(false);
-  };
+  const adherenceData = useMemo(() => {
+    if (!entries.length) return mockAdherenceData;
+    return entries
+      .slice(0, 7)
+      .reverse()
+      .map((entry, index) => ({
+        label: `Day ${index + 1}`,
+        value: entry.adherence ?? 0,
+      }));
+  }, [entries]);
 
-  const openNewEntry = () => {
-    setEditingEntry(null);
-    setForm({ pain: 5, completed: 0, energy: 5, sleep: 5, notes: '' });
-    setOpen(true);
-  };
-
-  const openEditEntry = (entry: any) => {
-    setEditingEntry(entry);
-    setForm({
-      pain: typeof entry.pain_level === 'number' ? entry.pain_level : 5,
-      completed: entry.completed_exercises_count ?? 0,
-      energy: entry.data?.energy ?? 5,
-      sleep: entry.data?.sleep ?? 5,
-      notes: entry.notes ?? '',
-    });
-    setOpen(true);
-  };
-
-  const quickLogToday = async () => {
-    if (!user) {
-      toast({
-        title: tr('Not signed in', 'Hujaingia'),
-        description: tr('Please sign in to log your progress.', 'Tafadhali ingia ili kurekodi maendeleo.'),
-        variant: 'destructive',
-      });
-      return;
-    }
-    const basePain = typeof metrics.latestEntry?.pain_level === 'number' ? metrics.latestEntry.pain_level : 5;
-    const baseEnergy = metrics.latestEntry?.data?.energy ?? 5;
-    const baseSleep = metrics.latestEntry?.data?.sleep ?? 5;
-    const { error } = await supabase.from('progress_entries').insert({
-      patient_user_id: user.id,
-      pain_level: basePain,
-      completed_exercises_count: 0,
-      notes: '',
-      data: {
-        energy: baseEnergy,
-        sleep: baseSleep,
-      },
-    });
-    if (error) {
-      toast({
-        title: tr('Save failed', 'Imeshindikana kuhifadhi'),
-        description: error.message,
-        variant: 'destructive',
-      });
-      return;
-    }
-    toast({
-      title: tr('Quick log saved', 'Rekodi ya haraka imehifadhiwa'),
-      description: tr('You can edit details any time.', 'Unaweza kuhariri maelezo wakati wowote.'),
-    });
-    const { data } = await supabase
-      .from('progress_entries')
-      .select('*')
-      .eq('patient_user_id', user.id)
-      .order('created_at', { ascending: true });
-    setEntries(data || []);
-  };
-
-  const reportSummary = latestReport?.recommendation?.program?.report?.summary;
-  const reportFindings = latestReport?.recommendation?.program?.report?.findings || [];
-  const reportId = latestReport?.recommendation?.id || null;
-  const assessmentRisk = latestReport?.assessment?.red_flag
-    ? tr('High', 'Juu')
-    : tr('Moderate', 'Wastani');
+  const programData = latestRecommendation?.program || {};
+  const reportData = programData.report || {};
+  const reportFindings = Array.isArray(reportData.findings) ? reportData.findings : [];
+  const reportRecommendations = Array.isArray(reportData.recommendations) ? reportData.recommendations : [];
 
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <div className="page-shell py-8 space-y-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <h1 className="text-3xl font-semibold text-foreground">{tr('Progress Dashboard', 'Dashibodi ya Maendeleo')}</h1>
-            <p className="text-muted-foreground mt-2 max-w-2xl">
-              {tr(
-                'Track how you feel, how consistent you are, and what your next best step should be.',
-                'Fuatilia jinsi unavyojisikia, uthabiti wako, na hatua inayofuata bora.'
-              )}
-            </p>
-          </div>
-          <div className="flex gap-3">
-            <Button asChild variant="outline">
-              <Link to="/assessment">{tr('Run New Assessment', 'Fanya Tathmini Mpya')}</Link>
-            </Button>
-            <Button className="bg-gradient-hero" onClick={openNewEntry}>
-              {tr('Add Progress Entry', 'Ongeza Taarifa ya Maendeleo')}
-            </Button>
-          </div>
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-3xl font-semibold">Progress</h1>
+          <p className="text-sm text-emerald-100/70">
+            Track how you feel, review your plan, and see your improvements over time.
+          </p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {loading ? (
-            Array.from({ length: 4 }).map((_, i) => (
-              <Card key={i} className="border-border/60 shadow-card">
-                <CardHeader className="pb-2">
-                  <Skeleton className="h-4 w-24" />
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-8 w-20" />
-                  <Skeleton className="mt-3 h-3 w-28" />
-                </CardContent>
-              </Card>
-            ))
-          ) : (
-            <>
-              <Card className="border-border/60 shadow-card">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm text-muted-foreground">{tr('Entries Logged', 'Rekodi Zilizowekwa')}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-semibold">{metrics.totalEntries}</div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    {metrics.lastEntry
-                      ? tr('Last update', 'Sasisho la mwisho') + ` - ${metrics.lastEntry.toLocaleDateString()}`
-                      : tr('No entries yet', 'Bado hakuna rekodi')}
-                  </p>
-                </CardContent>
-              </Card>
-              <Card className="border-border/60 shadow-card">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm text-muted-foreground">{tr('Average Pain', 'Wastani wa Maumivu')}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-semibold">{metrics.avgPain ?? '-'}</div>
-                  <p className="text-xs text-muted-foreground mt-2">{tr('Scale 0-10', 'Kiwango 0-10')}</p>
-                </CardContent>
-              </Card>
-              <Card className="border-border/60 shadow-card">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm text-muted-foreground">{tr('Exercises Completed', 'Mazoezi Yaliyokamilika')}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-semibold">{metrics.totalCompleted}</div>
-                  <p className="text-xs text-muted-foreground mt-2">{tr('All-time count', 'Jumla ya muda wote')}</p>
-                </CardContent>
-              </Card>
-              <Card className="border-border/60 shadow-card">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm text-muted-foreground">{tr('Weekly Adherence', 'Ufuatiliaji wa Wiki')}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-semibold">{metrics.adherence}%</div>
-                  <div className="mt-2 h-2 rounded-full bg-muted">
-                    <div className="h-full rounded-full bg-primary" style={{ width: `${metrics.adherence}%` }} />
-                  </div>
-                </CardContent>
-              </Card>
-            </>
-          )}
-        </div>
-
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr),minmax(0,1fr)]">
-          <Card className="border-border/60 shadow-card">
-            <CardHeader>
-              <CardTitle>{tr('Assessment Snapshot', 'Muhtasari wa Tathmini')}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-wrap gap-3 text-sm">
-                <span className="inline-flex items-center rounded-full border px-3 py-1 text-foreground/80">
-                  {tr('Primary concern', 'Tatizo kuu')}: {reportSummary ? tr('See report', 'Tazama ripoti') : tr('Not available', 'Haipatikani')}
-                </span>
-                <span className="inline-flex items-center rounded-full border px-3 py-1 text-foreground/80">
-                  {tr('Risk level', 'Kiwango cha hatari')}: {assessmentRisk}
-                </span>
-                <span className="inline-flex items-center rounded-full border px-3 py-1 text-foreground/80">
-                  {tr('Focus', 'Lengo')}: {tr('Mobility + stability', 'Uhamaji + uthabiti')}
-                </span>
-              </div>
-              <div className="rounded-lg border border-border/60 bg-muted/40 p-4 text-sm text-muted-foreground">
-                {reportSummary
-                  ? reportSummary
-                  : tr(
-                      'No AI report found yet. Complete an assessment to generate a personalized report and exercise plan.',
-                      'Hakuna ripoti ya AI bado. Maliza tathmini ili kupata ripoti na mpango wa mazoezi.'
-                    )}
-              </div>
-              {reportFindings.length > 0 && (
-                <ul className="text-sm text-muted-foreground list-disc pl-5">
-                  {reportFindings.slice(0, 3).map((f: string, i: number) => (
-                    <li key={i}>{f}</li>
-                  ))}
-                </ul>
-              )}
-              <div className="flex flex-wrap gap-2">
-                <Button asChild variant="outline" size="sm" disabled={!reportId}>
-                  <Link to={reportId ? `/report/${reportId}` : '/programs'}>
-                    {tr('View Latest Report', 'Tazama Ripoti ya Mwisho')}
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" size="sm">
-                  <Link to="/exercises">{tr('Recommended Exercises', 'Mazoezi Yanayopendekezwa')}</Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border/60 shadow-card">
-            <CardHeader>
-              <CardTitle>{tr('Quick Check-In', 'Ukaguzi wa Haraka')}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm text-muted-foreground">
-              <div className="flex items-center justify-between">
-                <span>{tr('Pain today', 'Maumivu leo')}</span>
-                <span className="text-foreground">{metrics.latestEntry?.pain_level ?? tr('Not logged', 'Haijaandikwa')}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>{tr('Energy', 'Nguvu')}</span>
-                <span className="text-foreground">
-                  {metrics.latestEntry?.data?.energy ?? tr('Not logged', 'Haijaandikwa')}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>{tr('Sleep quality', 'Ubora wa usingizi')}</span>
-                <span className="text-foreground">
-                  {metrics.latestEntry?.data?.sleep ?? tr('Not logged', 'Haijaandikwa')}
-                </span>
-              </div>
-              <Button size="sm" className="bg-gradient-hero w-full" onClick={quickLogToday}>
-                {tr('Log Today', 'Rekodi Leo')}
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr),minmax(0,1fr)]">
-          <Card className="border-border/60 shadow-card">
-            <CardHeader>
-              <CardTitle>{tr('Pain Trend (Last 14)', 'Mwenendo wa Maumivu (Siku 14)')}</CardTitle>
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card className="border-emerald-800/60 bg-emerald-950/60">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Pain Trend</CardTitle>
+              <Flame className="h-4 w-4 text-emerald-200" />
             </CardHeader>
             <CardContent>
-              {loading ? (
-                <Skeleton className="h-[240px] w-full" />
-              ) : chartData.length === 0 ? (
-                <div className="text-sm text-muted-foreground">
-                  {tr('Add entries to see your pain trend.', 'Ongeza rekodi ili kuona mwenendo wa maumivu.')}
-                </div>
-              ) : (
-                <ChartContainer
-                  config={{
-                    pain: { label: tr('Pain', 'Maumivu'), color: 'hsl(var(--primary))' },
-                    completed: { label: tr('Completed', 'Iliyokamilika'), color: 'hsl(var(--accent))' },
-                  }}
-                  className="h-[260px]"
-                >
-                  <ComposedChart data={chartData} margin={{ left: 0, right: 12 }}>
-                    <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                    <XAxis dataKey="date" tickLine={false} axisLine={false} />
-                    <YAxis domain={[0, 10]} tickLine={false} axisLine={false} />
-                    <YAxis yAxisId="right" orientation="right" tickLine={false} axisLine={false} />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Area
-                      type="monotone"
-                      dataKey="pain"
-                      stroke="var(--color-pain)"
-                      fill="var(--color-pain)"
-                      fillOpacity={0.2}
-                      strokeWidth={2}
-                    />
-                    <Bar
-                      yAxisId="right"
-                      dataKey="completed"
-                      fill="var(--color-completed)"
-                      radius={[6, 6, 0, 0]}
-                      opacity={0.6}
-                    />
-                  </ComposedChart>
-                </ChartContainer>
-              )}
+              <div className="text-2xl font-semibold">
+                {averagePain !== null ? `${averagePain}/10` : "No data"}
+              </div>
+              <p className="text-xs text-emerald-100/70">Average of recent entries</p>
             </CardContent>
           </Card>
 
-          <Card className="border-border/60 shadow-card">
-            <CardHeader>
-              <CardTitle>{tr('Progress Timeline', 'Ratiba ya Maendeleo')}</CardTitle>
+          <Card className="border-emerald-800/60 bg-emerald-950/60">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Energy Level</CardTitle>
+              <HeartPulse className="h-4 w-4 text-emerald-200" />
             </CardHeader>
             <CardContent>
-              {loading ? (
-                <div className="space-y-3">
-                  {Array.from({ length: 4 }).map((_, i) => (
-                    <Skeleton key={i} className="h-16 w-full" />
-                  ))}
-                </div>
-              ) : entries.length === 0 ? (
-                <div className="space-y-3 text-sm text-muted-foreground">
-                  <div className="rounded-lg border border-dashed border-border/60 p-4">
-                    {tr(
-                      'No progress entries yet. Add your first log to unlock trends, pain insights, and AI recommendations.',
-                      'Bado hakuna taarifa za maendeleo. Ongeza rekodi ya kwanza ili kupata mwenendo, maumivu, na mapendekezo ya AI.'
-                    )}
-                  </div>
-                  <div className="rounded-lg border border-dashed border-border/60 p-4">
-                    {tr(
-                      'Tip: Log after each session. Even short notes help the AI tailor your plan.',
-                      'Kidokezo: Rekodi baada ya kila kikao. Hata maelezo mafupi husaidia AI kuboresha mpango.'
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                {entries.slice().reverse().map((e) => (
-                  <div key={e.id} className="rounded-lg border border-border/60 p-4">
-                    <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
-                      <span>{new Date(e.created_at).toLocaleString()}</span>
-                      <Button variant="ghost" size="sm" onClick={() => openEditEntry(e)}>
-                        {tr('Edit', 'Hariri')}
-                      </Button>
+              <div className="text-2xl font-semibold">
+                {averageEnergy !== null ? `${averageEnergy}/10` : "No data"}
+              </div>
+              <p className="text-xs text-emerald-100/70">How energized you feel</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-emerald-800/60 bg-emerald-950/60">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Plan Adherence</CardTitle>
+              <Activity className="h-4 w-4 text-emerald-200" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-semibold">
+                {adherenceScore !== null ? `${adherenceScore}/10` : "No data"}
+              </div>
+              <p className="text-xs text-emerald-100/70">Consistency across sessions</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+          <Card className="border-emerald-800/60 bg-emerald-950/60">
+            <CardHeader className="flex flex-col gap-1">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <TrendingDown className="h-4 w-4 text-emerald-200" />
+                Pain and Energy Trend
+              </CardTitle>
+              <p className="text-xs text-emerald-100/70">Your weekly trend over the last entries.</p>
+            </CardHeader>
+            <CardContent className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={trendData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
+                  <XAxis dataKey="date" tick={{ fill: "#d1fae5", fontSize: 12 }} />
+                  <YAxis tick={{ fill: "#d1fae5", fontSize: 12 }} />
+                  <Tooltip
+                    contentStyle={{
+                      background: "#052e16",
+                      borderColor: "#064e3b",
+                      color: "#d1fae5",
+                    }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="pain"
+                    stroke="#34d399"
+                    strokeWidth={2}
+                    dot={{ fill: "#34d399", stroke: "#052e16" }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="energy"
+                    stroke="#a7f3d0"
+                    strokeWidth={2}
+                    dot={{ fill: "#a7f3d0", stroke: "#052e16" }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <div className="flex flex-col gap-6">
+            <Card className="border-emerald-800/60 bg-emerald-950/60">
+              <CardHeader className="flex flex-col gap-1">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <TrendingUp className="h-4 w-4 text-emerald-200" />
+                  Weekly Adherence
+                </CardTitle>
+                <p className="text-xs text-emerald-100/70">How often you completed sessions.</p>
+              </CardHeader>
+              <CardContent className="h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={adherenceData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
+                    <XAxis dataKey="label" tick={{ fill: "#d1fae5", fontSize: 12 }} />
+                    <YAxis tick={{ fill: "#d1fae5", fontSize: 12 }} />
+                    <Tooltip
+                      contentStyle={{
+                        background: "#052e16",
+                        borderColor: "#064e3b",
+                        color: "#d1fae5",
+                      }}
+                    />
+                    <Bar dataKey="value" fill="#34d399" radius={[6, 6, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            <Card className="border-emerald-800/60 bg-emerald-950/60">
+              <CardHeader className="flex flex-col gap-1">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Calendar className="h-4 w-4 text-emerald-200" />
+                  Latest Check-In
+                </CardTitle>
+                <p className="text-xs text-emerald-100/70">Your most recent progress entry.</p>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm">
+                {latestEntry ? (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <span>Pain level</span>
+                      <Badge variant="secondary">{latestEntry.pain_level ?? "N/A"}</Badge>
                     </div>
-                    <div className="mt-2 grid gap-2 text-sm sm:grid-cols-2">
-                      <div>
-                        <span className="text-muted-foreground">{tr('Pain', 'Maumivu')}: </span>
-                        <span className="text-foreground">{e.pain_level ?? '-'}</span>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">{tr('Completed', 'Iliyokamilika')}: </span>
-                          <span className="text-foreground">{e.completed_exercises_count ?? 0}</span>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">{tr('Energy', 'Nguvu')}: </span>
-                          <span className="text-foreground">{e.data?.energy ?? '-'}</span>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">{tr('Sleep', 'Usingizi')}: </span>
-                          <span className="text-foreground">{e.data?.sleep ?? '-'}</span>
-                        </div>
+                    <div className="flex items-center justify-between">
+                      <span>Energy level</span>
+                      <Badge variant="secondary">{latestEntry.energy_level ?? "N/A"}</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Adherence</span>
+                      <Badge variant="secondary">{latestEntry.adherence ?? "N/A"}</Badge>
+                    </div>
+                    {latestEntry.notes && (
+                      <div className="rounded-md border border-emerald-900/60 bg-emerald-950/70 p-3 text-emerald-100/70">
+                        {latestEntry.notes}
                       </div>
-                      {e.notes && (
-                        <div className="mt-2 text-sm text-muted-foreground">
-                          {tr('Notes', 'Maelezo')}: {e.notes}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-emerald-100/70">No entries yet. Add your first update below.</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle>{tr('Log Today', 'Rekodi Leo')}</DialogTitle>
-              <DialogDescription>
-                {tr('Quickly capture how you feel after your session.', 'Rekodi kwa haraka jinsi unavyojisikia baada ya kikao.')}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <div className="flex items-center justify-between text-sm">
-                  <span>{tr('Pain level', 'Kiwango cha maumivu')}</span>
-                  <span className="font-medium">{form.pain}</span>
+        <Card className="border-emerald-800/60 bg-emerald-950/60">
+          <CardHeader>
+            <CardTitle className="text-base">AI Program Connection</CardTitle>
+            <p className="text-xs text-emerald-100/70">
+              Review the latest program data that powers your recovery plan.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {latestRecommendation ? (
+              <>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-1">
+                    <p className="text-sm text-emerald-100/70">Program title</p>
+                    <p className="text-base font-medium">
+                      {programData.title || "Personalized Exercise Program"}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-emerald-100/70">Phase</p>
+                    <p className="text-base font-medium">
+                      {programData.phase || programData?.schedule?.current_phase || "early"}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-emerald-100/70">Weekly target</p>
+                    <p className="text-base font-medium">
+                      {programData.weekly_target ? `${programData.weekly_target} sessions` : "Not set"}
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-emerald-100/70">Report date</p>
+                    <p className="text-base font-medium">
+                      {latestRecommendation.created_at
+                        ? new Date(latestRecommendation.created_at).toLocaleDateString()
+                        : "Unknown"}
+                    </p>
+                  </div>
                 </div>
-                <Slider value={[form.pain]} min={0} max={10} step={1} onValueChange={(v) => setForm((f) => ({ ...f, pain: v[0] }))} />
+
+                {reportData.summary && (
+                  <div className="rounded-lg border border-emerald-900/70 bg-emerald-950/60 p-4">
+                    <p className="text-sm text-emerald-100/70">Summary</p>
+                    <p className="mt-2 text-sm text-emerald-50/90">{reportData.summary}</p>
+                  </div>
+                )}
+
+                {(reportFindings.length > 0 || reportRecommendations.length > 0) && (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {reportFindings.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-sm text-emerald-100/70">Key findings</p>
+                        <ul className="space-y-2 text-sm text-emerald-50/90">
+                          {reportFindings.map((finding: string, idx: number) => (
+                            <li key={`${finding}-${idx}`} className="flex gap-2">
+                              <span className="mt-2 h-1.5 w-1.5 rounded-full bg-emerald-300" />
+                              <span>{finding}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {reportRecommendations.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-sm text-emerald-100/70">Recommendations</p>
+                        <ul className="space-y-2 text-sm text-emerald-50/90">
+                          {reportRecommendations.map((rec: string, idx: number) => (
+                            <li key={`${rec}-${idx}`} className="flex gap-2">
+                              <span className="mt-2 h-1.5 w-1.5 rounded-full bg-emerald-300" />
+                              <span>{rec}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="space-y-2 text-sm text-emerald-100/70">
+                <p>No report found for your account yet.</p>
+                <p>Complete an assessment to generate a personalized report.</p>
               </div>
-              <div>
-                <div className="flex items-center justify-between text-sm">
-                  <span>{tr('Energy', 'Nguvu')}</span>
-                  <span className="font-medium">{form.energy}</span>
-                </div>
-                <Slider value={[form.energy]} min={0} max={10} step={1} onValueChange={(v) => setForm((f) => ({ ...f, energy: v[0] }))} />
-              </div>
-              <div>
-                <div className="flex items-center justify-between text-sm">
-                  <span>{tr('Sleep quality', 'Ubora wa usingizi')}</span>
-                  <span className="font-medium">{form.sleep}</span>
-                </div>
-                <Slider value={[form.sleep]} min={0} max={10} step={1} onValueChange={(v) => setForm((f) => ({ ...f, sleep: v[0] }))} />
-              </div>
-              <div className="grid gap-2">
-                <label className="text-sm text-muted-foreground">{tr('Exercises completed', 'Mazoezi yaliyokamilika')}</label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={form.completed}
-                  onChange={(e) => setForm((f) => ({ ...f, completed: Number(e.target.value || 0) }))}
-                />
-              </div>
-              <div className="grid gap-2">
-                <label className="text-sm text-muted-foreground">{tr('Notes', 'Maelezo')}</label>
-                <Textarea
-                  placeholder={tr('Any pain triggers, wins, or notes...', 'Maumivu, mafanikio, au maelezo...')}
-                  value={form.notes}
-                  onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-                />
-              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="border-emerald-800/60 bg-emerald-950/60">
+          <CardHeader className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div>
+              <CardTitle className="text-base">Progress Timeline</CardTitle>
+              <p className="text-xs text-emerald-100/70">
+                Snapshot of how you are feeling over time.
+              </p>
             </div>
-            <DialogFooter className="gap-2 sm:gap-0">
-              <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
-                {tr('Cancel', 'Ghairi')}
-              </Button>
-              <Button className="bg-gradient-hero" onClick={handleSave} disabled={saving}>
-                {saving ? tr('Saving...', 'Inahifadhi...') : editingEntry ? tr('Update Entry', 'Sasisha') : tr('Save Entry', 'Hifadhi')}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="gap-2 bg-emerald-400 text-emerald-950 hover:bg-emerald-300">
+                  <Plus className="h-4 w-4" />
+                  Add Entry
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-lg border-emerald-800 bg-emerald-950 text-emerald-50">
+                <DialogHeader>
+                  <DialogTitle>Add Progress Entry</DialogTitle>
+                </DialogHeader>
+                <div className="grid gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="pain_level">Pain level (0-10)</Label>
+                    <Input
+                      id="pain_level"
+                      type="number"
+                      min="0"
+                      max="10"
+                      value={form.pain_level}
+                      onChange={(event) => setForm((prev) => ({ ...prev, pain_level: event.target.value }))}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="energy_level">Energy level (0-10)</Label>
+                    <Input
+                      id="energy_level"
+                      type="number"
+                      min="0"
+                      max="10"
+                      value={form.energy_level}
+                      onChange={(event) => setForm((prev) => ({ ...prev, energy_level: event.target.value }))}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="adherence">Adherence (0-10)</Label>
+                    <Input
+                      id="adherence"
+                      type="number"
+                      min="0"
+                      max="10"
+                      value={form.adherence}
+                      onChange={(event) => setForm((prev) => ({ ...prev, adherence: event.target.value }))}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="notes">Notes</Label>
+                    <Textarea
+                      id="notes"
+                      value={form.notes}
+                      onChange={(event) => setForm((prev) => ({ ...prev, notes: event.target.value }))}
+                      rows={4}
+                    />
+                  </div>
+                  <div className="flex justify-end gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => setDialogOpen(false)}
+                      className="border-emerald-800 text-emerald-100 hover:bg-emerald-900"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleCreateEntry}
+                      className="bg-emerald-400 text-emerald-950 hover:bg-emerald-300"
+                    >
+                      Save Entry
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <p className="text-sm text-emerald-100/70">Loading entries...</p>
+            ) : entries.length ? (
+              <div className="space-y-3">
+                {entries.map((entry) => (
+                  <motion.div
+                    key={entry.id}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="rounded-lg border border-emerald-900/70 bg-emerald-950/60 p-4"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="space-y-1">
+                        <p className="text-sm font-semibold">
+                          {new Date(entry.created_at).toLocaleDateString()}
+                        </p>
+                        <p className="text-xs text-emerald-100/70">
+                          {new Date(entry.created_at).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Badge variant="secondary">Pain {entry.pain_level ?? "N/A"}</Badge>
+                        <Badge variant="secondary">Energy {entry.energy_level ?? "N/A"}</Badge>
+                        <Badge variant="secondary">Adherence {entry.adherence ?? "N/A"}</Badge>
+                      </div>
+                    </div>
+                    {entry.notes && (
+                      <p className="mt-3 text-sm text-emerald-100/80">{entry.notes}</p>
+                    )}
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-emerald-100/70">No progress entries yet.</p>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

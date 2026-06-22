@@ -11,7 +11,8 @@ export default {
 	prefix: "",
 	theme: {
 		fontFamily: {
-			sans: ['"Manrope"', 'ui-sans-serif', 'system-ui', '-apple-system', '"Segoe UI"', 'sans-serif'],
+			sans: ['"Inter"', 'ui-sans-serif', 'system-ui', '-apple-system', '"Segoe UI"', 'sans-serif'],
+			display: ['"Fraunces"', 'Georgia', 'serif'],
 		},
 		container: {
 			center: true,
@@ -70,18 +71,22 @@ export default {
 				}
 			},
 			borderRadius: {
-				lg: 'var(--radius)',
-				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
+				lg:   'var(--radius)',
+				md:   'calc(var(--radius) - 2px)',
+				sm:   'calc(var(--radius) - 4px)',
+				xl:   'var(--radius-lg)',
+				'2xl':'var(--radius-xl)',
 			},
 			backgroundImage: {
-				'gradient-hero': 'var(--gradient-hero)',
-				'gradient-card': 'var(--gradient-card)',
+				'gradient-hero':   'var(--gradient-hero)',
+				'gradient-card':   'var(--gradient-card)',
 				'gradient-accent': 'var(--gradient-accent)'
 			},
 			boxShadow: {
+				'xs':   'var(--shadow-xs)',
 				'soft': 'var(--shadow-soft)',
 				'card': 'var(--shadow-card)',
+				'deep': 'var(--shadow-lg)',
 				'glow': 'var(--shadow-glow)'
 			},
 			keyframes: {

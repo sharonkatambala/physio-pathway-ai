@@ -4,8 +4,9 @@ import { supabase } from '@/integrations/supabase/client';
 import Navigation from '@/components/Navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
-import { FileText } from 'lucide-react';
+import { FileText, Dumbbell, Repeat, Stethoscope, Copy, Check, ClipboardList } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const ProgramsPage = () => {
@@ -16,6 +17,7 @@ const ProgramsPage = () => {
   const [programs, setPrograms] = useState<any[]>([]);
   const [loadingPrograms, setLoadingPrograms] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -23,7 +25,6 @@ const ProgramsPage = () => {
       setLoadingPrograms(true);
       setError(null);
       try {
-        // First get assessments for this patient
         const { data: assessments, error: aErr } = await supabase
           .from('assessments')
           .select('id, created_at')
@@ -58,87 +59,114 @@ const ProgramsPage = () => {
     load();
   }, [user, loading]);
 
+  const copyJson = (p: any) => {
+    navigator.clipboard?.writeText(JSON.stringify(p.program, null, 2));
+    setCopiedId(p.id);
+    setTimeout(() => setCopiedId((id) => (id === p.id ? null : id)), 2000);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>{tr('My Exercise Programs', 'Mipango Yangu ya Mazoezi')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loadingPrograms && <div>{tr('Loading programs...', 'Inapakia programu...')}</div>}
-            {!loadingPrograms && error && (
-              <div className="text-destructive">{tr('Error loading programs', 'Hitilafu wakati wa kupakia programu')}: {error}</div>
-            )}
-            {!loadingPrograms && !error && programs.length === 0 && (
-              <div className="text-muted-foreground">{tr('No exercise programs found for your account.', 'Hakuna programu za mazoezi zilizopatikana kwa akaunti yako.')}</div>
-            )}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10">
+            <ClipboardList className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">{tr('My Exercise Programs', 'Mipango Yangu ya Mazoezi')}</h1>
+            <p className="text-sm text-muted-foreground">
+              {tr('Personalized programs generated from your assessments.', 'Mipango binafsi iliyotokana na tathmini zako.')}
+            </p>
+          </div>
+        </div>
 
-            <div className="space-y-4 mt-4">
-              {programs.map((p) => (
-                <Card key={p.id} className="shadow-card">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-sm text-muted-foreground">{tr('Program created', 'Programu imeundwa')}</div>
-                        <div className="font-medium">{new Date(p.created_at).toLocaleString()}</div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button 
-                          size="sm" 
-                          onClick={() => navigate(`/report/${p.id}`)}
-                        >
-                          <FileText className="mr-2 h-4 w-4" />
-                          {tr('View Full Report', 'Tazama Ripoti Kamili')}
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={() => navigator.clipboard?.writeText(JSON.stringify(p.program, null, 2))}>
-                          {tr('Copy JSON', 'Nakili JSON')}
-                        </Button>
-                      </div>
+        {loadingPrograms && <p className="text-sm text-muted-foreground">{tr('Loading programs...', 'Inapakia programu...')}</p>}
+
+        {!loadingPrograms && error && (
+          <Card className="shadow-card">
+            <CardContent className="pt-6 text-destructive">
+              {tr('Error loading programs', 'Hitilafu wakati wa kupakia programu')}: {error}
+            </CardContent>
+          </Card>
+        )}
+
+        {!loadingPrograms && !error && programs.length === 0 && (
+          <Card className="shadow-card">
+            <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
+                <FileText className="h-7 w-7 text-primary" />
+              </div>
+              <p className="font-medium text-foreground">{tr('No programs yet', 'Bado hakuna programu')}</p>
+              <p className="max-w-sm text-sm text-muted-foreground">
+                {tr('Complete an assessment to generate your first personalized exercise program.', 'Kamilisha tathmini ili kuunda programu yako ya kwanza ya mazoezi.')}
+              </p>
+              <Button onClick={() => navigate('/assessment')} className="mt-1 bg-gradient-hero shadow-soft">
+                {tr('Start Assessment', 'Anza Tathmini')}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        <div className="space-y-4">
+          {programs.map((p) => {
+            const program = p.program || {};
+            const report = program.report || {};
+            const exercises = Array.isArray(program.exercises) ? program.exercises : [];
+            const phase = program.phase || program?.schedule?.current_phase;
+            return (
+              <Card key={p.id} className="shadow-card transition-shadow hover:shadow-lg">
+                <CardHeader className="pb-3">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <CardTitle className="truncate text-lg">
+                        {program.title || tr('Personalized Exercise Program', 'Programu Binafsi ya Mazoezi')}
+                      </CardTitle>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {tr('Created', 'Imeundwa')} {new Date(p.created_at).toLocaleDateString()}
+                      </p>
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    {p.program?.report && (
-                      <div className="mb-4">
-                        <div className="text-sm text-muted-foreground">{tr('Report', 'Ripoti')}</div>
-                        <div className="mt-1">
-                          <div className="font-medium">{p.program.report.summary}</div>
-                          <ul className="list-disc pl-5 mt-2 text-sm">
-                            {(p.program.report.findings || []).map((f: string, i: number) => (
-                              <li key={i}>{f}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={() => navigate(`/report/${p.id}`)} className="bg-gradient-hero shadow-soft">
+                        <FileText className="mr-2 h-4 w-4" />
+                        {tr('View Full Report', 'Tazama Ripoti Kamili')}
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => copyJson(p)}>
+                        {copiedId === p.id ? <Check className="mr-2 h-4 w-4 text-success" /> : <Copy className="mr-2 h-4 w-4" />}
+                        {copiedId === p.id ? tr('Copied', 'Imenakiliwa') : tr('Copy JSON', 'Nakili JSON')}
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {report.summary && (
+                    <p className="line-clamp-3 text-sm leading-relaxed text-muted-foreground">{report.summary}</p>
+                  )}
+                  <div className="flex flex-wrap gap-2">
+                    {phase && (
+                      <Badge variant="secondary" className="gap-1.5">
+                        <Stethoscope className="h-3.5 w-3.5" />
+                        {tr('Phase', 'Awamu')}: {phase}
+                      </Badge>
                     )}
-                    <div>
-                      <div className="text-sm text-muted-foreground">{tr('Exercises', 'Mazoezi')}</div>
-                      <ul className="mt-2 space-y-2">
-                        {(p.program.exercises || []).map((ex: any, i: number) => (
-                          <li key={i} className="p-3 rounded-md border border-border/50">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <div className="font-medium">{ex.name}</div>
-                                <div className="text-xs text-muted-foreground">{ex.target_area ? ex.target_area + ' - ' : ''}{ex.difficulty || ex.phase}</div>
-                              </div>
-                              <div className="text-xs text-muted-foreground">{ex.frequency} - {ex.duration}</div>
-                            </div>
-                            {Array.isArray(ex.instructions) && (
-                              <ul className="list-disc pl-5 mt-2 text-sm">
-                                {ex.instructions.map((s: string, j: number) => <li key={j}>{s}</li>)}
-                              </ul>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                    {program.weekly_target && (
+                      <Badge variant="secondary" className="gap-1.5">
+                        <Repeat className="h-3.5 w-3.5" />
+                        {program.weekly_target} {tr('sessions/week', 'vikao/wiki')}
+                      </Badge>
+                    )}
+                    {exercises.length > 0 && (
+                      <Badge variant="secondary" className="gap-1.5">
+                        <Dumbbell className="h-3.5 w-3.5" />
+                        {exercises.length} {tr('exercises', 'mazoezi')}
+                      </Badge>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

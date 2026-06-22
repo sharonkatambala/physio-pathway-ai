@@ -16,8 +16,9 @@ import PatientDashboard from "./pages/PatientDashboard";
 import PhysiotherapistDashboard from "./pages/PhysiotherapistDashboard";
 import PhysioPatientsPage from "./pages/PhysioPatientsPage";
 import PhysioSessionsPage from "./pages/PhysioSessionsPage";
-import PhysioResourcesPage from "./pages/PhysioResourcesPage";
-import PhysioSettingsPage from "./pages/PhysioSettingsPage";
+import PhysioProfilePage from "./pages/PhysioProfilePage";
+import SettingsPage from "./pages/SettingsPage";
+import MessagesPage from "./pages/MessagesPage";
 
 const App = () => (
   <AuthProvider>
@@ -32,13 +33,15 @@ const App = () => (
       <Route path="/physio-videos" element={<PhysioVideosPage />} />
       <Route path="/physio-patients" element={<PhysioPatientsPage />} />
       <Route path="/physio-sessions" element={<PhysioSessionsPage />} />
-      <Route path="/physio-resources" element={<PhysioResourcesPage />} />
-      <Route path="/physio-settings" element={<PhysioSettingsPage />} />
+      <Route path="/physio-profile" element={<PhysioProfilePage />} />
+      <Route path="/physio-settings" element={<PhysioProfilePage />} />
       <Route path="/patient-videos" element={<PatientVideosPage />} />
       <Route path="/programs" element={<ProgramsPage />} />
       <Route path="/report/:reportId" element={<AssessmentReportPage />} />
       <Route path="/admin/status" element={<AdminStatus />} />
       <Route path="/booking" element={<BookingPage />} />
+      <Route path="/settings" element={<SettingsPage />} />
+      <Route path="/messages" element={<MessagesPage />} />
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route path="*" element={<NotFound />} />
     </Routes>

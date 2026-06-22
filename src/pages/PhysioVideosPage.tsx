@@ -1,84 +1,101 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Navigation from '@/components/Navigation';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { UploadCloud, Video, ShieldCheck, AlertTriangle } from 'lucide-react';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
+import { UploadCloud, Video, Loader2, ExternalLink, Users, Globe } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 import { Navigate } from 'react-router-dom';
 
+type Patient = { user_id: string; name: string };
+type VideoRow = { id: string; caption: string | null; storage_url: string | null; patient_user_id: string | null; uploaded_at: string | null; visibility: string | null };
+
+const PUBLIC = '__public__';
+
 const PhysioVideosPage = () => {
-  const { user, role, loading } = useAuth();
+  const { user, profile, role, loading } = useAuth();
+  const { toast } = useToast();
   const [file, setFile] = useState<File | null>(null);
   const [caption, setCaption] = useState('');
-  const [patientId, setPatientId] = useState('');
+  const [target, setTarget] = useState<string>(PUBLIC);
   const [uploading, setUploading] = useState(false);
-  const [totalUploads, setTotalUploads] = useState(0);
-  const [assignedUploads, setAssignedUploads] = useState(0);
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [videos, setVideos] = useState<VideoRow[]>([]);
 
-  if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
-  }
+  const loadPatients = useCallback(async () => {
+    if (!profile?.id) return;
+    const { data: links } = await supabase
+      .from('physio_patient_assignments')
+      .select('patient_id')
+      .eq('physio_id', profile.id)
+      .eq('status', 'active');
+    const ids = (links ?? []).map((l: any) => l.patient_id);
+    if (!ids.length) { setPatients([]); return; }
+    const { data: profs } = await supabase.from('profiles').select('user_id, first_name, last_name').in('id', ids);
+    setPatients((profs ?? []).map((p: any) => ({
+      user_id: p.user_id,
+      name: `${p.first_name ?? ''} ${p.last_name ?? ''}`.trim() || 'Patient',
+    })));
+  }, [profile?.id]);
 
-  if (!user) {
-    return <Navigate to="/auth" replace />;
-  }
+  const loadVideos = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('physio_videos')
+      .select('id, caption, storage_url, patient_user_id, uploaded_at, visibility')
+      .eq('physio_user_id', user.id)
+      .order('uploaded_at', { ascending: false });
+    setVideos((data as VideoRow[]) ?? []);
+  }, [user]);
 
-  if (role !== 'physiotherapist') {
-    return <Navigate to="/patient-dashboard" replace />;
-  }
+  useEffect(() => { loadPatients(); loadVideos(); }, [loadPatients, loadVideos]);
+
+  if (loading) return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  if (!user) return <Navigate to="/auth" replace />;
+  if (role === 'patient') return <Navigate to="/patient-dashboard" replace />;
+
+  const patientName = (uid: string | null) => uid ? (patients.find((p) => p.user_id === uid)?.name ?? 'A patient') : null;
 
   const upload = async () => {
-    if (!file) return alert('Please choose a file');
+    if (!file) { toast({ title: 'Choose a file first', variant: 'destructive' }); return; }
     try {
       setUploading(true);
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
-      const { data, error: uploadError } = await supabase.storage
+      const ext = file.name.split('.').pop();
+      const fileName = `${user.id}/${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
         .from('physio-videos')
-        .upload(fileName, file as File, { contentType: file.type });
-
+        .upload(fileName, file, { contentType: file.type });
       if (uploadError) throw uploadError;
 
       const url = supabase.storage.from('physio-videos').getPublicUrl(fileName).data.publicUrl;
-
-      // insert metadata
-      await supabase.from('physio_videos').insert({
-        physio_user_id: (await supabase.auth.getUser()).data?.user?.id,
-        patient_user_id: patientId || null,
-        caption,
+      const assignedTo = target === PUBLIC ? null : target;
+      const { error: insertError } = await supabase.from('physio_videos').insert({
+        physio_user_id: user.id,
+        patient_user_id: assignedTo,
+        caption: caption || null,
         storage_url: url,
-        visibility: patientId ? 'assigned' : 'public'
+        visibility: assignedTo ? 'assigned' : 'public',
       });
+      if (insertError) throw insertError;
 
-      alert('Uploaded and saved');
-      await loadStats();
+      toast({ title: 'Video uploaded', description: assignedTo ? `Shared with ${patientName(assignedTo)}.` : 'Shared with all your patients.' });
+      setFile(null);
+      setCaption('');
+      setTarget(PUBLIC);
+      await loadVideos();
     } catch (e: any) {
-      console.error(e);
-      alert('Upload error: ' + (e.message || e));
+      toast({ title: 'Upload failed', description: e?.message || 'Unable to upload video.', variant: 'destructive' });
     } finally {
       setUploading(false);
     }
   };
-
-  const loadStats = async () => {
-    if (!user) return;
-    const { data, error } = await supabase
-      .from('physio_videos')
-      .select('id, patient_user_id')
-      .eq('physio_user_id', user.id);
-
-    if (error) return;
-    const rows = data ?? [];
-    setTotalUploads(rows.length);
-    setAssignedUploads(rows.filter((row) => row.patient_user_id).length);
-  };
-
-  useEffect(() => {
-    loadStats();
-  }, [user]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -89,83 +106,85 @@ const PhysioVideosPage = () => {
             <Video className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold">Patient Video Review</h1>
-            <p className="text-muted-foreground">
-              Upload exercise videos, annotate feedback, and deliver actionable guidance.
-            </p>
+            <h1 className="text-3xl font-bold">Exercise Videos</h1>
+            <p className="text-muted-foreground">Upload guidance videos and share them with a patient or everyone.</p>
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-6">
-          <Card className="shadow-card lg:col-span-2">
-            <CardHeader>
-              <CardTitle>Upload New Video</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <Input type="file" onChange={(e: any) => setFile(e.target.files?.[0] ?? null)} />
-                </div>
-                <div>
-                  <Input placeholder="Patient user id (optional to assign)" value={patientId} onChange={(e) => setPatientId(e.target.value)} />
-                </div>
-                <div>
-                  <Input placeholder="Caption" value={caption} onChange={(e) => setCaption(e.target.value)} />
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button onClick={upload} disabled={uploading} className="bg-gradient-hero">
-                    <UploadCloud className="h-4 w-4 mr-2" />
-                    {uploading ? 'Uploading...' : 'Upload'}
-                  </Button>
-                  <Badge variant="outline">MP4 or MOV, max 50MB</Badge>
-                </div>
+        <div className="grid lg:grid-cols-3 gap-6 items-start">
+          {/* Upload */}
+          <Card className="shadow-card lg:col-span-1">
+            <CardHeader><CardTitle>Upload a video</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="file">Video file</Label>
+                <Input id="file" type="file" accept="video/*" onChange={(e: any) => setFile(e.target.files?.[0] ?? null)} />
+                <p className="text-xs text-muted-foreground">MP4 or MOV recommended.</p>
               </div>
+              <div className="space-y-2">
+                <Label>Share with</Label>
+                <Select value={target} onValueChange={setTarget}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={PUBLIC}>All my patients</SelectItem>
+                    {patients.map((p) => (
+                      <SelectItem key={p.user_id} value={p.user_id}>{p.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {patients.length === 0 && <p className="text-xs text-muted-foreground">No assigned patients yet — videos will be shared with everyone.</p>}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="caption">Caption</Label>
+                <Input id="caption" placeholder="e.g. Knee mobility routine" value={caption} onChange={(e) => setCaption(e.target.value)} />
+              </div>
+              <Button onClick={upload} disabled={uploading || !file} className="w-full bg-gradient-hero shadow-soft">
+                {uploading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <UploadCloud className="h-4 w-4 mr-2" />}
+                {uploading ? 'Uploading...' : 'Upload video'}
+              </Button>
             </CardContent>
           </Card>
 
-          <div className="space-y-6">
-            <Card className="shadow-card">
-              <CardHeader>
-                <CardTitle>Review Checklist</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm text-muted-foreground">
-                <div className="flex items-center justify-between">
-                  <span>Form alignment</span>
-                  <ShieldCheck className="h-4 w-4 text-success" />
+          {/* Uploads list */}
+          <Card className="shadow-card lg:col-span-2">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Your videos</CardTitle>
+              <Badge variant="outline">{videos.length}</Badge>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {videos.length === 0 ? (
+                <div className="text-center py-10 text-muted-foreground">
+                  <Video className="h-10 w-10 mx-auto mb-3 opacity-60" />
+                  <p className="font-medium">No videos yet</p>
+                  <p className="text-sm">Upload your first guidance video to share with patients.</p>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span>Pain warning cues</span>
-                  <AlertTriangle className="h-4 w-4 text-accent" />
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Tempo and control</span>
-                  <ShieldCheck className="h-4 w-4 text-success" />
-                </div>
-                <Button variant="outline" className="w-full mt-2">
-                  Open Review Guide
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-card">
-              <CardHeader>
-                <CardTitle>Quick Insights</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm text-muted-foreground">
-                <div className="flex items-center justify-between">
-                  <span>Total uploads</span>
-                  <Badge variant="outline">{totalUploads}</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Assigned to patients</span>
-                  <span className="font-semibold text-foreground">{assignedUploads}</span>
-                </div>
-                <Button variant="outline" className="w-full mt-2">
-                  View Queue
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
+              ) : (
+                videos.map((v) => (
+                  <div key={v.id} className="flex items-center justify-between gap-3 p-4 border border-border/60 rounded-lg">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <Video className="h-5 w-5 text-primary" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-medium truncate">{v.caption || 'Untitled video'}</p>
+                        <p className="text-xs text-muted-foreground inline-flex items-center gap-1.5">
+                          {v.patient_user_id
+                            ? <><Users className="h-3 w-3" />{patientName(v.patient_user_id)}</>
+                            : <><Globe className="h-3 w-3" />All patients</>}
+                          {v.uploaded_at && <span>· {new Date(v.uploaded_at).toLocaleDateString()}</span>}
+                        </p>
+                      </div>
+                    </div>
+                    {v.storage_url && (
+                      <Button size="sm" variant="outline" asChild className="flex-shrink-0">
+                        <a href={v.storage_url} target="_blank" rel="noreferrer"><ExternalLink className="h-4 w-4 mr-1.5" />Open</a>
+                      </Button>
+                    )}
+                  </div>
+                ))
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

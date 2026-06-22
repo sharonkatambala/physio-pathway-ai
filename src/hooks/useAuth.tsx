@@ -133,27 +133,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         if (session?.user) {
+          // Defer Supabase calls out of the auth callback (avoids deadlocks),
+          // and keep `loading` true until the role/profile resolve — otherwise
+          // role-gated pages momentarily see role=null and redirect on refresh.
           setTimeout(async () => {
-            await syncProfileFromMetadata(session.user);
+            try {
+              await syncProfileFromMetadata(session.user);
+            } finally {
+              setLoading(false);
+            }
           }, 0);
         } else {
           setProfile(null);
           setRole(null);
+          setLoading(false);
         }
-        setLoading(false);
       }
     );
 
-    // Check for existing session
+    // Fallback: if there is no session at all, stop loading.
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
+      if (!session) setLoading(false);
     });
 
     return () => subscription.unsubscribe();

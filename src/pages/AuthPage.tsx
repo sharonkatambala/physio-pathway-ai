@@ -1,14 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/components/ui/use-toast';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Shield, CheckCircle2, Brain, TrendingUp } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const AuthPage = () => {
@@ -17,24 +16,19 @@ const AuthPage = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
 
-  // Redirect if already logged in
   useEffect(() => {
     const doRedirect = async () => {
       if (!user || !role) return;
-
       if (role === 'physiotherapist') {
         navigate('/physiotherapist-dashboard', { replace: true });
         return;
       }
-
-      // role === 'patient'
       try {
         const { data } = await (await import('@/integrations/supabase/client')).supabase
           .from('assessments')
           .select('id')
           .eq('patient_user_id', user.id)
           .limit(1);
-
         if (!data || data.length === 0) {
           navigate('/assessment', { replace: true });
         } else {
@@ -45,15 +39,10 @@ const AuthPage = () => {
         navigate('/patient-dashboard', { replace: true });
       }
     };
-
     doRedirect();
   }, [user, role, navigate]);
 
-  const [loginData, setLoginData] = useState({
-    email: '',
-    password: ''
-  });
-
+  const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [signupData, setSignupData] = useState({
     email: '',
     password: '',
@@ -67,54 +56,34 @@ const AuthPage = () => {
     occupation: ''
   });
   const [physioPhoto, setPhysioPhoto] = useState<File | null>(null);
+  const [authTab, setAuthTab] = useState<'login' | 'signup'>('login');
+
   const inputClass =
-    "bg-background border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-primary/40";
+    'bg-background border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-primary/40 focus-visible:border-primary/60';
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
     const { error } = await signIn(loginData.email, loginData.password);
-    
     if (error) {
-      toast({
-        title: t('auth.loginError'),
-        description: error.message,
-        variant: "destructive"
-      });
+      toast({ title: t('auth.loginError'), description: error.message, variant: 'destructive' });
       setLoading(false);
     } else {
-      toast({
-        title: t('auth.success'),
-        description: t('auth.loginSuccess')
-      });
-      // Redirect will happen via useEffect when profile loads
+      toast({ title: t('auth.success'), description: t('auth.loginSuccess') });
     }
   };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (signupData.password !== signupData.confirmPassword) {
-      toast({
-        title: t('auth.error'),
-        description: t('auth.passwordMismatch'),
-        variant: "destructive"
-      });
+      toast({ title: t('auth.error'), description: t('auth.passwordMismatch'), variant: 'destructive' });
       return;
     }
-    
     if (signupData.role === 'physiotherapist' && !signupData.phone.trim()) {
-      toast({
-        title: t('auth.error'),
-        description: 'Phone number is required for physiotherapists.',
-        variant: "destructive"
-      });
+      toast({ title: t('auth.error'), description: 'Phone number is required for physiotherapists.', variant: 'destructive' });
       return;
     }
-
     setLoading(true);
-    
     const userData = {
       first_name: signupData.firstName,
       last_name: signupData.lastName,
@@ -125,15 +94,9 @@ const AuthPage = () => {
       occupation: signupData.occupation || null,
       email: signupData.email
     };
-
     const { error } = await signUp(signupData.email, signupData.password, userData);
-    
     if (error) {
-      toast({
-        title: t('auth.signupError'),
-        description: error.message,
-        variant: "destructive"
-      });
+      toast({ title: t('auth.signupError'), description: error.message, variant: 'destructive' });
     } else {
       toast({
         title: t('auth.success'),
@@ -142,256 +105,334 @@ const AuthPage = () => {
           : t('auth.signupSuccess')
       });
     }
-    
     setLoading(false);
   };
 
-  const [authTab, setAuthTab] = useState<'login' | 'signup'>('login');
+  const features = [
+    { icon: Brain, text: 'AI-powered personalised assessment' },
+    { icon: CheckCircle2, text: 'Evidence-based exercise programs' },
+    { icon: TrendingUp, text: 'Real-time progress monitoring' },
+    { icon: Shield, text: 'Certified physiotherapist network' },
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10">
-      <div className="container mx-auto px-4 py-8">
-        <Button
-          onClick={() => navigate('/')}
-          variant="ghost"
-          className="mb-6"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          {t('auth.backHome')}
-        </Button>
+    <div className="min-h-screen flex bg-background">
 
-        <div className="max-w-xl mx-auto">
-          <div className="text-center mb-10">
-            <h1 className="text-4xl sm:text-5xl font-bold text-foreground">
-              {t('auth.welcomeTitle')}
-            </h1>
-            <p className="text-muted-foreground mt-3 text-base sm:text-lg">
-              {t('auth.welcomeSubtitle')}
-            </p>
+      {/* ── Brand panel (desktop only) ── */}
+      <div className="hidden lg:flex w-[440px] flex-shrink-0 flex-col justify-between p-10 bg-gradient-hero relative overflow-hidden">
+        {/* Decorative orbs */}
+        <div className="pointer-events-none absolute -top-32 -right-32 w-80 h-80 rounded-full bg-white/5 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-32 -left-32 w-80 h-80 rounded-full bg-black/10 blur-3xl" />
+        <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-white/3 blur-3xl" />
+
+        <div className="relative z-10">
+          {/* Logo */}
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="flex items-center gap-2.5 mb-14 opacity-90 hover:opacity-100 transition-opacity"
+          >
+            <div className="w-10 h-10 rounded-full overflow-hidden shadow-soft">
+              <img
+                src="/logo.png"
+                alt="ErgoCare+ logo"
+                className="w-full h-full object-contain bg-white"
+                onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/ergocare-favicon.svg'; }}
+              />
+            </div>
+            <span className="text-xl font-extrabold text-white tracking-tight">ErgoCare+</span>
+          </button>
+
+          {/* Heading */}
+          <h1 className="text-3xl font-extrabold text-white leading-snug mb-3">
+            Professional physiotherapy,<br />powered by AI.
+          </h1>
+          <p className="text-white/75 text-lg leading-relaxed mb-10">
+            Get personalised exercise programs, connect with certified physiotherapists, and track your full recovery.
+          </p>
+
+          {/* Features */}
+          <ul className="space-y-3.5">
+            {features.map(({ icon: Icon, text }) => (
+              <li key={text} className="flex items-center gap-3">
+                <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center">
+                  <Icon className="h-3.5 w-3.5 text-white" />
+                </span>
+                <span className="text-white/90 text-base font-medium">{text}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Bottom trust strip */}
+        <div className="relative z-10 flex gap-3">
+          <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur border border-white/15 rounded-lg px-3 py-2">
+            <Shield className="h-3.5 w-3.5 text-white/80" />
+            <span className="text-[12px] text-white/80 font-medium">HIPAA Compliant</span>
           </div>
+          <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur border border-white/15 rounded-lg px-3 py-2">
+            <CheckCircle2 className="h-3.5 w-3.5 text-white/80" />
+            <span className="text-[12px] text-white/80 font-medium">Secure & Private</span>
+          </div>
+        </div>
+      </div>
 
-          <Tabs value={authTab} onValueChange={(value) => setAuthTab(value as 'login' | 'signup')} className="w-full">
-            <TabsList className="hidden" />
+      {/* ── Form panel ── */}
+      <div className="flex-1 flex flex-col">
+        {/* Mobile top bar */}
+        <div className="lg:hidden flex items-center justify-between px-5 py-4 border-b border-border">
+          <Button onClick={() => navigate('/')} variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full overflow-hidden shadow-xs">
+              <img
+                src="/logo.png"
+                alt="ErgoCare+ logo"
+                className="w-full h-full object-contain bg-white"
+                onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/ergocare-favicon.svg'; }}
+              />
+            </div>
+            <span className="font-extrabold text-foreground tracking-tight">ErgoCare+</span>
+          </div>
+        </div>
 
-            <TabsContent value="login">
-              <Card className="bg-card/90 text-foreground border border-border shadow-2xl rounded-2xl">
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-2xl sm:text-3xl font-semibold text-foreground">
-                      Log in
-                    </CardTitle>
+        {/* Centered form */}
+        <div className="flex-1 flex items-center justify-center px-5 py-10">
+          <div className="w-full max-w-[400px]">
+
+            {/* Tab switcher */}
+            <div className="flex gap-1 p-1 bg-muted rounded-xl mb-7">
+              {(['login', 'signup'] as const).map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => setAuthTab(tab)}
+                  className={`flex-1 py-2 rounded-[10px] text-[13px] font-semibold transition-all duration-150 ${
+                    authTab === tab
+                      ? 'bg-card text-foreground shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {tab === 'login' ? 'Sign in' : 'Create account'}
+                </button>
+              ))}
+            </div>
+
+            {/* ── Login form ── */}
+            {authTab === 'login' && (
+              <div>
+                <h2 className="text-[22px] font-bold text-foreground mb-1">Welcome back</h2>
+                <p className="text-muted-foreground text-sm mb-6">Sign in to your ErgoCare+ account</p>
+
+                <form onSubmit={handleLogin} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="login-email">{t('auth.email')}</Label>
+                    <Input
+                      id="login-email"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={loginData.email}
+                      onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+                      required
+                      className={inputClass}
+                    />
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    New user?{' '}
-                    <button
-                      type="button"
-                      className="text-primary hover:underline"
-                      onClick={() => setAuthTab('signup')}
-                    >
-                      Register Now
-                    </button>
-                  </p>
-                </CardHeader>
-                <CardContent className="pt-4 space-y-4">
-                  <form onSubmit={handleLogin} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="login-email" className="text-foreground">{t('auth.email')}</Label>
-                      <Input
-                        id="login-email"
-                        type="email"
-                        value={loginData.email}
-                        onChange={(e) => setLoginData({...loginData, email: e.target.value})}
-                        required
-                        className={inputClass}
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="login-password" className="text-foreground">{t('auth.password')}</Label>
-                      <Input
-                        id="login-password"
-                        type="password"
-                        value={loginData.password}
-                        onChange={(e) => setLoginData({...loginData, password: e.target.value})}
-                        required
-                        className={inputClass}
-                      />
-                    </div>
-
-                    <Button type="submit" className="w-full" disabled={loading}>
-                      {loading ? t('auth.signingIn') : t('auth.signIn')}
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="signup">
-              <Card className="bg-card/90 text-foreground border border-border shadow-2xl rounded-2xl">
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-2xl sm:text-3xl font-semibold text-foreground">
-                      Create Account
-                    </CardTitle>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="login-password">{t('auth.password')}</Label>
+                    <Input
+                      id="login-password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={loginData.password}
+                      onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                      required
+                      className={inputClass}
+                    />
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Already have an account?{' '}
-                    <button
-                      type="button"
-                      className="text-primary hover:underline"
-                      onClick={() => setAuthTab('login')}
-                    >
-                      Log in
-                    </button>
-                  </p>
-                </CardHeader>
-                <CardContent className="pt-4">
-                  <form onSubmit={handleSignup} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="firstName" className="text-foreground">{t('auth.firstName')}</Label>
-                        <Input
-                          id="firstName"
-                          value={signupData.firstName}
-                          onChange={(e) => setSignupData({...signupData, firstName: e.target.value})}
-                          required
-                          className={inputClass}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="lastName" className="text-foreground">{t('auth.lastName')}</Label>
-                        <Input
-                          id="lastName"
-                          value={signupData.lastName}
-                          onChange={(e) => setSignupData({...signupData, lastName: e.target.value})}
-                          required
-                          className={inputClass}
-                        />
-                      </div>
-                    </div>
+                  <Button
+                    type="submit"
+                    className="w-full h-11 bg-gradient-hero shadow-soft text-[15px] font-semibold mt-2"
+                    disabled={loading}
+                  >
+                    {loading ? t('auth.signingIn') : t('auth.signIn')}
+                  </Button>
+                </form>
+              </div>
+            )}
 
-                    <div className="space-y-2">
-                      <Label htmlFor="role" className="text-foreground">{t('auth.roleLabel')}</Label>
-                      <Select value={signupData.role} onValueChange={(value: 'patient' | 'physiotherapist') => setSignupData({...signupData, role: value})}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="patient">{t('auth.rolePatient')}</SelectItem>
-                          <SelectItem value="physiotherapist">{t('auth.rolePhysio')}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+            {/* ── Sign-up form ── */}
+            {authTab === 'signup' && (
+              <div>
+                <h2 className="text-[22px] font-bold text-foreground mb-1">Create your account</h2>
+                <p className="text-muted-foreground text-sm mb-6">Join ErgoCare+ and start your recovery journey</p>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="email" className="text-foreground">{t('auth.email')}</Label>
+                <form onSubmit={handleSignup} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="firstName">{t('auth.firstName')}</Label>
                       <Input
-                        id="email"
-                        type="email"
-                        value={signupData.email}
-                        onChange={(e) => setSignupData({...signupData, email: e.target.value})}
+                        id="firstName"
+                        placeholder="John"
+                        value={signupData.firstName}
+                        onChange={(e) => setSignupData({ ...signupData, firstName: e.target.value })}
                         required
                         className={inputClass}
                       />
                     </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="lastName">{t('auth.lastName')}</Label>
+                      <Input
+                        id="lastName"
+                        placeholder="Doe"
+                        value={signupData.lastName}
+                        onChange={(e) => setSignupData({ ...signupData, lastName: e.target.value })}
+                        required
+                        className={inputClass}
+                      />
+                    </div>
+                  </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="password" className="text-foreground">{t('auth.password')}</Label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="role">{t('auth.roleLabel')}</Label>
+                    <Select value={signupData.role} onValueChange={(value: 'patient' | 'physiotherapist') => setSignupData({ ...signupData, role: value })}>
+                      <SelectTrigger className={inputClass}><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="patient">{t('auth.rolePatient')}</SelectItem>
+                        <SelectItem value="physiotherapist">{t('auth.rolePhysio')}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="email">{t('auth.email')}</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={signupData.email}
+                      onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
+                      required
+                      className={inputClass}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="password">{t('auth.password')}</Label>
                       <Input
                         id="password"
                         type="password"
+                        placeholder="••••••••"
                         value={signupData.password}
-                        onChange={(e) => setSignupData({...signupData, password: e.target.value})}
+                        onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
                         required
                         className={inputClass}
                       />
                     </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="confirmPassword" className="text-foreground">{t('auth.confirmPassword')}</Label>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="confirmPassword">{t('auth.confirmPassword')}</Label>
                       <Input
                         id="confirmPassword"
                         type="password"
+                        placeholder="••••••••"
                         value={signupData.confirmPassword}
-                        onChange={(e) => setSignupData({...signupData, confirmPassword: e.target.value})}
+                        onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })}
                         required
                         className={inputClass}
                       />
                     </div>
+                  </div>
 
-                    {signupData.role === 'patient' && (
-                      <>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="age" className="text-foreground">{t('auth.age')}</Label>
-                            <Input
-                              id="age"
-                              type="number"
-                              value={signupData.age}
-                              onChange={(e) => setSignupData({...signupData, age: e.target.value})}
-                              className={inputClass}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="sex" className="text-foreground">{t('auth.sex')}</Label>
-                            <Select value={signupData.sex} onValueChange={(value) => setSignupData({...signupData, sex: value})}>
-                              <SelectTrigger>
-                              <SelectValue placeholder={t('auth.sexSelect')} />
-                              </SelectTrigger>
-                              <SelectContent>
-                              <SelectItem value="male">{t('auth.sexMale')}</SelectItem>
-                              <SelectItem value="female">{t('auth.sexFemale')}</SelectItem>
-                              <SelectItem value="other">{t('auth.sexOther')}</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="occupation" className="text-foreground">{t('auth.occupation')}</Label>
+                  {signupData.role === 'patient' && (
+                    <>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="age">{t('auth.age')}</Label>
                           <Input
-                            id="occupation"
-                            value={signupData.occupation}
-                            onChange={(e) => setSignupData({...signupData, occupation: e.target.value})}
+                            id="age"
+                            type="number"
+                            placeholder="25"
+                            value={signupData.age}
+                            onChange={(e) => setSignupData({ ...signupData, age: e.target.value })}
                             className={inputClass}
                           />
                         </div>
-                      </>
-                    )}
-
-                    <div className="space-y-2">
-                      <Label htmlFor="phone" className="text-foreground">{t('auth.phone')}</Label>
-                      <Input
-                        id="phone"
-                        type="tel"
-                        value={signupData.phone}
-                        onChange={(e) => setSignupData({...signupData, phone: e.target.value})}
-                        required={signupData.role === 'physiotherapist'}
-                        className={inputClass}
-                      />
-                    </div>
-
-                    {signupData.role === 'physiotherapist' && (
-                      <div className="space-y-2">
-                        <Label htmlFor="physio-photo" className="text-foreground">Profile Photo</Label>
+                        <div className="space-y-1.5">
+                          <Label htmlFor="sex">{t('auth.sex')}</Label>
+                          <Select value={signupData.sex} onValueChange={(value) => setSignupData({ ...signupData, sex: value })}>
+                            <SelectTrigger className={inputClass}><SelectValue placeholder={t('auth.sexSelect')} /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="male">{t('auth.sexMale')}</SelectItem>
+                              <SelectItem value="female">{t('auth.sexFemale')}</SelectItem>
+                              <SelectItem value="other">{t('auth.sexOther')}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="occupation">{t('auth.occupation')}</Label>
                         <Input
-                          id="physio-photo"
-                          type="file"
-                          accept="image/*"
-                          onChange={(e: any) => setPhysioPhoto(e.target.files?.[0] ?? null)}
+                          id="occupation"
+                          placeholder="Software Engineer"
+                          value={signupData.occupation}
+                          onChange={(e) => setSignupData({ ...signupData, occupation: e.target.value })}
                           className={inputClass}
                         />
                       </div>
-                    )}
+                    </>
+                  )}
 
-                    <Button type="submit" className="w-full" disabled={loading}>
-                      {loading ? t('auth.creatingAccount') : t('auth.createAccount')}
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="phone">
+                      {t('auth.phone')}
+                      {signupData.role !== 'physiotherapist' && (
+                        <span className="text-muted-foreground font-normal ml-1">(optional)</span>
+                      )}
+                    </Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      placeholder="+255 700 000 000"
+                      value={signupData.phone}
+                      onChange={(e) => setSignupData({ ...signupData, phone: e.target.value })}
+                      required={signupData.role === 'physiotherapist'}
+                      className={inputClass}
+                    />
+                  </div>
+
+                  {signupData.role === 'physiotherapist' && (
+                    <div className="space-y-1.5">
+                      <Label htmlFor="physio-photo">Profile Photo</Label>
+                      <Input
+                        id="physio-photo"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e: any) => setPhysioPhoto(e.target.files?.[0] ?? null)}
+                        className={inputClass}
+                      />
+                    </div>
+                  )}
+
+                  <Button
+                    type="submit"
+                    className="w-full h-11 bg-gradient-hero shadow-soft text-[15px] font-semibold mt-2"
+                    disabled={loading}
+                  >
+                    {loading ? t('auth.creatingAccount') : t('auth.createAccount')}
+                  </Button>
+                </form>
+              </div>
+            )}
+
+            <p className="text-center text-xs text-muted-foreground mt-6">
+              By continuing, you agree to ErgoCare+'s{' '}
+              <button type="button" className="underline hover:text-foreground transition-colors">Terms</button>
+              {' '}and{' '}
+              <button type="button" className="underline hover:text-foreground transition-colors">Privacy Policy</button>.
+            </p>
+          </div>
         </div>
       </div>
     </div>

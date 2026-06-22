@@ -1,59 +1,50 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type MouseEvent } from 'react';
 import { Button } from "@/components/ui/button";
-import { Menu, X, Activity, Calendar, Users, BookOpen, LogOut, Languages, Target, Moon, Sun, Video, LayoutDashboard, FileText, Settings } from 'lucide-react';
+import { Menu, X, Calendar, Users, LogOut, Target, Video, LayoutDashboard, FileText, Settings, MessageSquare, UserRound } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/contexts/LanguageContext';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-    if (typeof window === 'undefined') return 'light';
-    const saved = window.localStorage.getItem('ergocare-theme');
-    if (saved === 'light' || saved === 'dark') return saved;
-    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  });
-  const [fontScale, setFontScale] = useState<number>(() => {
-    if (typeof window === 'undefined') return 100;
-    const saved = window.localStorage.getItem('ergocare-font-scale');
-    const parsed = saved ? Number(saved) : 100;
-    return Number.isFinite(parsed) ? Math.min(125, Math.max(90, parsed)) : 100;
-  });
-  const { user, profile, role, signOut } = useAuth();
+  const [scrolled, setScrolled] = useState(false);
+  const { user, role, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { language, setLanguage, t } = useLanguage();
+  const { t } = useLanguage();
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
   };
 
+  // Logo returns to the hero / top of the home page in one click.
+  const handleLogoClick = (e: MouseEvent) => {
+    if (location.pathname === '/') {
+      e.preventDefault();
+      if (location.hash) navigate('/');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   const getNavigationItems = () => {
     if (!user || !role) return [];
-    
     if (role === 'patient') {
       return [
-        { name: t('nav.assessment'), href: '/assessment', icon: Activity },
-        { name: t('nav.exercises'), href: '/exercises', icon: BookOpen },
-        { name: t('nav.progress'), href: '/progress', icon: Users },
-        { name: t('nav.myPrograms'), href: '/programs', icon: Target },
+        { name: t('nav.dashboard'), href: '/patient-dashboard', icon: LayoutDashboard },
+        { name: t('nav.progress'), href: '/progress', icon: Target },
+        { name: t('nav.myPrograms'), href: '/programs', icon: FileText },
         { name: t('nav.bookSession'), href: '/booking', icon: Calendar },
+        { name: t('nav.messages'), href: '/messages', icon: MessageSquare },
       ];
     } else {
       return [
         { name: t('nav.dashboard'), href: '/physiotherapist-dashboard', icon: LayoutDashboard },
         { name: t('nav.patients'), href: '/physio-patients', icon: Users },
         { name: t('nav.sessions'), href: '/physio-sessions', icon: Calendar },
+        { name: t('nav.messages'), href: '/messages', icon: MessageSquare },
         { name: t('nav.videos'), href: '/physio-videos', icon: Video },
-        { name: t('nav.resources'), href: '/physio-resources', icon: FileText },
-        { name: t('nav.settings'), href: '/physio-settings', icon: Settings },
+        { name: t('nav.profile'), href: '/physio-profile', icon: UserRound },
       ];
     }
   };
@@ -61,272 +52,162 @@ const Navigation = () => {
   const navigation = getNavigationItems();
   const isHome = location.pathname === '/';
 
-  useEffect(() => {
-    const root = document.documentElement;
-    if (theme === 'dark') root.classList.add('dark');
-    else root.classList.remove('dark');
-    window.localStorage.setItem('ergocare-theme', theme);
-  }, [theme]);
+  // Public links available to everyone (no login required).
+  // `to` = a real route; `hash` = a section on the home page.
+  const publicNav: { name: string; to?: string; hash?: string }[] = [
+    { name: t('nav.services'), hash: 'services' },
+    { name: t('nav.howItWorks'), hash: 'how-it-works' },
+    { name: t('nav.about'), hash: 'about' },
+    { name: t('nav.exercises'), to: '/exercises' },
+    { name: t('nav.contact'), hash: 'contact' },
+  ];
 
   useEffect(() => {
-    const root = document.documentElement;
-    const base = Math.round(16 * (fontScale / 100));
-    root.style.setProperty('--base-font-size', `${base}px`);
-    window.localStorage.setItem('ergocare-font-scale', String(fontScale));
-  }, [fontScale]);
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
-  const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark');
-  const increaseFont = () => setFontScale((v) => Math.min(125, v + 5));
-  const decreaseFont = () => setFontScale((v) => Math.max(90, v - 5));
-
-  const LanguageToggle = (
-    <div className="flex items-center rounded-full border border-border bg-card/70 p-1 shadow-soft">
-      <button
-        type="button"
-        onClick={() => setLanguage('en')}
-        aria-pressed={language === 'en'}
-        className={`px-2.5 py-1 text-xs font-semibold rounded-full transition-colors ${
-          language === 'en'
-            ? 'bg-gradient-hero text-primary-foreground shadow-soft'
-            : 'text-muted-foreground hover:text-foreground'
-        }`}
-      >
-        EN
-      </button>
-      <button
-        type="button"
-        onClick={() => setLanguage('sw')}
-        aria-pressed={language === 'sw'}
-        className={`px-2.5 py-1 text-xs font-semibold rounded-full transition-colors ${
-          language === 'sw'
-            ? 'bg-gradient-hero text-primary-foreground shadow-soft'
-            : 'text-muted-foreground hover:text-foreground'
-        }`}
-      >
-        SW
-      </button>
-    </div>
+  /* ── Settings entry point — theme, text size & language now live on /settings ── */
+  const settingsLink = (
+    <Link
+      to="/settings"
+      title={t('nav.settings')}
+      aria-label={t('nav.settings')}
+      className={`h-9 w-9 flex items-center justify-center rounded-xl border transition-colors ${
+        location.pathname === '/settings'
+          ? 'bg-primary/10 text-primary border-primary/20'
+          : 'bg-muted/60 border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted'
+      }`}
+    >
+      <Settings className="h-4 w-4" />
+    </Link>
   );
 
   return (
-    <nav className="bg-card/80 backdrop-blur-md border-b border-border sticky top-0 z-50">
+    <div className="sticky top-0 z-50 px-3 pt-3 sm:px-4 sm:pt-4">
+    <nav className={`relative bg-card/95 backdrop-blur-md border border-border/60 rounded-2xl transition-all duration-200 ${scrolled ? 'shadow-[0_8px_32px_-6px_hsl(140_15%_13%/0.15),0_2px_8px_hsl(140_15%_13%/0.06)]' : 'shadow-card'}`}>
       <div className="page-shell">
-        <div className="flex justify-between items-center h-16">
-          <div className="flex items-center">
-            <Link to="/" className="flex-shrink-0 flex items-center space-x-2 hover:opacity-80 transition-opacity">
-              <div className="w-8 h-8 bg-gradient-hero rounded-lg flex items-center justify-center">
-                <Activity className="h-5 w-5 text-white" />
-              </div>
-              <span className="text-xl font-bold text-foreground">
-                Ergo<span className="text-primary">Care</span><span className="text-primary">+</span>
-              </span>
-            </Link>
-          </div>
+        <div className="flex justify-between items-center h-[68px]">
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-1">
-            {isHome ? (
-              user ? (
-                <div className="flex items-center space-x-2">
-                  <Link to="/assessment">
-                    <Button variant="ghost" size="sm" className="flex items-center space-x-2">
-                      <span>{t('nav.assessment')}</span>
-                    </Button>
+          {/* Logo */}
+          <Link to="/" onClick={handleLogoClick} className="flex-shrink-0 flex items-center gap-2.5 group">
+            <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 shadow-soft group-hover:shadow-glow transition-shadow duration-200">
+              <img
+                src="/logo.png"
+                alt="ErgoCare+ logo"
+                className="w-full h-full object-contain bg-white"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = '/ergocare-favicon.svg';
+                }}
+              />
+            </div>
+            <span className="text-[1.125rem] font-bold tracking-[-0.03em] text-foreground">
+              Ergo<span className="text-primary">Care</span><span className="text-primary">+</span>
+            </span>
+          </Link>
+
+          {/* Desktop nav */}
+          <div className="hidden md:flex items-center gap-1.5">
+            {user ? (
+              isHome ? (
+                <div className="flex items-center gap-4">
+                  <Link to={role === 'patient' ? '/patient-dashboard' : '/physiotherapist-dashboard'} className="text-[15px] font-medium text-foreground/70 hover:text-foreground transition-colors">
+                    {t('nav.dashboard')}
                   </Link>
-                  <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="sm" onClick={decreaseFont} className="flex items-center" title="Decrease text size">
-                      A-
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={increaseFont} className="flex items-center" title="Increase text size">
-                      A+
-                    </Button>
-                  </div>
-                  {LanguageToggle}
-                  <Button variant="ghost" size="sm" onClick={toggleTheme} className="flex items-center">
-                    {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                    <span className="sr-only">Toggle theme</span>
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={handleSignOut} className="flex items-center space-x-2">
-                    <LogOut className="h-4 w-4" />
-                    <span>{t('nav.signOut')}</span>
-                  </Button>
+                  {settingsLink}
+                  <button
+                    type="button"
+                    onClick={handleSignOut}
+                    className="flex items-center gap-1.5 text-[15px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <LogOut className="h-3.5 w-3.5" />
+                    {t('nav.signOut')}
+                  </button>
                 </div>
               ) : (
-                <div className="flex items-center space-x-2">
-                  <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="sm" onClick={decreaseFont} className="flex items-center" title="Decrease text size">
-                      A-
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={increaseFont} className="flex items-center" title="Increase text size">
-                      A+
-                    </Button>
+                <>
+                  {/* App nav links */}
+                  <div className="flex items-center gap-1 mr-3">
+                    {navigation.map((item) => {
+                      const Icon = item.icon;
+                      const isActive = location.pathname === item.href;
+                      return (
+                        <Link
+                          key={item.name}
+                          to={item.href}
+                          className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[14px] font-medium transition-all duration-150 ${
+                            isActive
+                              ? 'bg-primary/10 text-primary border border-primary/20'
+                              : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
+                          }`}
+                        >
+                          <Icon className="h-3.5 w-3.5" />
+                          <span>{item.name}</span>
+                        </Link>
+                      );
+                    })}
                   </div>
-                  {LanguageToggle}
-                  <Button variant="ghost" size="sm" onClick={toggleTheme} className="flex items-center">
-                    {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                    <span className="sr-only">Toggle theme</span>
-                  </Button>
+                  <div className="flex items-center gap-4">
+                    {settingsLink}
+                    <button
+                      type="button"
+                      onClick={handleSignOut}
+                      className="flex items-center gap-1.5 text-[14px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <LogOut className="h-3.5 w-3.5" />
+                      {t('nav.signOut')}
+                    </button>
+                  </div>
+                </>
+              )
+            ) : (
+              /* Logged out — public links available to everyone, on every page */
+              <>
+                <div className="flex items-center gap-1 mr-3">
+                  {publicNav.map((item) => {
+                    const isActive = item.to ? location.pathname === item.to : false;
+                    return (
+                      <Link
+                        key={item.name}
+                        to={item.to ?? `/#${item.hash}`}
+                        className={`px-3.5 py-2 rounded-xl text-[14px] font-medium transition-all duration-150 ${
+                          isActive
+                            ? 'bg-primary/10 text-primary border border-primary/20'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
+                        }`}
+                      >
+                        {item.name}
+                      </Link>
+                    );
+                  })}
+                </div>
+                <div className="flex items-center gap-4">
+                  {settingsLink}
                   <Link to="/auth">
-                    <Button variant="outline" size="sm">
-                      {t('nav.signIn')}
-                    </Button>
-                  </Link>
-                  <Link to="/auth">
-                    <Button size="sm" className="bg-gradient-hero shadow-soft">
+                    <Button className="bg-gradient-hero shadow-soft text-[14px] font-semibold px-5 h-[40px] rounded-full">
                       {t('nav.getStarted')}
                     </Button>
                   </Link>
                 </div>
-              )
-            ) : (
-              // Regular app nav (user-specific links)
-              <>
-                {navigation.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = location.pathname === item.href;
-                  return (
-                    <Link
-                      key={item.name}
-                      to={item.href}
-                      className={`px-4 py-2 rounded-md transition-all duration-200 flex items-center space-x-2 ${
-                        isActive 
-                          ? 'bg-primary text-primary-foreground shadow-sm' 
-                          : 'text-muted-foreground hover:text-primary hover:bg-muted'
-                      }`}
-                    >
-                      <Icon className="h-4 w-4" />
-                      <span>{item.name}</span>
-                    </Link>
-                  );
-                })}
-
-                {/* Auth Buttons */}
-                {user ? (
-                  <div className="flex items-center space-x-2">
-                    <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="sm" onClick={decreaseFont} className="flex items-center" title="Decrease text size">
-                        A-
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={increaseFont} className="flex items-center" title="Increase text size">
-                        A+
-                      </Button>
-                    </div>
-                    {LanguageToggle}
-                    <Button variant="ghost" size="sm" onClick={toggleTheme} className="flex items-center">
-                      {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                      <span className="sr-only">Toggle theme</span>
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={handleSignOut} className="flex items-center space-x-2">
-                      <LogOut className="h-4 w-4" />
-                      <span>{t('nav.signOut')}</span>
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex items-center space-x-2">
-                    <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="sm" onClick={decreaseFont} className="flex items-center" title="Decrease text size">
-                        A-
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={increaseFont} className="flex items-center" title="Increase text size">
-                        A+
-                      </Button>
-                    </div>
-                    {LanguageToggle}
-                    <Button variant="ghost" size="sm" onClick={toggleTheme} className="flex items-center">
-                      {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                      <span className="sr-only">Toggle theme</span>
-                    </Button>
-                    <Link to="/auth">
-                      <Button variant="outline" size="sm">
-                        {t('nav.signIn')}
-                      </Button>
-                    </Link>
-                    <Link to="/auth">
-                      <Button size="sm" className="bg-gradient-hero shadow-soft">
-                        {t('nav.getStarted')}
-                      </Button>
-                    </Link>
-                  </div>
-                )}
               </>
             )}
           </div>
 
-          {/* Mobile menu button */}
-          <div className="md:hidden flex items-center">
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="text-muted-foreground hover:text-primary p-2"
-            >
-              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
-          </div>
+          {/* Mobile menu toggle */}
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="md:hidden p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors"
+          >
+            {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </div>
 
-        {/* Mobile Navigation */}
+        {/* Mobile drawer */}
         {isOpen && (
-          <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 bg-card border-t border-border">
-              {isHome ? (
-                user ? (
-                  <div className="flex flex-col space-y-2 px-3 pt-2">
-                    <Link to="/assessment">
-                      <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => setIsOpen(false)}>
-                        {t('nav.assessment')}
-                      </Button>
-                    </Link>
-                    <div className="flex items-center gap-2 px-1">
-                      <Button variant="ghost" size="sm" className="flex-1 justify-start" onClick={() => { decreaseFont(); setIsOpen(false); }}>
-                        A-
-                      </Button>
-                      <Button variant="ghost" size="sm" className="flex-1 justify-start" onClick={() => { increaseFont(); setIsOpen(false); }}>
-                        A+
-                      </Button>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">{t('nav.language')}</span>
-                      {LanguageToggle}
-                    </div>
-                    <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => { toggleTheme(); setIsOpen(false); }}>
-                      {theme === 'dark' ? <Sun className="h-4 w-4 mr-2" /> : <Moon className="h-4 w-4 mr-2" />}
-                      Theme
-                    </Button>
-                    <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => { handleSignOut(); setIsOpen(false); }}>
-                      <LogOut className="h-4 w-4 mr-2" />
-                      {t('nav.signOut')}
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex flex-col space-y-2 px-3 pt-2">
-                    <div className="flex items-center gap-2 px-1">
-                      <Button variant="ghost" size="sm" className="flex-1 justify-start" onClick={() => { decreaseFont(); setIsOpen(false); }}>
-                        A-
-                      </Button>
-                      <Button variant="ghost" size="sm" className="flex-1 justify-start" onClick={() => { increaseFont(); setIsOpen(false); }}>
-                        A+
-                      </Button>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">{t('nav.language')}</span>
-                      {LanguageToggle}
-                    </div>
-                    <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => { toggleTheme(); setIsOpen(false); }}>
-                      {theme === 'dark' ? <Sun className="h-4 w-4 mr-2" /> : <Moon className="h-4 w-4 mr-2" />}
-                      Theme
-                    </Button>
-                    <Link to="/auth">
-                      <Button variant="outline" size="sm" onClick={() => setIsOpen(false)}>
-                        {t('nav.signIn')}
-                      </Button>
-                    </Link>
-                    <Link to="/auth">
-                      <Button size="sm" className="bg-gradient-hero shadow-soft" onClick={() => setIsOpen(false)}>
-                        {t('nav.getStarted')}
-                      </Button>
-                    </Link>
-                  </div>
-                )
-              ) : (
+          <div className="md:hidden absolute top-full left-0 right-0 mt-2 bg-card/98 backdrop-blur-md border border-border/60 rounded-2xl shadow-lg overflow-hidden">
+            <div className="px-4 py-4 space-y-1">
+              {user ? (
                 <>
                   {navigation.map((item) => {
                     const Icon = item.icon;
@@ -335,10 +216,10 @@ const Navigation = () => {
                       <Link
                         key={item.name}
                         to={item.href}
-                        className={`block px-3 py-2 rounded-md text-base transition-all duration-200 flex items-center space-x-2 ${
-                          isActive 
-                            ? 'bg-primary text-primary-foreground' 
-                            : 'text-muted-foreground hover:text-primary hover:bg-muted'
+                        className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                          isActive
+                            ? 'bg-primary/10 text-primary'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
                         }`}
                         onClick={() => setIsOpen(false)}
                       >
@@ -347,62 +228,63 @@ const Navigation = () => {
                       </Link>
                     );
                   })}
-
-                  <div className="flex flex-col space-y-2 px-3 pt-2">
-                    {user ? (
-                      <>
-                        <div className="flex items-center gap-2 px-1">
-                          <Button variant="ghost" size="sm" className="flex-1 justify-start" onClick={() => { decreaseFont(); setIsOpen(false); }}>
-                            A-
-                          </Button>
-                          <Button variant="ghost" size="sm" className="flex-1 justify-start" onClick={() => { increaseFont(); setIsOpen(false); }}>
-                            A+
-                          </Button>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">{t('nav.language')}</span>
-                          {LanguageToggle}
-                        </div>
-                        <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => { toggleTheme(); setIsOpen(false); }}>
-                          {theme === 'dark' ? <Sun className="h-4 w-4 mr-2" /> : <Moon className="h-4 w-4 mr-2" />}
-                          Theme
-                        </Button>
-                        <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => { handleSignOut(); setIsOpen(false); }}>
-                          <LogOut className="h-4 w-4 mr-2" />
-                          {t('nav.signOut')}
-                        </Button>
-                      </>
-                    ) : (
-                      <>
-                        <div className="flex items-center gap-2 px-1">
-                          <Button variant="ghost" size="sm" className="flex-1 justify-start" onClick={() => { decreaseFont(); setIsOpen(false); }}>
-                            A-
-                          </Button>
-                          <Button variant="ghost" size="sm" className="flex-1 justify-start" onClick={() => { increaseFont(); setIsOpen(false); }}>
-                            A+
-                          </Button>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">{t('nav.language')}</span>
-                          {LanguageToggle}
-                        </div>
-                        <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => { toggleTheme(); setIsOpen(false); }}>
-                          {theme === 'dark' ? <Sun className="h-4 w-4 mr-2" /> : <Moon className="h-4 w-4 mr-2" />}
-                          Theme
-                        </Button>
-                        <Link to="/auth">
-                          <Button variant="outline" size="sm" onClick={() => setIsOpen(false)}>
-                            {t('nav.signIn')}
-                          </Button>
-                        </Link>
-                        <Link to="/auth">
-                          <Button size="sm" className="bg-gradient-hero shadow-soft" onClick={() => setIsOpen(false)}>
-                            {t('nav.getStarted')}
-                          </Button>
-                        </Link>
-                      </>
-                    )}
-                  </div>
+                  <Link
+                    to="/settings"
+                    onClick={() => setIsOpen(false)}
+                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                      location.pathname === '/settings'
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
+                    }`}
+                  >
+                    <Settings className="h-4 w-4" />
+                    <span>{t('nav.settings')}</span>
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => { handleSignOut(); setIsOpen(false); }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>{t('nav.signOut')}</span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  {publicNav.map((item) => {
+                    const isActive = item.to ? location.pathname === item.to : false;
+                    return (
+                      <Link
+                        key={item.name}
+                        to={item.to ?? `/#${item.hash}`}
+                        className={`block px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                          isActive
+                            ? 'bg-primary/10 text-primary'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
+                        }`}
+                        onClick={() => setIsOpen(false)}
+                      >
+                        {item.name}
+                      </Link>
+                    );
+                  })}
+                  <Link
+                    to="/settings"
+                    onClick={() => setIsOpen(false)}
+                    className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                      location.pathname === '/settings'
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
+                    }`}
+                  >
+                    <Settings className="h-4 w-4" />
+                    <span>{t('nav.settings')}</span>
+                  </Link>
+                  <Link to="/auth" onClick={() => setIsOpen(false)}>
+                    <Button size="sm" className="w-full bg-gradient-hero mt-2">
+                      {t('nav.getStarted')}
+                    </Button>
+                  </Link>
                 </>
               )}
             </div>
@@ -410,6 +292,7 @@ const Navigation = () => {
         )}
       </div>
     </nav>
+    </div>
   );
 };
 

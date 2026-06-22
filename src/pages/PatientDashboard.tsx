@@ -24,22 +24,26 @@ import {
   Brain,
   Play,
   CheckCircle,
-  RotateCcw
+  RotateCcw,
+  Sparkles,
+  ArrowRight
 } from 'lucide-react';
 import ExerciseProgram from '@/components/ExerciseProgram';
 import ProgressTracker from '@/components/ProgressTracker';
 import MonitoringSystem from '@/components/MonitoringSystem';
-import ChatSystem from '@/components/ChatSystem';
 import BookingSystem from '@/components/BookingSystem';
 import ExerciseProgramDisplay from '@/components/ExerciseProgramDisplay';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const PatientDashboard = () => {
   const { user, profile, role, loading } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const tr = (en: string, sw: string) => (language === 'sw' ? sw : en);
   const navigate = useNavigate();
   // Prevent showing the legacy assessment flow by checking for an existing assessment
   const [checkedAssessments, setCheckedAssessments] = useState<boolean>(false);
+  // null = still checking; false = first-time (no assessment yet); true = returning
+  const [hasAnyAssessment, setHasAnyAssessment] = useState<boolean | null>(null);
 
   useEffect(() => {
     const checkAssessment = async () => {
@@ -53,23 +57,19 @@ const PatientDashboard = () => {
       }
 
       try {
+        // Don't force first-time users into the assessment flow — let them land on
+        // their overview, where a prominent prompt invites them to start the assessment.
         const { data } = await supabase.from('assessments').select('id').eq('patient_user_id', user.id).limit(1);
-        if (!data || data.length === 0) {
-          // No assessment found -> send user to the new assessment page
-          navigate('/assessment', { replace: true });
-          // we set checked to true to stop blocking render if navigation is prevented for some reason
-          setCheckedAssessments(true);
-          return;
-        }
+        setHasAnyAssessment(!!(data && data.length > 0));
       } catch (err) {
         console.error('Failed to check assessments', err);
+      } finally {
+        setCheckedAssessments(true);
       }
-
-      setCheckedAssessments(true);
     };
 
     checkAssessment();
-  }, [user, loading, role, navigate]);
+  }, [user, loading, role]);
   // We removed the legacy inline assessment flow; redirect users to the new /assessment.
   const [exerciseProgram, setExerciseProgram] = useState<string>('');
   const [latestPain, setLatestPain] = useState<number | null>(null);
@@ -186,7 +186,7 @@ const PatientDashboard = () => {
     return <Navigate to="/auth" replace />;
   }
 
-  if (role !== 'patient') {
+  if (role === 'physiotherapist') {
     return <Navigate to="/physiotherapist-dashboard" replace />;
   }
 
@@ -211,26 +211,29 @@ const PatientDashboard = () => {
       <div className="page-shell py-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-foreground mb-4">
-                {t('patient.welcomeBack')}, {displayName}!
+              <p className="text-sm font-medium text-muted-foreground mb-1">{t('patient.welcomeBack')}</p>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight mb-3">
+                {displayName || 'Dashboard'}
               </h1>
-              <div className="flex flex-wrap gap-4">
-                <Badge variant="outline" className="px-3 py-1">
-                  <Calendar className="h-4 w-4 mr-1" />
-                  {(hasProgressEntries || hasAssessment) ? t('patient.trackingActive') : t('patient.trackingStart')}
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="outline" className="px-2.5 py-1 text-xs font-medium gap-1.5">
+                  <Calendar className="h-3.5 w-3.5" />
+                  {(hasProgressEntries || hasAssessment || hasAnyAssessment) ? t('patient.trackingActive') : t('patient.trackingStart')}
                 </Badge>
-                <Badge variant="outline" className="px-3 py-1">
-                  <TrendingUp className="h-4 w-4 mr-1" />
+                <Badge variant="outline" className="px-2.5 py-1 text-xs font-medium gap-1.5">
+                  <TrendingUp className="h-3.5 w-3.5" />
                   {weeklyProgress > 0 ? t('patient.goodProgress') : t('patient.startTracking')}
                 </Badge>
               </div>
             </div>
-            <Button variant="outline" onClick={startNewAssessment}>
-              <RotateCcw className="h-4 w-4 mr-2" />
-              {t('patient.newAssessment')}
-            </Button>
+            {hasAnyAssessment !== false && (
+              <Button variant="outline" size="sm" onClick={startNewAssessment} className="flex-shrink-0 gap-1.5">
+                <RotateCcw className="h-3.5 w-3.5" />
+                {t('patient.newAssessment')}
+              </Button>
+            )}
           </div>
         </div>
 
@@ -244,64 +247,100 @@ const PatientDashboard = () => {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
+            {/* First-time prompt: invite the patient to complete their first assessment */}
+            {hasAnyAssessment === false && (
+              <Card className="border-primary/30 bg-primary/5 shadow-card">
+                <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-primary/15">
+                      <Sparkles className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground">
+                        {tr('Start your first assessment', 'Anza tathmini yako ya kwanza')}
+                      </h3>
+                      <p className="mt-1 max-w-prose text-sm text-muted-foreground">
+                        {tr(
+                          'Complete a quick assessment so Ergocare AI can build your personalized recovery plan.',
+                          'Kamilisha tathmini fupi ili Ergocare AI iweze kutengeneza mpango wako binafsi wa kupona.'
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  <Button onClick={startNewAssessment} className="flex-shrink-0 bg-gradient-hero shadow-soft">
+                    {tr('Start Assessment', 'Anza Tathmini')}
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Quick Stats */}
-            <div className="grid md:grid-cols-4 gap-6">
-              <Card className="shadow-card">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-muted-foreground text-sm">{t('patient.painLevel')}</p>
-                      <p className="text-2xl font-bold text-primary">
-                        {loadingStats ? '—' : latestPain !== null ? `${latestPain}/10` : '—'}
+            <div className="grid md:grid-cols-4 gap-4">
+              <Card className="shadow-card border-border/60 hover-lift">
+                <CardContent className="p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[13px] font-medium text-muted-foreground mb-1">{t('patient.painLevel')}</p>
+                      <p className="text-2xl font-extrabold text-foreground tracking-tight">
+                        {loadingStats ? <span className="text-muted-foreground">—</span> : latestPain !== null ? `${latestPain}/10` : '—'}
                       </p>
                     </div>
-                    <Activity className="h-8 w-8 text-primary" />
+                    <div className="icon-container bg-primary/10 flex-shrink-0">
+                      <Activity className="h-5 w-5 text-primary" />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="shadow-card">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-muted-foreground text-sm">{t('patient.exerciseStreak')}</p>
-                      <p className="text-2xl font-bold text-success">
-                        {loadingStats ? '—' : `${exerciseStreak} ${t('patient.days')}`}
+              <Card className="shadow-card border-border/60 hover-lift">
+                <CardContent className="p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[13px] font-medium text-muted-foreground mb-1">{t('patient.exerciseStreak')}</p>
+                      <p className="text-2xl font-extrabold text-foreground tracking-tight">
+                        {loadingStats ? <span className="text-muted-foreground">—</span> : `${exerciseStreak} ${t('patient.days')}`}
                       </p>
                     </div>
-                    <Target className="h-8 w-8 text-success" />
+                    <div className="icon-container bg-success/10 flex-shrink-0">
+                      <Target className="h-5 w-5 text-success" />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="shadow-card">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-muted-foreground text-sm">{t('patient.weeklyProgress')}</p>
-                      <p className="text-2xl font-bold text-secondary">
-                        {loadingStats ? '—' : `${weeklyProgress}%`}
+              <Card className="shadow-card border-border/60 hover-lift">
+                <CardContent className="p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[13px] font-medium text-muted-foreground mb-1">{t('patient.weeklyProgress')}</p>
+                      <p className="text-2xl font-extrabold text-foreground tracking-tight">
+                        {loadingStats ? <span className="text-muted-foreground">—</span> : `${weeklyProgress}%`}
                       </p>
                     </div>
-                    <TrendingUp className="h-8 w-8 text-secondary" />
+                    <div className="icon-container bg-secondary/10 flex-shrink-0">
+                      <TrendingUp className="h-5 w-5 text-secondary" />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="shadow-card">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-muted-foreground text-sm">{t('patient.nextSession')}</p>
-                      <p className="text-lg font-bold text-accent">
+              <Card className="shadow-card border-border/60 hover-lift">
+                <CardContent className="p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[13px] font-medium text-muted-foreground mb-1">{t('patient.nextSession')}</p>
+                      <p className="text-lg font-extrabold text-foreground tracking-tight leading-snug mt-0.5">
                         {loadingStats
-                          ? '—'
+                          ? <span className="text-muted-foreground">—</span>
                           : nextSession
                           ? `${nextSession.date} ${nextSession.time}`
                           : t('patient.noSession')}
                       </p>
                     </div>
-                    <Calendar className="h-8 w-8 text-accent" />
+                    <div className="icon-container bg-accent/10 flex-shrink-0">
+                      <Calendar className="h-5 w-5 text-accent" />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -350,7 +389,28 @@ const PatientDashboard = () => {
 
           <TabsContent value="chat">
             <div className="space-y-6">
-              <ChatSystem />
+              <Card className="shadow-card">
+                <CardContent className="flex flex-col items-center text-center gap-4 py-10">
+                  <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+                    <MessageSquare className="h-7 w-7 text-primary" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-lg font-semibold">
+                      {tr('Message your physiotherapist', 'Tuma ujumbe kwa physiotherapist wako')}
+                    </h3>
+                    <p className="text-sm text-muted-foreground max-w-md">
+                      {tr(
+                        'Chat directly with your physiotherapist in real time. Your conversations are private and shared only with your care team.',
+                        'Wasiliana moja kwa moja na physiotherapist wako kwa wakati halisi. Mazungumzo yako ni ya faragha na yanaonekana kwa timu yako ya huduma pekee.'
+                      )}
+                    </p>
+                  </div>
+                  <Button onClick={() => navigate('/messages')} className="bg-gradient-hero shadow-soft">
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    {tr('Open Messages', 'Fungua Ujumbe')}
+                  </Button>
+                </CardContent>
+              </Card>
               <BookingSystem />
             </div>
           </TabsContent>

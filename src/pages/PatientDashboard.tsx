@@ -57,7 +57,7 @@ const PatientDashboard = () => {
       }
 
       try {
-        // Don't force first-time users into the assessment flow — let them land on
+        // Don't force first-time users into the assessment flow - let them land on
         // their overview, where a prominent prompt invites them to start the assessment.
         const { data } = await supabase.from('assessments').select('id').eq('patient_user_id', user.id).limit(1);
         setHasAnyAssessment(!!(data && data.length > 0));
@@ -283,7 +283,7 @@ const PatientDashboard = () => {
                     <div className="flex-1 min-w-0">
                       <p className="text-[13px] font-medium text-muted-foreground mb-1">{t('patient.painLevel')}</p>
                       <p className="text-2xl font-extrabold text-foreground tracking-tight">
-                        {loadingStats ? <span className="text-muted-foreground">—</span> : latestPain !== null ? `${latestPain}/10` : '—'}
+                        {loadingStats ? <span className="text-muted-foreground">-</span> : latestPain !== null ? `${latestPain}/10` : '-'}
                       </p>
                     </div>
                     <div className="icon-container bg-primary/10 flex-shrink-0">
@@ -299,7 +299,7 @@ const PatientDashboard = () => {
                     <div className="flex-1 min-w-0">
                       <p className="text-[13px] font-medium text-muted-foreground mb-1">{t('patient.exerciseStreak')}</p>
                       <p className="text-2xl font-extrabold text-foreground tracking-tight">
-                        {loadingStats ? <span className="text-muted-foreground">—</span> : `${exerciseStreak} ${t('patient.days')}`}
+                        {loadingStats ? <span className="text-muted-foreground">-</span> : `${exerciseStreak} ${t('patient.days')}`}
                       </p>
                     </div>
                     <div className="icon-container bg-success/10 flex-shrink-0">
@@ -315,7 +315,7 @@ const PatientDashboard = () => {
                     <div className="flex-1 min-w-0">
                       <p className="text-[13px] font-medium text-muted-foreground mb-1">{t('patient.weeklyProgress')}</p>
                       <p className="text-2xl font-extrabold text-foreground tracking-tight">
-                        {loadingStats ? <span className="text-muted-foreground">—</span> : `${weeklyProgress}%`}
+                        {loadingStats ? <span className="text-muted-foreground">-</span> : `${weeklyProgress}%`}
                       </p>
                     </div>
                     <div className="icon-container bg-secondary/10 flex-shrink-0">
@@ -332,7 +332,7 @@ const PatientDashboard = () => {
                       <p className="text-[13px] font-medium text-muted-foreground mb-1">{t('patient.nextSession')}</p>
                       <p className="text-lg font-extrabold text-foreground tracking-tight leading-snug mt-0.5">
                         {loadingStats
-                          ? <span className="text-muted-foreground">—</span>
+                          ? <span className="text-muted-foreground">-</span>
                           : nextSession
                           ? `${nextSession.date} ${nextSession.time}`
                           : t('patient.noSession')}
@@ -368,6 +368,9 @@ const PatientDashboard = () => {
                     </Button>
                     <Button size="sm" variant="outline" onClick={() => navigate('/booking')}>
                       {t('patient.bookSession')}
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => navigate('/posture')}>
+                      {tr('Posture Check', 'Ukaguzi wa Mkao')}
                     </Button>
                   </div>
                 </div>

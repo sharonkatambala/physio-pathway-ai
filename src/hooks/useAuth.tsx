@@ -139,7 +139,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         if (session?.user) {
           // Defer Supabase calls out of the auth callback (avoids deadlocks),
-          // and keep `loading` true until the role/profile resolve — otherwise
+          // and keep `loading` true until the role/profile resolve - otherwise
           // role-gated pages momentarily see role=null and redirect on refresh.
           setTimeout(async () => {
             try {

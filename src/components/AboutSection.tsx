@@ -70,7 +70,7 @@ const AboutSection = ({ stats }: { stats: AboutStats }) => {
           <div className="bg-gradient-card rounded-2xl p-8 border border-border/60 shadow-card">
             <h3 className="text-foreground mb-3">{t('about.mission')}</h3>
             <p className="text-base text-muted-foreground mb-7 leading-relaxed">
-              We are on a mission to make expert physiotherapy accessible to everyone, everywhere — through the power of AI and human expertise combined.
+              We are on a mission to make expert physiotherapy accessible to everyone, everywhere - through the power of AI and human expertise combined.
             </p>
 
             <div className="space-y-5">

@@ -218,7 +218,7 @@ const ClinicalReport = ({ program, createdAt, source }: ClinicalReportProps) => 
                         <h3 className="font-semibold text-foreground">{ex.name}</h3>
                         {(ex.target_area || ex.difficulty || ex.phase) && (
                           <p className="text-xs text-muted-foreground">
-                            {[ex.target_area, ex.difficulty || ex.phase].filter(Boolean).join(' · ')}
+                            {[ex.target_area, ex.difficulty || ex.phase].filter(Boolean).join(', ')}
                           </p>
                         )}
                       </div>

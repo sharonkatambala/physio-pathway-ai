@@ -272,7 +272,7 @@ const BookingPage = () => {
                 <h3 className="font-semibold text-foreground">{tr('Session requested!', 'Ombi la kikao limewasilishwa!')}</h3>
                 <p className="text-sm text-muted-foreground">
                   {tr('Your request with', 'Ombi lako kwa')} <span className="font-medium text-foreground">{justBooked.physio}</span> {tr('for', 'kwa')}{' '}
-                  <span className="font-medium text-foreground">{formatDateLong(justBooked.date)} · {formatTime12(justBooked.time)}</span> {tr('was sent. You will be notified once it is confirmed.', 'limetumwa. Utaarifiwa litakapothibitishwa.')}
+                  <span className="font-medium text-foreground">{formatDateLong(justBooked.date)}, {formatTime12(justBooked.time)}</span> {tr('was sent. You will be notified once it is confirmed.', 'limetumwa. Utaarifiwa litakapothibitishwa.')}
                 </p>
               </div>
               <Button variant="outline" onClick={() => setJustBooked(null)}>{tr('Book another', 'Weka kingine')}</Button>
@@ -303,7 +303,7 @@ const BookingPage = () => {
                       <div>
                         <p className="font-semibold text-foreground">{physioName(physio)}</p>
                         <p className="text-sm text-muted-foreground">
-                          {formatDateLong(appt.appointment_date)} · {formatTime12(appt.appointment_time.slice(0, 5))} · {meta?.label}
+                          {formatDateLong(appt.appointment_date)}, {formatTime12(appt.appointment_time.slice(0, 5))}, {meta?.label}
                         </p>
                       </div>
                     </div>

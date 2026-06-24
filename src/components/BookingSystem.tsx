@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Calendar } from "@/components/ui/calendar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Calendar as CalendarIcon, 
   Clock, 
@@ -88,37 +89,32 @@ const BookingSystem = () => {
     }
 
     try {
-      // Get assigned physiotherapist for this patient
-      const { data: assignment, error: assignmentError } = await supabase
+      // Get the patient's assigned physiotherapist. Use limit(1) (not maybeSingle)
+      // so multiple active links never throw, and degrade quietly to an empty
+      // state instead of showing a scary error.
+      const { data: assignment } = await supabase
         .from('physio_patient_assignments')
         .select('physio_id')
         .eq('patient_id', profile.id)
         .eq('status', 'active')
-        .maybeSingle();
+        .limit(1);
 
-      if (assignmentError) throw assignmentError;
-
-      if (!assignment) {
+      const physioId = assignment?.[0]?.physio_id;
+      if (!physioId) {
         setPhysiotherapists([]);
         return;
       }
 
-      // Fetch the assigned physiotherapist's profile
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', assignment.physio_id)
-        .maybeSingle();
+        .eq('id', physioId)
+        .limit(1);
 
-      if (error) throw error;
-      setPhysiotherapists(data ? [data] : []);
+      setPhysiotherapists(data && data.length ? [data[0] as Physiotherapist] : []);
     } catch (error) {
       console.error('Error fetching physiotherapists:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load physiotherapists.",
-        variant: "destructive"
-      });
+      setPhysiotherapists([]);
     } finally {
       setLoading(false);
     }
@@ -229,7 +225,8 @@ const BookingSystem = () => {
         </TabsList>
 
         <TabsContent value="book" className="space-y-6">
-          <div className="grid lg:grid-cols-2 gap-6">
+          {/* Therapist + session type */}
+          <div className="grid lg:grid-cols-2 gap-6 items-start">
             {/* Physiotherapist Selection */}
             <Card className="shadow-card">
               <CardHeader>
@@ -247,11 +244,11 @@ const BookingSystem = () => {
                   </div>
                 ) : (
                   physiotherapists.map((therapist) => (
-                    <div 
+                    <div
                       key={therapist.id}
                       className={`p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
-                        selectedPhysiotherapist === therapist.id 
-                          ? 'border-primary bg-primary/5' 
+                        selectedPhysiotherapist === therapist.id
+                          ? 'border-primary bg-primary/5'
                           : 'border-border'
                       }`}
                       onClick={() => setSelectedPhysiotherapist(therapist.id)}
@@ -282,86 +279,100 @@ const BookingSystem = () => {
               </CardContent>
             </Card>
 
-            {/* Date & Time Selection */}
+            {/* Right column: session type, then dates and times */}
             <div className="space-y-6">
-              {/* Session Type */}
-              <Card className="shadow-card">
-                <CardHeader>
-                  <CardTitle>Session Type</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-3 gap-2">
-                    {['video', 'phone', 'in-person'].map((type) => (
-                      <Button
-                        key={type}
-                        variant={sessionType === type ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setSessionType(type as any)}
-                        className="flex flex-col items-center space-y-1 h-auto py-3"
-                      >
-                        {getSessionTypeIcon(type)}
-                        <span className="capitalize text-xs">{type.replace('-', ' ')}</span>
-                      </Button>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+            {/* Session Type */}
+            <Card className="shadow-card">
+              <CardHeader>
+                <CardTitle>Session Type</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 gap-2">
+                  {['video', 'phone', 'in-person'].map((type) => (
+                    <Button
+                      key={type}
+                      variant={sessionType === type ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setSessionType(type as any)}
+                      className="flex flex-col items-center space-y-1 h-auto py-3"
+                    >
+                      {getSessionTypeIcon(type)}
+                      <span className="capitalize text-xs">{type.replace('-', ' ')}</span>
+                    </Button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
 
-              {/* Calendar */}
-              <Card className="shadow-card">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <CalendarIcon className="h-5 w-5 text-primary" />
-                    Select Date
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
+            {/* Dates and times */}
+            <Card className="shadow-card">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CalendarIcon className="h-5 w-5 text-primary" />
+                Select Date &amp; Time
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-5">
+                {/* Calendar */}
+                <div className="flex justify-center sm:justify-start">
                   <Calendar
                     mode="single"
                     selected={selectedDate}
                     onSelect={setSelectedDate}
                     disabled={(date) => date < new Date()}
-                    className="rounded-md border"
+                    className="rounded-md border p-3"
                   />
-                </CardContent>
-              </Card>
+                </div>
 
-              {/* Time Slots */}
-              <Card className="shadow-card">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Clock className="h-5 w-5 text-primary" />
-                    Available Times
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-3 gap-2">
-                    {timeSlots.map((slot) => (
-                      <Button
-                        key={slot.time}
-                        variant={selectedTime === slot.time ? 'default' : 'outline'}
-                        size="sm"
-                        disabled={!slot.available}
-                        onClick={() => setSelectedTime(slot.time)}
-                        className="text-xs"
-                      >
-                        {slot.time}
-                      </Button>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Button 
-                onClick={handleBookAppointment} 
-                className="w-full"
-                disabled={!selectedPhysiotherapist || !selectedDate || !selectedTime}
-              >
-                <CalendarIcon className="h-4 w-4 mr-2" />
-                Book Appointment
-              </Button>
+                {/* Compact time picker beside the calendar */}
+                <div className="w-full lg:max-w-xs">
+                  <label className="mb-2 flex items-center gap-2 text-sm font-medium text-foreground">
+                    <Clock className="h-4 w-4 text-primary" />
+                    Available times
+                  </label>
+                  <Select value={selectedTime} onValueChange={setSelectedTime}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose a time" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(['morning', 'afternoon', 'evening'] as const).map((part) => {
+                        const slots = timeSlots.filter((s) => s.type === part);
+                        if (!slots.length) return null;
+                        const label = part.charAt(0).toUpperCase() + part.slice(1);
+                        return (
+                          <SelectGroup key={part}>
+                            <SelectLabel>{label}</SelectLabel>
+                            {slots.map((slot) => (
+                              <SelectItem key={slot.time} value={slot.time} disabled={!slot.available}>
+                                {slot.time}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                  {selectedTime && (
+                    <p className="mt-3 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm text-foreground">
+                      Selected: <span className="font-semibold">{selectedTime}</span>
+                    </p>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
             </div>
           </div>
+
+          <Button
+            onClick={handleBookAppointment}
+            className="w-full"
+            disabled={!selectedPhysiotherapist || !selectedDate || !selectedTime}
+          >
+            <CalendarIcon className="h-4 w-4 mr-2" />
+            Book Appointment
+          </Button>
         </TabsContent>
 
         <TabsContent value="upcoming">

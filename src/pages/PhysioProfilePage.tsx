@@ -175,7 +175,7 @@ const PhysioProfilePage = () => {
           </div>
         </Card>
 
-        {/* Editable form — only shown when editing */}
+        {/* Editable form - only shown when editing */}
         {editing && (
         <Card className="shadow-card">
           <CardHeader>

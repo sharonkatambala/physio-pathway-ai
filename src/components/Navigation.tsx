@@ -1,6 +1,6 @@
 import { useEffect, useState, type MouseEvent } from 'react';
 import { Button } from "@/components/ui/button";
-import { Menu, X, Calendar, Users, LogOut, Target, Video, LayoutDashboard, FileText, Settings, MessageSquare, UserRound } from 'lucide-react';
+import { Menu, X, Calendar, Users, LogOut, Target, Video, LayoutDashboard, FileText, Settings, MessageSquare, UserRound, ScanLine } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -33,6 +33,7 @@ const Navigation = () => {
       return [
         { name: t('nav.dashboard'), href: '/patient-dashboard', icon: LayoutDashboard },
         { name: t('nav.progress'), href: '/progress', icon: Target },
+        { name: t('nav.posture'), href: '/posture', icon: ScanLine },
         { name: t('nav.myPrograms'), href: '/programs', icon: FileText },
         { name: t('nav.bookSession'), href: '/booking', icon: Calendar },
         { name: t('nav.messages'), href: '/messages', icon: MessageSquare },
@@ -68,7 +69,7 @@ const Navigation = () => {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  /* ── Settings entry point — theme, text size & language now live on /settings ── */
+  /* ── Settings entry point - theme, text size & language now live on /settings ── */
   const settingsLink = (
     <Link
       to="/settings"
@@ -162,7 +163,7 @@ const Navigation = () => {
                 </>
               )
             ) : (
-              /* Logged out — public links available to everyone, on every page */
+              /* Logged out - public links available to everyone, on every page */
               <>
                 <div className="flex items-center gap-1 mr-3">
                   {publicNav.map((item) => {

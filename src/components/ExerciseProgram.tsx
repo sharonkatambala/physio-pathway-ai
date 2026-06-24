@@ -164,7 +164,7 @@ const ExerciseProgram = () => {
                 Lower Back Pain Relief Program
               </CardTitle>
               <p className="text-sm text-muted-foreground mt-1">
-                Week 2, Day 3 • FITT-based personalized plan
+                Week 2, Day 3, FITT-based personalized plan
               </p>
             </div>
             <Badge variant="outline" className="px-3 py-1">

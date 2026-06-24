@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Search, User, MessageSquare, Calendar, Loader2, Activity } from 'lucide-react';
+import { Search, User, MessageSquare, Calendar, Loader2, Activity, ScanLine } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -23,11 +23,13 @@ interface Patient {
 }
 
 type LastAssessment = { pain_level: number | null; created_at: string };
+type LastPosture = { overall_score: number | null; posture_mode: string | null; created_at: string };
 
 const PatientManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [patients, setPatients] = useState<Patient[]>([]);
   const [assessments, setAssessments] = useState<Record<string, LastAssessment>>({});
+  const [posture, setPosture] = useState<Record<string, LastPosture>>({});
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const { user, profile } = useAuth();
@@ -69,6 +71,20 @@ const PatientManagement = () => {
           if (!map[a.patient_user_id]) map[a.patient_user_id] = { pain_level: a.pain_level, created_at: a.created_at };
         });
         setAssessments(map);
+
+        // Latest posture session per patient (physio reads via posture_select_physio RLS).
+        const { data: pData } = await supabase
+          .from('posture_sessions')
+          .select('patient_user_id, overall_score, posture_mode, created_at')
+          .in('patient_user_id', userIds)
+          .order('created_at', { ascending: false });
+        const pmap: Record<string, LastPosture> = {};
+        (pData ?? []).forEach((p: any) => {
+          if (!pmap[p.patient_user_id]) {
+            pmap[p.patient_user_id] = { overall_score: p.overall_score, posture_mode: p.posture_mode, created_at: p.created_at };
+          }
+        });
+        setPosture(pmap);
       }
     } catch (error) {
       console.error('Error fetching patients:', error);
@@ -133,7 +149,7 @@ const PatientManagement = () => {
             patient.occupation,
             patient.age ? `Age ${patient.age}` : null,
             patient.sex,
-          ].filter(Boolean).join(' • ');
+          ].filter(Boolean).join(', ');
           return (
             <Card key={patient.id} className="shadow-card hover:shadow-lg transition-shadow">
               <CardContent className="p-6">
@@ -161,14 +177,36 @@ const PatientManagement = () => {
                   </div>
                 </div>
 
-                <div className="mt-4 pt-4 border-t border-border flex items-center justify-between text-sm flex-wrap gap-2">
+                <div className="mt-4 pt-4 border-t border-border flex items-center text-sm flex-wrap gap-x-4 gap-y-2">
                   <span className="text-muted-foreground inline-flex items-center gap-1.5">
                     <Activity className="h-4 w-4" />
                     {last
-                      ? `Last assessment: pain ${last.pain_level ?? '—'}/10 · ${new Date(last.created_at).toLocaleDateString()}`
+                      ? `Last assessment: pain ${last.pain_level ?? '-'}/10, ${new Date(last.created_at).toLocaleDateString()}`
                       : 'No assessment submitted yet'}
                   </span>
-                  <span className="text-muted-foreground">
+                  {(() => {
+                    const p = posture[patient.user_id];
+                    if (!p || p.overall_score === null) {
+                      return (
+                        <span className="text-muted-foreground inline-flex items-center gap-1.5">
+                          <ScanLine className="h-4 w-4" />No posture check yet
+                        </span>
+                      );
+                    }
+                    const score = Math.round(p.overall_score);
+                    const color = score >= 80 ? 'bg-success' : score >= 60 ? 'bg-warning' : 'bg-destructive';
+                    return (
+                      <span className="text-muted-foreground inline-flex items-center gap-1.5">
+                        <ScanLine className="h-4 w-4" />
+                        Posture
+                        <span className={`inline-flex h-5 min-w-[2rem] items-center justify-center rounded-full px-1.5 text-xs font-semibold text-white ${color}`}>
+                          {score}
+                        </span>
+                       , {new Date(p.created_at).toLocaleDateString()}
+                      </span>
+                    );
+                  })()}
+                  <span className="text-muted-foreground ml-auto">
                     Joined {new Date(patient.created_at).toLocaleDateString()}
                   </span>
                 </div>

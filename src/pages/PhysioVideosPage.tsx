@@ -132,7 +132,7 @@ const PhysioVideosPage = () => {
                     ))}
                   </SelectContent>
                 </Select>
-                {patients.length === 0 && <p className="text-xs text-muted-foreground">No assigned patients yet — videos will be shared with everyone.</p>}
+                {patients.length === 0 && <p className="text-xs text-muted-foreground">No assigned patients yet - videos will be shared with everyone.</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="caption">Caption</Label>
@@ -171,7 +171,7 @@ const PhysioVideosPage = () => {
                           {v.patient_user_id
                             ? <><Users className="h-3 w-3" />{patientName(v.patient_user_id)}</>
                             : <><Globe className="h-3 w-3" />All patients</>}
-                          {v.uploaded_at && <span>· {new Date(v.uploaded_at).toLocaleDateString()}</span>}
+                          {v.uploaded_at && <span>{new Date(v.uploaded_at).toLocaleDateString()}</span>}
                         </p>
                       </div>
                     </div>

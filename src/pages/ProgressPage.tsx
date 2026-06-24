@@ -195,7 +195,7 @@ const ProgressPage = () => {
   const ChartEmptyState = ({ icon: Icon }: { icon: typeof LineChartIcon }) => (
     <div className="flex h-full flex-col items-center justify-center gap-2 text-center text-muted-foreground">
       <Icon className="h-8 w-8 opacity-40" />
-      <p className="text-sm">No data yet — add a check-in to see your trend.</p>
+      <p className="text-sm">No data yet - add a check-in to see your trend.</p>
     </div>
   );
 

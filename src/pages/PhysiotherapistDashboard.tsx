@@ -171,7 +171,7 @@ const PhysiotherapistDashboard = () => {
                           <div className="min-w-0">
                             <p className="font-semibold truncate">{patientName(a)}</p>
                             <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                              <Icon className="h-3 w-3" />{a.appointment_date} · {a.appointment_time?.slice(0, 5)} · <span className="capitalize">{a.session_type}</span>
+                              <Icon className="h-3 w-3" />{a.appointment_date}, {a.appointment_time?.slice(0, 5)}, <span className="capitalize">{a.session_type}</span>
                             </p>
                           </div>
                         </div>
@@ -219,7 +219,7 @@ const PhysiotherapistDashboard = () => {
                         </div>
                         <div className="min-w-0">
                           <p className="font-medium truncate">{patientName(a)}</p>
-                          <p className="text-xs text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" />{a.appointment_date} · {a.appointment_time?.slice(0, 5)}</p>
+                          <p className="text-xs text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" />{a.appointment_date}, {a.appointment_time?.slice(0, 5)}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
@@ -256,7 +256,7 @@ const PhysiotherapistDashboard = () => {
                     <Avatar className="h-8 w-8"><AvatarFallback><User className="h-4 w-4" /></AvatarFallback></Avatar>
                     <div className="min-w-0">
                       <p className="font-medium truncate">{patientName(a)}</p>
-                      <p className="text-xs text-muted-foreground capitalize">{a.appointment_date} · {a.session_type}</p>
+                      <p className="text-xs text-muted-foreground capitalize">{a.appointment_date}, {a.session_type}</p>
                     </div>
                   </div>
                   <Badge variant="outline" className="capitalize flex-shrink-0">{a.status}</Badge>

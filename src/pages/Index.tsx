@@ -70,7 +70,7 @@ const Index = () => {
       icon: ClipboardList,
       step: '02',
       title: 'Get Your Plan',
-      desc: 'Receive a personalized exercise program designed for your condition — reviewed and approved by a certified physiotherapist.',
+      desc: 'Receive a personalized exercise program designed for your condition - reviewed and approved by a certified physiotherapist.',
     },
     {
       icon: TrendingUp,
@@ -104,7 +104,7 @@ const Index = () => {
       <main>
         <Hero />
 
-        {/* Stats strip — live data from database */}
+        {/* Stats strip - live data from database */}
         <div className="border-y border-border/50 bg-card/40 backdrop-blur-sm">
           <div className="page-shell py-8">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
@@ -134,7 +134,7 @@ const Index = () => {
               <p className="text-primary text-xs font-bold uppercase tracking-[0.15em] mb-3">Simple Process</p>
               <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground">How It Works</h2>
               <p className="text-lg text-muted-foreground mt-4 max-w-xl mx-auto leading-relaxed">
-                From assessment to recovery in three clear steps — powered by AI, guided by professionals.
+                From assessment to recovery in three clear steps - powered by AI, guided by professionals.
               </p>
             </div>
             <div className="grid md:grid-cols-3 gap-5">

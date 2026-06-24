@@ -693,7 +693,7 @@ const AssessmentPage = () => {
 														if (import.meta.env.DEV && (msg.includes('could not find the table') || msg.includes('schema cache') || msg.includes('relation "assessments"'))) {
 															toast({
 																title: tr('Dev fallback', 'Mbinu ya dharura (dev)'),
-																description: tr('Assessments table missing — running AI generation locally without saving to database (dev only).', 'Jedwali la tathmini halipo — inaunda mpango wa AI ndani ya kifaa bila kuhifadhi kwenye hifadhidata (dev tu).'),
+																description: tr('Assessments table missing - running AI generation locally without saving to database (dev only).', 'Jedwali la tathmini halipo - inaunda mpango wa AI ndani ya kifaa bila kuhifadhi kwenye hifadhidata (dev tu).'),
 																variant: 'default'
 															});
 															inserted = { id: 'dev-local-' + Date.now().toString() };

@@ -58,7 +58,7 @@ const ContactSection = () => {
     { icon: Mail, label: t('footer.email'), value: 'info@ergocare.com' },
     { icon: Phone, label: t('footer.phone'), value: '+255748566062' },
     { icon: MapPin, label: t('contact.address'), value: 'Muhimbili, Upanga Magharibi 65001' },
-    { icon: Clock, label: 'Support Hours', value: '24/7 AI · Mon–Fri 9AM–6PM Human' },
+    { icon: Clock, label: 'Support Hours', value: '24/7 AI, Mon-Fri 9AM-6PM Human' },
   ];
 
   const reasons = [
@@ -162,7 +162,7 @@ const ContactSection = () => {
 
               <Button className="w-full bg-gradient-hero shadow-soft font-bold gap-2" size="lg" disabled={submitting}>
                 <Send className="h-4 w-4" />
-                {submitting ? "Sending…" : t('contact.send')}
+                {submitting ? "Sending..." : t('contact.send')}
               </Button>
 
               {status !== "idle" && (

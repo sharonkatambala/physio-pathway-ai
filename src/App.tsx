@@ -19,6 +19,7 @@ import PhysioSessionsPage from "./pages/PhysioSessionsPage";
 import PhysioProfilePage from "./pages/PhysioProfilePage";
 import SettingsPage from "./pages/SettingsPage";
 import MessagesPage from "./pages/MessagesPage";
+import PosturePage from "./pages/PosturePage";
 
 const App = () => (
   <AuthProvider>
@@ -42,6 +43,7 @@ const App = () => (
       <Route path="/booking" element={<BookingPage />} />
       <Route path="/settings" element={<SettingsPage />} />
       <Route path="/messages" element={<MessagesPage />} />
+      <Route path="/posture" element={<PosturePage />} />
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route path="*" element={<NotFound />} />
     </Routes>

@@ -20,7 +20,7 @@ const FALLBACK_PROGRAM = {
       duration: "10-15 minutes",
       frequency: "Daily",
       sessions_per_week: 5,
-      instructions: ["Perform slow, pain-free movements", "Hold each stretch 10–20s"],
+      instructions: ["Perform slow, pain-free movements", "Hold each stretch 10-20s"],
       precautions: ["Stop if you feel sharp pain"]
     }
   ],
@@ -53,10 +53,16 @@ serve(async (req)=>{
     const { healthData, questionnaireAnswers, hasVideo } = assessmentData || {};
 
     const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+    // Model overridable via a GEMINI_MODEL secret; defaults to a current model
+    // (gemini-1.5-flash-001 is being retired by Google).
+    const MODEL = Deno.env.get('GEMINI_MODEL') || 'gemini-2.0-flash';
+    // Optional Groq provider (OpenAI-compatible). Preferred when GROQ_API_KEY is set.
+    const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY');
+    const GROQ_MODEL = Deno.env.get('GROQ_MODEL') || 'llama-3.3-70b-versatile';
 
-    // If no Gemini API key, return fallback program
-    if (!GEMINI_API_KEY) {
-      console.warn('No GEMINI_API_KEY found, using fallback program');
+    // If no AI provider key at all, return fallback program
+    if (!GROQ_API_KEY && !GEMINI_API_KEY) {
+      console.warn('No AI provider key found, using fallback program');
       return new Response(JSON.stringify({
         exerciseProgram: FALLBACK_PROGRAM,
         isFallback: true,
@@ -119,55 +125,59 @@ serve(async (req)=>{
 ${hasVideo ? 'Note: Patient has provided a video assessment for visual analysis.' : ''}
 
 Requirements:
-- 3–5 safe exercises tailored to the complaint and stage (acute if <6 weeks)
+- 3-5 safe exercises tailored to the complaint and stage (acute if <6 weeks)
 - Include warm-up, main, and cool-down suggestions in the list
 - Provide clear instructions (bullet steps) and precautions
 - Include phases: early, intermediate, advanced, and a weekly schedule summary
 - Provide a weekly_target number (sessions per week) and sessions_per_week for each exercise
 - Provide a stable id slug for each exercise (lowercase, hyphenated)
-- Keep within home-friendly options; adapt intensity conservatively for safety`;
+- Keep within home-friendly options; adapt intensity conservatively for safety
+- Write all text fields in simple, plain English. Never use long dash or em dash characters; use commas, periods, or simple hyphens instead`;
 
-    // Call Gemini generateContent API (v1beta endpoint with latest model)
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-001:generateContent?key=${GEMINI_API_KEY}`;
-    const body = {
-      contents: [
-        {
-          role: "user",
-          parts: [
-            { text: systemPrompt },
-            { text: userPrompt }
-          ]
-        }
-      ]
+    // Provider-aware AI call: prefer Groq (OpenAI-compatible) when configured,
+    // else Gemini. Any error degrades to empty text → safe fallback program.
+    const callGroq = async () => {
+      const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${GROQ_API_KEY}` },
+        body: JSON.stringify({
+          model: GROQ_MODEL,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+          temperature: 0.5,
+          max_tokens: 2048,
+          response_format: { type: 'json_object' },
+        }),
+      });
+      if (!resp.ok) throw new Error(`Groq ${resp.status}: ${(await resp.text()).slice(0, 200)}`);
+      const d = await resp.json();
+      return d?.choices?.[0]?.message?.content || '';
     };
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(body)
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Gemini API error:', response.status, errorText);
-      // Return 200 with fallback so the frontend flow continues gracefully
-      return new Response(JSON.stringify({
-        exerciseProgram: FALLBACK_PROGRAM,
-        isFallback: true,
-        error: `AI service error: ${response.status} ${errorText}`
-      }), {
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        }
+    const callGemini = async () => {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: systemPrompt }, { text: userPrompt }] }] }),
       });
-    }
+      if (!resp.ok) throw new Error(`Gemini ${resp.status}: ${(await resp.text()).slice(0, 200)}`);
+      const d = await resp.json();
+      return d?.candidates?.[0]?.content?.parts?.map((p: any) => p?.text).join('\n') || '';
+    };
 
-    const data = await response.json();
-    // Gemini returns text in candidates[0].content.parts[].text
-    const text = data?.candidates?.[0]?.content?.parts?.map((p: any) => p?.text).join('\n') || '';
+    let text = '';
+    try {
+      if (GROQ_API_KEY) text = await callGroq();
+      else text = await callGemini();
+    } catch (primaryErr) {
+      console.error('Primary AI provider failed:', primaryErr);
+      if (GROQ_API_KEY && GEMINI_API_KEY) {
+        try { text = await callGemini(); } catch (backupErr) { console.error('Gemini backup failed:', backupErr); }
+      }
+    }
 
     let exerciseProgram = FALLBACK_PROGRAM;
     let isFallback = true;

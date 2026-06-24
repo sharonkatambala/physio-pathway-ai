@@ -33,6 +33,7 @@ const translations = {
     'nav.dashboard': 'Dashboard',
     'nav.myPrograms': 'My programs',
     'nav.messages': 'Messages',
+    'nav.posture': 'Posture',
     'nav.language': 'Language',
     // Settings page
     'settings.title': 'Settings',
@@ -199,7 +200,7 @@ const translations = {
     'services.progressMonitoring': 'Progress Monitoring',
     'services.progressMonitoringDesc': 'Comprehensive tracking of your recovery journey with detailed analytics and insights.',
     'services.patientPortal': 'Patient-Physiotherapist Portal',
-    'services.patientPortalDesc': 'Seamless communication platform connecting patients with their physiotherapists.',
+    'services.patientPortalDesc': 'Message your physiotherapist directly and get replies in one place.',
     'services.wearableIntegration': 'Wearable Integration',
     'services.wearableIntegrationDesc': 'Connect with wearable devices for continuous monitoring of movement and progress.',
     'services.getStarted': 'Get Started Today',
@@ -355,6 +356,7 @@ const translations = {
     'nav.dashboard': 'Dashibodi',
     'nav.myPrograms': 'Programu zangu',
     'nav.messages': 'Ujumbe',
+    'nav.posture': 'Mkao',
     'nav.language': 'Lugha',
     // Ukurasa wa mipangilio
     'settings.title': 'Mipangilio',
@@ -521,7 +523,7 @@ const translations = {
     'services.progressMonitoring': 'Ufuatiliaji wa Maendeleo',
     'services.progressMonitoringDesc': 'Ufuatiliaji kamili wa safari yako ya uponyaji na uchambuzi wa kina na maarifa.',
     'services.patientPortal': 'Kituo cha Mgonjwa-Physiotherapist',
-    'services.patientPortalDesc': 'Jukwaa la mawasiliano linalopatana linalounganisha wagonjwa na physiotherapists wao.',
+    'services.patientPortalDesc': 'Wasiliana na physiotherapist wako moja kwa moja na upate majibu mahali pamoja.',
     'services.wearableIntegration': 'Ujumuishaji wa Vifaa vya Kuvaa',
     'services.wearableIntegrationDesc': 'Unganisha na vifaa vya kuvaa kwa ufuatiliaji endelevu wa mwendo na maendeleo.',
     'services.getStarted': 'Anza Leo',

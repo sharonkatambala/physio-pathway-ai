@@ -46,7 +46,7 @@
     --gradient-card:   linear-gradient(145deg, hsl(0 0% 100%), hsl(120 25% 97%));
     --gradient-accent: linear-gradient(135deg, hsl(152 56% 46%), hsl(152 40% 28%));
 
-    /* Shadow system — layered for natural depth */
+    /* Shadow system - layered for natural depth */
     --shadow-xs:   0 1px 2px hsl(140 15% 13% / 0.06);
     --shadow-soft: 0 2px 8px -1px hsl(152 46% 36% / 0.12), 0 4px 16px -4px hsl(140 15% 13% / 0.07);
     --shadow-card: 0 1px 3px hsl(140 15% 13% / 0.05), 0 6px 20px -6px hsl(140 15% 13% / 0.10);
@@ -137,7 +137,7 @@
     @apply bg-background text-foreground;
     font-family: var(--font-sans);
     font-weight: 400;
-    font-size: 1rem;        /* 16px — matches reference site body size */
+    font-size: 1rem;        /* 16px - matches reference site body size */
     line-height: 1.65;
     letter-spacing: -0.011em;
     min-height: 100vh;
@@ -145,7 +145,7 @@
     font-feature-settings: "cv02", "cv03", "cv04", "cv11"; /* Inter optical features */
   }
 
-  /* Premium SaaS heading scale — mirroring reference design */
+  /* Premium SaaS heading scale - mirroring reference design */
   h1, h2, h3, h4, h5, h6 {
     line-height: 1.12;
     font-weight: 700;
@@ -221,7 +221,7 @@
     @apply bg-card/80 backdrop-blur-md border border-border/60;
   }
 
-  /* Hover lift — subtle elevation on hover */
+  /* Hover lift - subtle elevation on hover */
   .hover-lift {
     @apply transition-all duration-200;
   }

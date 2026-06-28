@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Patient {
   id: string;
@@ -33,6 +34,8 @@ const PatientManagement = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const { user, profile } = useAuth();
+  const { language } = useLanguage();
+  const tr = (en: string, sw: string) => (language === 'sw' ? sw : en);
   const navigate = useNavigate();
 
   const fetchPatients = useCallback(async () => {
@@ -89,8 +92,8 @@ const PatientManagement = () => {
     } catch (error) {
       console.error('Error fetching patients:', error);
       toast({
-        title: "Couldn't load patients",
-        description: "Please refresh and try again.",
+        title: tr("Couldn't load patients", "Imeshindwa kupakia wagonjwa"),
+        description: tr("Please refresh and try again.", "Tafadhali onyesha upya na ujaribu tena."),
         variant: "destructive",
       });
     } finally {
@@ -124,16 +127,16 @@ const PatientManagement = () => {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <User className="h-5 w-5 text-primary" />
-              Patient Management
+              {tr('Patient Management', 'Usimamizi wa Wagonjwa')}
             </CardTitle>
-            <Badge className="bg-primary text-white">{filteredPatients.length} Patients</Badge>
+            <Badge className="bg-primary text-white">{filteredPatients.length} {tr('Patients', 'Wagonjwa')}</Badge>
           </div>
         </CardHeader>
         <CardContent>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search patients by name or occupation..."
+              placeholder={tr("Search patients...", "Tafuta wagonjwa...")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -147,7 +150,7 @@ const PatientManagement = () => {
           const last = assessments[patient.user_id];
           const meta = [
             patient.occupation,
-            patient.age ? `Age ${patient.age}` : null,
+            patient.age ? `${tr('Age', 'Umri')} ${patient.age}` : null,
             patient.sex,
           ].filter(Boolean).join(', ');
           return (
@@ -160,7 +163,7 @@ const PatientManagement = () => {
                     </Avatar>
                     <div className="min-w-0">
                       <h4 className="font-semibold text-lg truncate">
-                        {`${patient.first_name ?? ''} ${patient.last_name ?? ''}`.trim() || 'Patient'}
+                        {`${patient.first_name ?? ''} ${patient.last_name ?? ''}`.trim() || tr('Patient', 'Mgonjwa')}
                       </h4>
                       {meta && <p className="text-sm text-muted-foreground truncate">{meta}</p>}
                       {patient.phone && <p className="text-xs text-muted-foreground">{patient.phone}</p>}
@@ -169,10 +172,10 @@ const PatientManagement = () => {
 
                   <div className="flex flex-wrap gap-2 flex-shrink-0">
                     <Button size="sm" variant="outline" onClick={() => navigate('/messages?with=' + patient.id)}>
-                      <MessageSquare className="h-4 w-4 mr-2" />Message
+                      <MessageSquare className="h-4 w-4 mr-2" />{tr('Message', 'Ujumbe')}
                     </Button>
                     <Button size="sm" variant="outline" onClick={() => navigate('/physio-sessions')}>
-                      <Calendar className="h-4 w-4 mr-2" />Sessions
+                      <Calendar className="h-4 w-4 mr-2" />{tr('Sessions', 'Vikao')}
                     </Button>
                   </div>
                 </div>
@@ -181,15 +184,15 @@ const PatientManagement = () => {
                   <span className="text-muted-foreground inline-flex items-center gap-1.5">
                     <Activity className="h-4 w-4" />
                     {last
-                      ? `Last assessment: pain ${last.pain_level ?? '-'}/10, ${new Date(last.created_at).toLocaleDateString()}`
-                      : 'No assessment submitted yet'}
+                      ? `${tr('Last assessment', 'Tathmini ya mwisho')}: ${tr('pain', 'maumivu')} ${last.pain_level ?? '-'}/10, ${new Date(last.created_at).toLocaleDateString()}`
+                      : tr('No assessment submitted yet', 'Hakuna tathmini iliyowasilishwa bado')}
                   </span>
                   {(() => {
                     const p = posture[patient.user_id];
                     if (!p || p.overall_score === null) {
                       return (
                         <span className="text-muted-foreground inline-flex items-center gap-1.5">
-                          <ScanLine className="h-4 w-4" />No posture check yet
+                          <ScanLine className="h-4 w-4" />{tr('No posture check yet', 'Hakuna ukaguzi wa mkao bado')}
                         </span>
                       );
                     }
@@ -198,7 +201,7 @@ const PatientManagement = () => {
                     return (
                       <span className="text-muted-foreground inline-flex items-center gap-1.5">
                         <ScanLine className="h-4 w-4" />
-                        Posture
+                        {tr('Posture', 'Mkao')}
                         <span className={`inline-flex h-5 min-w-[2rem] items-center justify-center rounded-full px-1.5 text-xs font-semibold text-white ${color}`}>
                           {score}
                         </span>
@@ -207,7 +210,7 @@ const PatientManagement = () => {
                     );
                   })()}
                   <span className="text-muted-foreground ml-auto">
-                    Joined {new Date(patient.created_at).toLocaleDateString()}
+                    {tr('Joined', 'Alijiunga')} {new Date(patient.created_at).toLocaleDateString()}
                   </span>
                 </div>
               </CardContent>
@@ -220,11 +223,11 @@ const PatientManagement = () => {
         <Card className="shadow-card">
           <CardContent className="p-8 text-center">
             <User className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-lg font-semibold mb-2">No patients yet</h3>
+            <h3 className="text-lg font-semibold mb-2">{tr('No patients yet', 'Hakuna wagonjwa bado')}</h3>
             <p className="text-muted-foreground">
               {patients.length === 0
-                ? 'Patients appear here once they book a session with you.'
-                : 'No patients match your search.'}
+                ? tr('Patients appear here once they book a session with you.', 'Wagonjwa wataonekana hapa watakapoweka kikao nawe.')
+                : tr('No patients match your search.', 'Hakuna mgonjwa anayelingana na utafutaji wako.')}
             </p>
           </CardContent>
         </Card>

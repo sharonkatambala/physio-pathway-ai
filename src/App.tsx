@@ -20,6 +20,8 @@ import PhysioProfilePage from "./pages/PhysioProfilePage";
 import SettingsPage from "./pages/SettingsPage";
 import MessagesPage from "./pages/MessagesPage";
 import PosturePage from "./pages/PosturePage";
+import OfficeDashboard from "./pages/OfficeDashboard";
+import WorkstationPage from "./pages/WorkstationPage";
 
 const App = () => (
   <AuthProvider>
@@ -44,6 +46,8 @@ const App = () => (
       <Route path="/settings" element={<SettingsPage />} />
       <Route path="/messages" element={<MessagesPage />} />
       <Route path="/posture" element={<PosturePage />} />
+      <Route path="/office-dashboard" element={<OfficeDashboard />} />
+      <Route path="/workstation" element={<WorkstationPage />} />
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route path="*" element={<NotFound />} />
     </Routes>

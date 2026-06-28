@@ -3,12 +3,15 @@ import Navigation from '@/components/Navigation';
 import PatientManagement from '@/components/PatientManagement';
 import { Users } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const PhysioPatientsPage = () => {
   const { user, role, loading } = useAuth();
+  const { language } = useLanguage();
+  const tr = (en: string, sw: string) => (language === 'sw' ? sw : en);
 
   if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+    return <div className="flex items-center justify-center min-h-screen">{tr('Loading...', 'Inapakia...')}</div>;
   }
   if (!user) return <Navigate to="/auth" replace />;
   if (role === 'patient') return <Navigate to="/patient-dashboard" replace />;
@@ -22,9 +25,9 @@ const PhysioPatientsPage = () => {
             <Users className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold">Patients</h1>
+            <h1 className="text-3xl font-bold">{tr('Patients', 'Wagonjwa')}</h1>
             <p className="text-muted-foreground">
-              Patients who have booked with you. Message them, review sessions, and track assessments.
+              {tr('Patients who have booked with you. Message them, review sessions, and track assessments.', 'Wagonjwa walioweka miadi nawe. Watumie ujumbe, kagua vikao, na fuatilia tathmini.')}
             </p>
           </div>
         </div>

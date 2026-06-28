@@ -494,7 +494,7 @@ const BookingPage = () => {
                     <Label htmlFor="notes" className="text-sm font-medium">{tr('Notes for your physiotherapist (optional)', 'Maelezo kwa physiotherapist (hiari)')}</Label>
                     <Textarea
                       id="notes"
-                      placeholder={tr('Describe your symptoms, goals, or any concerns...', 'Eleza dalili, malengo, au wasiwasi wowote...')}
+                      placeholder={tr('Symptoms or goals (optional)', 'Dalili au malengo (hiari)')}
                       className="min-h-24 mt-2"
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}

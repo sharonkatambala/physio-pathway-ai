@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Activity, Heart, AlertCircle, CheckCircle, Clock } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface MonitoringData {
   painLevel: number;
@@ -20,6 +21,8 @@ const MonitoringSystem = () => {
   const [fatigueLevel, setFatigueLevel] = useState([6]);
   const [notes, setNotes] = useState('');
   const { toast } = useToast();
+  const { language } = useLanguage();
+  const tr = (en: string, sw: string) => (language === 'sw' ? sw : en);
 
   const handleSubmitAssessment = () => {
     const data: MonitoringData = {
@@ -33,8 +36,8 @@ const MonitoringSystem = () => {
     console.log('Monitoring data:', data);
     
     toast({
-      title: "Assessment Recorded",
-      description: "Your pain and fatigue levels have been updated."
+      title: tr("Assessment Recorded", "Tathmini Imehifadhiwa"),
+      description: tr("Your pain and fatigue levels have been updated.", "Viwango vyako vya maumivu na uchovu vimesasishwa.")
     });
     
     // Reset form
@@ -50,11 +53,16 @@ const MonitoringSystem = () => {
   };
 
   const getFatigueLevelDescription = (level: number) => {
-    const descriptions = [
+    const en = [
       'No exertion', 'Very light', 'Light', 'Moderate', 'Somewhat hard',
       'Hard', 'Very hard', 'Very hard', 'Very hard', 'Extremely hard', 'Maximum exertion'
     ];
-    return descriptions[level] || 'Maximum exertion';
+    const sw = [
+      'Hakuna juhudi', 'Nyepesi sana', 'Nyepesi', 'Wastani', 'Kiasi ngumu',
+      'Ngumu', 'Ngumu sana', 'Ngumu sana', 'Ngumu sana', 'Ngumu kupita kiasi', 'Juhudi ya juu kabisa'
+    ];
+    const arr = language === 'sw' ? sw : en;
+    return arr[level] || arr[arr.length - 1];
   };
 
   return (
@@ -65,7 +73,7 @@ const MonitoringSystem = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Current Pain</p>
+                <p className="text-sm text-muted-foreground">{tr('Current Pain', 'Maumivu ya Sasa')}</p>
                 <p className={`text-2xl font-bold ${getPainLevelColor(painLevel[0])}`}>
                   {painLevel[0]}/10
                 </p>
@@ -79,7 +87,7 @@ const MonitoringSystem = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Fatigue (BPE)</p>
+                <p className="text-sm text-muted-foreground">{tr('Fatigue (BPE)', 'Uchovu (BPE)')}</p>
                 <p className="text-2xl font-bold text-primary">{fatigueLevel[0]}/10</p>
               </div>
               <Heart className="h-8 w-8 text-primary" />
@@ -91,8 +99,8 @@ const MonitoringSystem = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Last Updated</p>
-                <p className="text-lg font-semibold">2 hours ago</p>
+                <p className="text-sm text-muted-foreground">{tr('Last Updated', 'Ilisasishwa')}</p>
+                <p className="text-lg font-semibold">{tr('2 hours ago', 'Saa 2 zilizopita')}</p>
               </div>
               <Clock className="h-8 w-8 text-muted-foreground" />
             </div>
@@ -105,14 +113,14 @@ const MonitoringSystem = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <AlertCircle className="h-5 w-5 text-primary" />
-            Pain & Fatigue Assessment
+            {tr('Pain & Fatigue Assessment', 'Tathmini ya Maumivu na Uchovu')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Pain Level (VAS Scale) */}
           <div className="space-y-3">
             <Label className="text-base font-semibold">
-              Pain Level (VAS Scale): <span className={`${getPainLevelColor(painLevel[0])}`}>{painLevel[0]}/10</span>
+              {tr('Pain Level (VAS Scale)', 'Kiwango cha Maumivu (VAS)')}: <span className={`${getPainLevelColor(painLevel[0])}`}>{painLevel[0]}/10</span>
             </Label>
             <div className="space-y-2">
               <Slider
@@ -124,9 +132,9 @@ const MonitoringSystem = () => {
                 className="w-full"
               />
               <div className="flex justify-between text-xs text-muted-foreground">
-                <span>No Pain</span>
-                <span>Moderate</span>
-                <span>Severe Pain</span>
+                <span>{tr('No Pain', 'Hakuna Maumivu')}</span>
+                <span>{tr('Moderate', 'Wastani')}</span>
+                <span>{tr('Severe Pain', 'Maumivu Makali')}</span>
               </div>
             </div>
           </div>
@@ -134,7 +142,7 @@ const MonitoringSystem = () => {
           {/* Fatigue Level (BPE Scale) */}
           <div className="space-y-3">
             <Label className="text-base font-semibold">
-              Fatigue Level (Borg Scale): <span className="text-primary">{fatigueLevel[0]}/10</span>
+              {tr('Fatigue Level (Borg Scale)', 'Kiwango cha Uchovu (Borg)')}: <span className="text-primary">{fatigueLevel[0]}/10</span>
             </Label>
             <div className="space-y-2">
               <Slider
@@ -146,22 +154,22 @@ const MonitoringSystem = () => {
                 className="w-full"
               />
               <div className="flex justify-between text-xs text-muted-foreground">
-                <span>No exertion</span>
-                <span>Moderate</span>
-                <span>Max exertion</span>
+                <span>{tr('No exertion', 'Hakuna juhudi')}</span>
+                <span>{tr('Moderate', 'Wastani')}</span>
+                <span>{tr('Max exertion', 'Juhudi ya juu')}</span>
               </div>
               <p className="text-sm text-center text-muted-foreground">
-                Current: <span className="font-medium">{getFatigueLevelDescription(fatigueLevel[0])}</span>
+                {tr('Current', 'Sasa')}: <span className="font-medium">{getFatigueLevelDescription(fatigueLevel[0])}</span>
               </p>
             </div>
           </div>
 
           {/* Notes */}
           <div className="space-y-2">
-            <Label htmlFor="notes" className="text-base font-semibold">Additional Notes</Label>
+            <Label htmlFor="notes" className="text-base font-semibold">{tr('Additional Notes', 'Maelezo ya Ziada')}</Label>
             <Textarea
               id="notes"
-              placeholder="How are you feeling today? Any specific areas of concern?"
+              placeholder={tr('How are you feeling today?', 'Unajisikiaje leo?')}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
@@ -170,7 +178,7 @@ const MonitoringSystem = () => {
 
           <Button onClick={handleSubmitAssessment} className="w-full">
             <CheckCircle className="h-4 w-4 mr-2" />
-            Record Assessment
+            {tr('Record Assessment', 'Hifadhi Tathmini')}
           </Button>
         </CardContent>
       </Card>
@@ -178,27 +186,27 @@ const MonitoringSystem = () => {
       {/* Recent Assessments */}
       <Card className="shadow-card">
         <CardHeader>
-          <CardTitle>Recent Assessments</CardTitle>
+          <CardTitle>{tr('Recent Assessments', 'Tathmini za Hivi Karibuni')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
             {[
-              { date: 'Today, 2:00 PM', pain: 4, fatigue: 5, trend: 'down' },
-              { date: 'Yesterday, 6:00 PM', pain: 6, fatigue: 7, trend: 'down' },
-              { date: '2 days ago, 1:00 PM', pain: 7, fatigue: 8, trend: 'up' }
+              { date: tr('Today, 2:00 PM', 'Leo, 2:00 PM'), pain: 4, fatigue: 5, trend: 'down' },
+              { date: tr('Yesterday, 6:00 PM', 'Jana, 6:00 PM'), pain: 6, fatigue: 7, trend: 'down' },
+              { date: tr('2 days ago, 1:00 PM', 'Siku 2 zilizopita, 1:00 PM'), pain: 7, fatigue: 8, trend: 'up' }
             ].map((assessment, index) => (
               <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                 <div className="flex items-center space-x-3">
                   <div className="text-sm">
                     <p className="font-medium">{assessment.date}</p>
                     <div className="flex space-x-4 text-muted-foreground">
-                      <span>Pain: {assessment.pain}/10</span>
-                      <span>Fatigue: {assessment.fatigue}/10</span>
+                      <span>{tr('Pain', 'Maumivu')}: {assessment.pain}/10</span>
+                      <span>{tr('Fatigue', 'Uchovu')}: {assessment.fatigue}/10</span>
                     </div>
                   </div>
                 </div>
                 <Badge variant={assessment.trend === 'down' ? 'default' : 'secondary'}>
-                  {assessment.trend === 'down' ? 'Improving' : 'Monitor'}
+                  {assessment.trend === 'down' ? tr('Improving', 'Inaboreka') : tr('Monitor', 'Fuatilia')}
                 </Badge>
               </div>
             ))}

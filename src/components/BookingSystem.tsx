@@ -22,6 +22,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Physiotherapist {
   id: string;
@@ -61,6 +62,8 @@ const BookingSystem = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const { user, profile } = useAuth();
+  const { language } = useLanguage();
+  const tr = (en: string, sw: string) => (language === 'sw' ? sw : en);
 
   const timeSlots: TimeSlot[] = [
     { time: '9:00 AM', available: true, type: 'morning' },
@@ -144,8 +147,8 @@ const BookingSystem = () => {
   const handleBookAppointment = async () => {
     if (!selectedPhysiotherapist || !selectedDate || !selectedTime || !profile?.id) {
       toast({
-        title: "Missing Information",
-        description: "Please select a physiotherapist, date, and time.",
+        title: tr("Missing Information", "Taarifa Hazijakamilika"),
+        description: tr("Please select a physiotherapist, date, and time.", "Tafadhali chagua physiotherapist, tarehe, na muda."),
         variant: "destructive"
       });
       return;
@@ -166,8 +169,8 @@ const BookingSystem = () => {
       if (error) throw error;
 
       toast({
-        title: "Appointment Booked!",
-        description: `Your ${sessionType} session has been scheduled successfully.`
+        title: tr("Appointment Booked!", "Miadi Imewekwa!"),
+        description: tr("Your session has been scheduled successfully.", "Kikao chako kimepangwa kwa mafanikio.")
       });
 
       // Reset form and refresh appointments
@@ -177,8 +180,8 @@ const BookingSystem = () => {
     } catch (error) {
       console.error('Error booking appointment:', error);
       toast({
-        title: "Error",
-        description: "Failed to book appointment. Please try again.",
+        title: tr("Error", "Hitilafu"),
+        description: tr("Failed to book appointment. Please try again.", "Imeshindwa kuweka miadi. Tafadhali jaribu tena."),
         variant: "destructive"
       });
     }
@@ -220,8 +223,8 @@ const BookingSystem = () => {
     <div className="space-y-6">
       <Tabs defaultValue="book" className="space-y-6">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="book">Book New Session</TabsTrigger>
-          <TabsTrigger value="upcoming">Upcoming Appointments</TabsTrigger>
+          <TabsTrigger value="book">{tr('Book New Session', 'Weka Kikao Kipya')}</TabsTrigger>
+          <TabsTrigger value="upcoming">{tr('Upcoming Appointments', 'Miadi Ijayo')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="book" className="space-y-6">
@@ -232,15 +235,15 @@ const BookingSystem = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <User className="h-5 w-5 text-primary" />
-                  Select Physiotherapist
+                  {tr('Select Physiotherapist', 'Chagua Physiotherapist')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {physiotherapists.length === 0 ? (
                   <div className="text-center py-8">
                     <User className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                    <p className="text-muted-foreground font-medium mb-2">No assigned physiotherapist</p>
-                    <p className="text-sm text-muted-foreground">Please contact an admin to be assigned to a physiotherapist.</p>
+                    <p className="text-muted-foreground font-medium mb-2">{tr('No assigned physiotherapist', 'Hakuna physiotherapist aliyepangwa')}</p>
+                    <p className="text-sm text-muted-foreground">{tr('Please contact an admin to be assigned to a physiotherapist.', 'Tafadhali wasiliana na msimamizi ili kupangiwa physiotherapist.')}</p>
                   </div>
                 ) : (
                   physiotherapists.map((therapist) => (
@@ -284,7 +287,7 @@ const BookingSystem = () => {
             {/* Session Type */}
             <Card className="shadow-card">
               <CardHeader>
-                <CardTitle>Session Type</CardTitle>
+                <CardTitle>{tr('Session Type', 'Aina ya Kikao')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-3 gap-2">
@@ -297,7 +300,7 @@ const BookingSystem = () => {
                       className="flex flex-col items-center space-y-1 h-auto py-3"
                     >
                       {getSessionTypeIcon(type)}
-                      <span className="capitalize text-xs">{type.replace('-', ' ')}</span>
+                      <span className="capitalize text-xs">{tr(type.replace('-', ' '), type === 'video' ? 'Video' : type === 'phone' ? 'Simu' : 'Ana kwa ana')}</span>
                     </Button>
                   ))}
                 </div>
@@ -309,7 +312,7 @@ const BookingSystem = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <CalendarIcon className="h-5 w-5 text-primary" />
-                Select Date &amp; Time
+                {tr('Select Date & Time', 'Chagua Tarehe na Muda')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -329,17 +332,17 @@ const BookingSystem = () => {
                 <div className="w-full lg:max-w-xs">
                   <label className="mb-2 flex items-center gap-2 text-sm font-medium text-foreground">
                     <Clock className="h-4 w-4 text-primary" />
-                    Available times
+                    {tr('Available times', 'Muda uliopo')}
                   </label>
                   <Select value={selectedTime} onValueChange={setSelectedTime}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Choose a time" />
+                      <SelectValue placeholder={tr('Choose a time', 'Chagua muda')} />
                     </SelectTrigger>
                     <SelectContent>
                       {(['morning', 'afternoon', 'evening'] as const).map((part) => {
                         const slots = timeSlots.filter((s) => s.type === part);
                         if (!slots.length) return null;
-                        const label = part.charAt(0).toUpperCase() + part.slice(1);
+                        const label = part === 'morning' ? tr('Morning', 'Asubuhi') : part === 'afternoon' ? tr('Afternoon', 'Mchana') : tr('Evening', 'Jioni');
                         return (
                           <SelectGroup key={part}>
                             <SelectLabel>{label}</SelectLabel>
@@ -355,7 +358,7 @@ const BookingSystem = () => {
                   </Select>
                   {selectedTime && (
                     <p className="mt-3 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm text-foreground">
-                      Selected: <span className="font-semibold">{selectedTime}</span>
+                      {tr('Selected', 'Umechagua')}: <span className="font-semibold">{selectedTime}</span>
                     </p>
                   )}
                 </div>
@@ -371,7 +374,7 @@ const BookingSystem = () => {
             disabled={!selectedPhysiotherapist || !selectedDate || !selectedTime}
           >
             <CalendarIcon className="h-4 w-4 mr-2" />
-            Book Appointment
+            {tr('Book Appointment', 'Weka Miadi')}
           </Button>
         </TabsContent>
 
@@ -380,7 +383,7 @@ const BookingSystem = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <CalendarIcon className="h-5 w-5 text-primary" />
-                Upcoming Appointments
+                {tr('Upcoming Appointments', 'Miadi Ijayo')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -388,12 +391,12 @@ const BookingSystem = () => {
                 {appointments.length === 0 ? (
                   <div className="text-center py-8">
                     <CalendarIcon className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                    <h4 className="font-medium mb-2">No Upcoming Appointments</h4>
+                    <h4 className="font-medium mb-2">{tr('No Upcoming Appointments', 'Hakuna Miadi Ijayo')}</h4>
                     <p className="text-sm text-muted-foreground mb-4">
-                      Book your first session to get personalized physiotherapy care
+                      {tr('Book your first session to get personalized physiotherapy care', 'Weka kikao chako cha kwanza kupata huduma binafsi ya physiotherapy')}
                     </p>
                     <Button onClick={() => (document.querySelector('[value="book"]') as HTMLElement)?.click()}>
-                      Book New Session
+                      {tr('Book New Session', 'Weka Kikao Kipya')}
                     </Button>
                   </div>
                 ) : (
@@ -407,7 +410,7 @@ const BookingSystem = () => {
                         </Avatar>
                         <div>
                           <p className="font-medium">
-                            Dr. {appointment.physiotherapist.first_name} {appointment.physiotherapist.last_name}
+                            {tr('Dr.', 'Dkt.')} {appointment.physiotherapist.first_name} {appointment.physiotherapist.last_name}
                           </p>
                           <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                             <span>
@@ -427,16 +430,16 @@ const BookingSystem = () => {
                           ) : (
                             <Clock className="h-3 w-3 mr-1" />
                           )}
-                          {appointment.status}
+                          {appointment.status === 'confirmed' ? tr('Confirmed', 'Imethibitishwa') : tr('Pending', 'Inasubiri')}
                         </Badge>
                         <Button size="sm" variant="outline">
                           <MessageSquare className="h-4 w-4 mr-2" />
-                          Message
+                          {tr('Message', 'Ujumbe')}
                         </Button>
                         {appointment.session_type === 'video' && (
                           <Button size="sm">
                             <Video className="h-4 w-4 mr-2" />
-                            Join Call
+                            {tr('Join Call', 'Jiunge na Simu')}
                           </Button>
                         )}
                       </div>

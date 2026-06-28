@@ -23,6 +23,10 @@ const AuthPage = () => {
         navigate('/physiotherapist-dashboard', { replace: true });
         return;
       }
+      if (role === 'office_worker') {
+        navigate('/office-dashboard', { replace: true });
+        return;
+      }
       try {
         const { data } = await (await import('@/integrations/supabase/client')).supabase
           .from('assessments')
@@ -49,7 +53,7 @@ const AuthPage = () => {
     confirmPassword: '',
     firstName: '',
     lastName: '',
-    role: 'patient' as 'patient' | 'physiotherapist',
+    role: 'patient' as 'patient' | 'physiotherapist' | 'office_worker',
     phone: '',
     age: '',
     sex: '',
@@ -296,10 +300,11 @@ const AuthPage = () => {
 
                   <div className="space-y-1.5">
                     <Label htmlFor="role">{t('auth.roleLabel')}</Label>
-                    <Select value={signupData.role} onValueChange={(value: 'patient' | 'physiotherapist') => setSignupData({ ...signupData, role: value })}>
+                    <Select value={signupData.role} onValueChange={(value: 'patient' | 'physiotherapist' | 'office_worker') => setSignupData({ ...signupData, role: value })}>
                       <SelectTrigger className={inputClass}><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="patient">{t('auth.rolePatient')}</SelectItem>
+                        <SelectItem value="office_worker">{t('auth.roleOffice')}</SelectItem>
                         <SelectItem value="physiotherapist">{t('auth.rolePhysio')}</SelectItem>
                       </SelectContent>
                     </Select>

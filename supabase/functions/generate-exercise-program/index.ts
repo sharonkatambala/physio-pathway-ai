@@ -50,7 +50,8 @@ serve(async (req)=>{
   try {
     const { assessmentData, assessmentId } = await req.json();
     console.log("assessmentData:", JSON.stringify(assessmentData));
-    const { healthData, questionnaireAnswers, hasVideo } = assessmentData || {};
+    const { healthData, questionnaireAnswers, hasVideo, language } = assessmentData || {};
+    const outputLang = language === 'sw' ? 'SWAHILI (Kiswahili)' : 'simple, plain English';
 
     const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
     // Model overridable via a GEMINI_MODEL secret; defaults to a current model
@@ -132,7 +133,8 @@ Requirements:
 - Provide a weekly_target number (sessions per week) and sessions_per_week for each exercise
 - Provide a stable id slug for each exercise (lowercase, hyphenated)
 - Keep within home-friendly options; adapt intensity conservatively for safety
-- Write all text fields in simple, plain English. Never use long dash or em dash characters; use commas, periods, or simple hyphens instead`;
+- Write ALL human-readable text values (title, description, report.summary, every item in findings and recommendations, each exercise name, description, instructions and precautions, notes, and every schedule summary) in ${outputLang}. Keep the JSON keys and the enum values (early/intermediate/advanced, Beginner/Intermediate/Advanced) in English.
+- Never use long dash or em dash characters; use commas, periods, or simple hyphens instead`;
 
     // Provider-aware AI call: prefer Groq (OpenAI-compatible) when configured,
     // else Gemini. Any error degrades to empty text → safe fallback program.

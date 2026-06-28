@@ -1,6 +1,6 @@
 import { useEffect, useState, type MouseEvent } from 'react';
 import { Button } from "@/components/ui/button";
-import { Menu, X, Calendar, Users, LogOut, Target, Video, LayoutDashboard, FileText, Settings, MessageSquare, UserRound, ScanLine } from 'lucide-react';
+import { Menu, X, Calendar, Users, LogOut, Target, Video, LayoutDashboard, FileText, Settings, MessageSquare, UserRound, ScanLine, ClipboardList } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -35,6 +35,14 @@ const Navigation = () => {
         { name: t('nav.progress'), href: '/progress', icon: Target },
         { name: t('nav.posture'), href: '/posture', icon: ScanLine },
         { name: t('nav.myPrograms'), href: '/programs', icon: FileText },
+        { name: t('nav.bookSession'), href: '/booking', icon: Calendar },
+        { name: t('nav.messages'), href: '/messages', icon: MessageSquare },
+      ];
+    } else if (role === 'office_worker') {
+      return [
+        { name: t('nav.dashboard'), href: '/office-dashboard', icon: LayoutDashboard },
+        { name: t('nav.workstation'), href: '/workstation', icon: ClipboardList },
+        { name: t('nav.posture'), href: '/posture', icon: ScanLine },
         { name: t('nav.bookSession'), href: '/booking', icon: Calendar },
         { name: t('nav.messages'), href: '/messages', icon: MessageSquare },
       ];
@@ -113,7 +121,7 @@ const Navigation = () => {
             {user ? (
               isHome ? (
                 <div className="flex items-center gap-4">
-                  <Link to={role === 'patient' ? '/patient-dashboard' : '/physiotherapist-dashboard'} className="text-[15px] font-medium text-foreground/70 hover:text-foreground transition-colors">
+                  <Link to={role === 'patient' ? '/patient-dashboard' : role === 'office_worker' ? '/office-dashboard' : '/physiotherapist-dashboard'} className="text-[15px] font-medium text-foreground/70 hover:text-foreground transition-colors">
                     {t('nav.dashboard')}
                   </Link>
                   {settingsLink}

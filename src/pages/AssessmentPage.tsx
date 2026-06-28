@@ -143,7 +143,7 @@ const AssessmentPage = () => {
 						const draftBody: any = {
 							patient_user_id: user.id,
 							data: formData,
-							language: 'en',
+							language: language,
 							updated_at: new Date().toISOString(),
 							region: formData.region || null,
 							chronicity: formData.chronicity || null,
@@ -308,8 +308,8 @@ const AssessmentPage = () => {
 											</Label>
 											<Textarea
 																								placeholder={tr(
-													'E.g. Lower back pain started 3 weeks ago after heavy lifting. It is constant, worsens when bending forward or sitting for long periods, and eases slightly with rest.',
-													'Mfano: Maumivu ya mgongo wa chini yalianza wiki 3 zilizopita baada ya kubeba mzigo mzito. Ni ya kudumu, yanazidi ukiinamia au kukaa muda mrefu, na hupungua kidogo ukipumzika.'
+													'e.g. lower back pain when sitting',
+													'mf. maumivu ya mgongo ukikaa'
 												)}
 												value={formData.presenting_problem || ''}
 												onChange={(e) => setFormData({ ...formData, presenting_problem: e.target.value })}
@@ -320,8 +320,8 @@ const AssessmentPage = () => {
 											<Label>{t('assess.prevTreatment')}</Label>
 											<Textarea
 																								placeholder={tr(
-													'E.g. physiotherapy 2 months ago, manual therapy, home exercises',
-													'Mfano: physiotherapy miezi 2 iliyopita, tiba ya mikono, mazoezi ya nyumbani'
+													'e.g. physiotherapy, home exercises',
+													'mf. physiotherapy, mazoezi ya nyumbani'
 												)}
 												value={formData.previous_treatment || ''}
 												onChange={(e) => setFormData({ ...formData, previous_treatment: e.target.value })}
@@ -332,8 +332,8 @@ const AssessmentPage = () => {
 											<Label>{tr('Goals for next treatment', 'Malengo ya matibabu yajayo')}</Label>
 											<Textarea
 																								placeholder={tr(
-													'E.g. return to lifting without pain, reduce night pain',
-													'Mfano: kurudi kuinua bila maumivu, kupunguza maumivu ya usiku'
+													'e.g. move without pain',
+													'mf. kusonga bila maumivu'
 												)}
 												value={formData.treatment_goals || ''}
 												onChange={(e) => setFormData({ ...formData, treatment_goals: e.target.value })}
@@ -529,8 +529,8 @@ const AssessmentPage = () => {
 												<Label>{tr('If yes, specify', 'Ikiwa ndiyo, eleza')}</Label>
 												<Input
 																										placeholder={tr(
-														'E.g. Rotator cuff tear (right shoulder, 2021), knee ligament sprain',
-														'Mfano: Kupasuka kwa misuli ya bega la kulia (2021), kupasuka kwa mishipa ya goti'
+														'e.g. shoulder injury, 2021',
+														'mf. jeraha la bega, 2021'
 													)}
 													value={formData.prior_msk_injury_details || ''}
 													onChange={(e) => setFormData({ ...formData, prior_msk_injury_details: e.target.value })}
@@ -555,8 +555,8 @@ const AssessmentPage = () => {
 												<Label>{tr('If yes, specify', 'Ikiwa ndiyo, eleza')}</Label>
 												<Input
 																										placeholder={tr(
-														'E.g. Knee arthroscopy (2020), lumbar discectomy (2022)',
-														'Mfano: Upasuaji wa goti (2020), upasuaji wa mgongo wa chini (2022)'
+														'e.g. knee surgery, 2020',
+														'mf. upasuaji wa goti, 2020'
 													)}
 													value={formData.previous_surgeries_details || ''}
 													onChange={(e) => setFormData({ ...formData, previous_surgeries_details: e.target.value })}
@@ -670,7 +670,7 @@ const AssessmentPage = () => {
 
 													const insertBody = {
 														patient_user_id: user.id,
-														language: 'en',
+														language: language,
 														data: formData,
 														pain_level: score.pain_level,
 														functional_score: score.functional_score,
@@ -719,7 +719,7 @@ const AssessmentPage = () => {
 
 													const aiMapping = deriveAIMapping(formData);
 													const payload = {
-														assessmentData: { healthData: formData, questionnaireAnswers: formData, ai_mapping: aiMapping, hasVideo: formData.hasVideo },
+														assessmentData: { healthData: formData, questionnaireAnswers: formData, ai_mapping: aiMapping, hasVideo: formData.hasVideo, language },
 														assessmentId: inserted.id
 													};
 													const { data: fnData, error: fnError } = await supabase.functions.invoke('generate-exercise-program', { body: payload });

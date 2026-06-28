@@ -1,5 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useLanguage } from '@/contexts/LanguageContext';
 import {
   Activity,
   AlertTriangle,
@@ -66,6 +67,9 @@ const ExerciseMeta = ({ icon: Icon, label, value }: { icon: typeof Clock; label:
 };
 
 const ClinicalReport = ({ program, createdAt, source }: ClinicalReportProps) => {
+  const { language } = useLanguage();
+  const lang = language === 'sw' ? 'sw' : 'en';
+  const tr = (en: string, sw: string) => (lang === 'sw' ? sw : en);
   const report = program?.report || {};
   const exercises: Exercise[] = Array.isArray(program?.exercises) ? program.exercises : [];
   const schedule = program?.schedule || {};
@@ -91,10 +95,10 @@ const ClinicalReport = ({ program, createdAt, source }: ClinicalReportProps) => 
               </div>
               <div>
                 <h1 className="text-2xl font-bold leading-tight sm:text-3xl">
-                  {program?.title || 'Clinical Assessment Report'}
+                  {program?.title || tr('Clinical Assessment Report', 'Ripoti ya Tathmini ya Kimatibabu')}
                 </h1>
                 <p className="mt-1 max-w-prose text-sm text-white/85">
-                  {program?.description || 'Your personalized assessment and exercise program.'}
+                  {program?.description || tr('Your personalized assessment and exercise program.', 'Tathmini yako binafsi na programu ya mazoezi.')}
                 </p>
               </div>
             </div>
@@ -102,7 +106,7 @@ const ClinicalReport = ({ program, createdAt, source }: ClinicalReportProps) => 
               {source && (
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-medium backdrop-blur-sm">
                   <Sparkles className="h-3.5 w-3.5" />
-                  {source === 'ai' ? 'AI Generated' : source}
+                  {source === 'ai' ? tr('AI Generated', 'Imetengenezwa na AI') : source}
                 </span>
               )}
               {createdAt && (
@@ -116,15 +120,15 @@ const ClinicalReport = ({ program, createdAt, source }: ClinicalReportProps) => 
 
           {/* Quick stats */}
           <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {phase && <Stat icon={Stethoscope} label="Phase" value={String(phase)} />}
+            {phase && <Stat icon={Stethoscope} label={tr('Phase', 'Awamu')} value={String(phase)} />}
             {program?.weekly_target && (
-              <Stat icon={Repeat} label="Weekly target" value={`${program.weekly_target} sessions`} />
+              <Stat icon={Repeat} label={tr('Weekly target', 'Lengo la wiki')} value={`${program.weekly_target} ${tr('sessions', 'vikao')}`} />
             )}
             {exercises.length > 0 && (
-              <Stat icon={Dumbbell} label="Exercises" value={`${exercises.length}`} />
+              <Stat icon={Dumbbell} label={tr('Exercises', 'Mazoezi')} value={`${exercises.length}`} />
             )}
             {findings.length > 0 && (
-              <Stat icon={ListChecks} label="Key findings" value={`${findings.length}`} />
+              <Stat icon={ListChecks} label={tr('Key findings', 'Matokeo muhimu')} value={`${findings.length}`} />
             )}
           </div>
         </div>
@@ -136,7 +140,7 @@ const ClinicalReport = ({ program, createdAt, source }: ClinicalReportProps) => 
           <CardContent className="p-6">
             <div className="mb-3 flex items-center gap-2">
               <Activity className="h-5 w-5 text-primary" />
-              <h2 className="text-lg font-semibold text-foreground">Clinical Summary</h2>
+              <h2 className="text-lg font-semibold text-foreground">{tr('Clinical Summary', 'Muhtasari wa Kimatibabu')}</h2>
             </div>
             <p className="rounded-lg border-l-4 border-primary bg-primary/5 p-4 text-[15px] leading-relaxed text-foreground/90">
               {report.summary}
@@ -155,7 +159,7 @@ const ClinicalReport = ({ program, createdAt, source }: ClinicalReportProps) => 
                   <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-warning/15">
                     <AlertTriangle className="h-4 w-4 text-warning" />
                   </span>
-                  <h2 className="text-base font-semibold text-foreground">Key Findings</h2>
+                  <h2 className="text-base font-semibold text-foreground">{tr('Key Findings', 'Matokeo Muhimu')}</h2>
                 </div>
                 <ul className="space-y-3">
                   {findings.map((finding, idx) => (
@@ -178,7 +182,7 @@ const ClinicalReport = ({ program, createdAt, source }: ClinicalReportProps) => 
                   <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
                     <CheckCircle2 className="h-4 w-4 text-primary" />
                   </span>
-                  <h2 className="text-base font-semibold text-foreground">Recommendations</h2>
+                  <h2 className="text-base font-semibold text-foreground">{tr('Recommendations', 'Mapendekezo')}</h2>
                 </div>
                 <ul className="space-y-3">
                   {recommendations.map((rec, idx) => (
@@ -200,10 +204,10 @@ const ClinicalReport = ({ program, createdAt, source }: ClinicalReportProps) => 
           <CardContent className="p-6">
             <div className="mb-1 flex items-center gap-2">
               <Dumbbell className="h-5 w-5 text-primary" />
-              <h2 className="text-lg font-semibold text-foreground">Exercise Program</h2>
+              <h2 className="text-lg font-semibold text-foreground">{tr('Exercise Program', 'Programu ya Mazoezi')}</h2>
             </div>
             <p className="mb-5 text-sm text-muted-foreground">
-              {exercises.length} exercise{exercises.length === 1 ? '' : 's'} tailored to your condition.
+              {exercises.length} {tr('exercises tailored to your condition.', 'mazoezi yaliyoandaliwa kulingana na hali yako.')}
             </p>
 
             <div className="space-y-4">
@@ -235,16 +239,16 @@ const ClinicalReport = ({ program, createdAt, source }: ClinicalReportProps) => 
 
                   {(ex.duration || ex.frequency || ex.target_area || ex.equipment) && (
                     <div className="mt-4 grid grid-cols-1 gap-2 rounded-lg bg-muted/40 p-3 sm:grid-cols-2">
-                      <ExerciseMeta icon={Clock} label="Duration" value={ex.duration} />
-                      <ExerciseMeta icon={Repeat} label="Frequency" value={ex.frequency} />
-                      <ExerciseMeta icon={Target} label="Target" value={ex.target_area} />
-                      <ExerciseMeta icon={Dumbbell} label="Equipment" value={ex.equipment} />
+                      <ExerciseMeta icon={Clock} label={tr('Duration', 'Muda')} value={ex.duration} />
+                      <ExerciseMeta icon={Repeat} label={tr('Frequency', 'Marudio')} value={ex.frequency} />
+                      <ExerciseMeta icon={Target} label={tr('Target', 'Lengo')} value={ex.target_area} />
+                      <ExerciseMeta icon={Dumbbell} label={tr('Equipment', 'Vifaa')} value={ex.equipment} />
                     </div>
                   )}
 
                   {Array.isArray(ex.instructions) && ex.instructions.length > 0 && (
                     <div className="mt-4">
-                      <p className="mb-2 text-sm font-medium text-foreground">How to perform</p>
+                      <p className="mb-2 text-sm font-medium text-foreground">{tr('How to perform', 'Jinsi ya kufanya')}</p>
                       <ol className="space-y-2">
                         {ex.instructions.map((step, i) => (
                           <li key={i} className="flex gap-3 text-sm leading-relaxed text-muted-foreground">
@@ -262,7 +266,7 @@ const ClinicalReport = ({ program, createdAt, source }: ClinicalReportProps) => 
                     <div className="mt-4 rounded-lg border border-warning/30 bg-warning/10 p-3">
                       <p className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-foreground">
                         <ShieldAlert className="h-4 w-4 text-warning" />
-                        Precautions
+                        {tr('Precautions', 'Tahadhari')}
                       </p>
                       <ul className="space-y-1">
                         {ex.precautions.map((p, i) => (
@@ -287,7 +291,7 @@ const ClinicalReport = ({ program, createdAt, source }: ClinicalReportProps) => 
           <CardContent className="p-6">
             <div className="mb-5 flex items-center gap-2">
               <Calendar className="h-5 w-5 text-primary" />
-              <h2 className="text-lg font-semibold text-foreground">Rehabilitation Phases</h2>
+              <h2 className="text-lg font-semibold text-foreground">{tr('Rehabilitation Phases', 'Awamu za Kupona')}</h2>
             </div>
             <div className="space-y-4">
               {phases.map((p, idx) => (
@@ -299,7 +303,7 @@ const ClinicalReport = ({ program, createdAt, source }: ClinicalReportProps) => 
                     {idx < phases.length - 1 && <span className="mt-1 w-px flex-1 bg-border" />}
                   </div>
                   <div className="pb-2">
-                    <p className="font-semibold text-foreground">{p.label} Phase</p>
+                    <p className="font-semibold text-foreground">{p.label} {tr('Phase', 'Awamu')}</p>
                     <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                       {p.data.summary || p.data.description || ''}
                     </p>
@@ -315,7 +319,7 @@ const ClinicalReport = ({ program, createdAt, source }: ClinicalReportProps) => 
       {program?.notes && (
         <Card className="shadow-card">
           <CardContent className="p-6">
-            <h2 className="mb-2 text-base font-semibold text-foreground">Additional Notes</h2>
+            <h2 className="mb-2 text-base font-semibold text-foreground">{tr('Additional Notes', 'Maelezo ya Ziada')}</h2>
             <p className="text-sm leading-relaxed text-muted-foreground">{program.notes}</p>
           </CardContent>
         </Card>

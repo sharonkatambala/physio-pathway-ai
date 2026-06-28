@@ -34,6 +34,7 @@ const translations = {
     'nav.myPrograms': 'My programs',
     'nav.messages': 'Messages',
     'nav.posture': 'Posture',
+    'nav.workstation': 'Workstation',
     'nav.language': 'Language',
     // Settings page
     'settings.title': 'Settings',
@@ -273,6 +274,7 @@ const translations = {
     'auth.lastName': 'Last Name',
     'auth.roleLabel': 'I am a...',
     'auth.rolePatient': 'Patient',
+    'auth.roleOffice': 'Office worker',
     'auth.rolePhysio': 'Physiotherapist',
     'auth.confirmPassword': 'Confirm Password',
     'auth.passwordMismatch': 'Passwords do not match',
@@ -357,6 +359,7 @@ const translations = {
     'nav.myPrograms': 'Programu zangu',
     'nav.messages': 'Ujumbe',
     'nav.posture': 'Mkao',
+    'nav.workstation': 'Eneo la Kazi',
     'nav.language': 'Lugha',
     // Ukurasa wa mipangilio
     'settings.title': 'Mipangilio',
@@ -596,6 +599,7 @@ const translations = {
     'auth.lastName': 'Jina la Mwisho',
     'auth.roleLabel': 'Mimi ni...',
     'auth.rolePatient': 'Mgonjwa',
+    'auth.roleOffice': 'Mfanyakazi wa ofisi',
     'auth.rolePhysio': 'Physiotherapist',
     'auth.confirmPassword': 'Thibitisha Nenosiri',
     'auth.passwordMismatch': 'Nenosiri hazifanani',

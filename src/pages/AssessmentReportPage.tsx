@@ -6,12 +6,15 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useLanguage } from '@/contexts/LanguageContext';
 import ClinicalReport from '@/components/ClinicalReport';
 
 const AssessmentReportPage = () => {
   const { reportId } = useParams();
   const navigate = useNavigate();
   const { user, loading } = useAuth();
+  const { language } = useLanguage();
+  const tr = (en: string, sw: string) => (language === 'sw' ? sw : en);
   const [report, setReport] = useState<any>(null);
   const [loadingReport, setLoadingReport] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,7 +49,7 @@ const AssessmentReportPage = () => {
       <div className="min-h-screen bg-background">
         <Navigation />
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center text-muted-foreground">Loading report...</div>
+          <div className="text-center text-muted-foreground">{tr('Loading report...', 'Inapakia ripoti...')}</div>
         </div>
       </div>
     );
@@ -59,9 +62,9 @@ const AssessmentReportPage = () => {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Card>
             <CardContent className="pt-6">
-              <div className="text-destructive">{error || 'Report not found'}</div>
+              <div className="text-destructive">{error || tr('Report not found', 'Ripoti haijapatikana')}</div>
               <Button onClick={() => navigate('/programs')} className="mt-4">
-                Back to Programs
+                {tr('Back to Programs', 'Rudi kwenye Programu')}
               </Button>
             </CardContent>
           </Card>
@@ -76,7 +79,7 @@ const AssessmentReportPage = () => {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Button variant="ghost" onClick={() => navigate('/programs')} className="mb-4">
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Programs
+          {tr('Back to Programs', 'Rudi kwenye Programu')}
         </Button>
 
         <ClinicalReport

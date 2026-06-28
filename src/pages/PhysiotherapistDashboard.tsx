@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { joinTelehealth } from '@/lib/telehealth';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 type Appt = {
   id: string;
@@ -30,6 +31,10 @@ const sessionIcon = (t: string) => (t === 'phone' ? Phone : t === 'in-person' ? 
 const PhysiotherapistDashboard = () => {
   const { user, profile, role, loading } = useAuth();
   const { toast } = useToast();
+  const { language } = useLanguage();
+  const tr = (en: string, sw: string) => (language === 'sw' ? sw : en);
+  const sessionLabel = (t: string) => (t === 'phone' ? tr('Phone', 'Simu') : t === 'in-person' ? tr('In person', 'Ana kwa ana') : tr('Video', 'Video'));
+  const statusLabel = (s: string) => (s === 'confirmed' ? tr('Confirmed', 'Imethibitishwa') : s === 'completed' ? tr('Completed', 'Imekamilika') : s === 'cancelled' ? tr('Cancelled', 'Imeghairiwa') : tr('Pending', 'Inasubiri'));
   const navigate = useNavigate();
 
   const [appts, setAppts] = useState<Appt[]>([]);
@@ -41,7 +46,7 @@ const PhysiotherapistDashboard = () => {
     const metaLast = (user?.user_metadata?.last_name as string | undefined) ?? '';
     const first = profile?.first_name?.trim() || metaFirst.trim();
     const last = profile?.last_name?.trim() || metaLast.trim();
-    return `${first} ${last}`.trim() || 'Doctor';
+    return `${first} ${last}`.trim() || tr('Doctor', 'Daktari');
   }, [profile?.first_name, profile?.last_name, user?.user_metadata]);
 
   const todayISO = useMemo(() => new Date().toISOString().slice(0, 10), []);
@@ -79,10 +84,10 @@ const PhysiotherapistDashboard = () => {
   const updateStatus = async (id: string, status: 'confirmed' | 'cancelled' | 'completed') => {
     const { error } = await supabase.from('appointments').update({ status }).eq('id', id);
     if (error) {
-      toast({ title: 'Update failed', description: error.message, variant: 'destructive' });
+      toast({ title: tr('Update failed', 'Kusasisha kumeshindwa'), description: error.message, variant: 'destructive' });
       return;
     }
-    const label = status === 'confirmed' ? 'Appointment confirmed' : status === 'completed' ? 'Marked as completed' : 'Appointment declined';
+    const label = status === 'confirmed' ? tr('Appointment confirmed', 'Miadi imethibitishwa') : status === 'completed' ? tr('Marked as completed', 'Imewekwa kama imekamilika') : tr('Appointment declined', 'Miadi imekataliwa');
     toast({ title: label });
     loadDashboard();
   };
@@ -97,17 +102,17 @@ const PhysiotherapistDashboard = () => {
   const completionRate = last30.length === 0 ? 0 : Math.round((last30.filter((a) => a.status === 'completed').length / last30.length) * 100);
   const recent = [...appts].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 5);
 
-  const patientName = (a: Appt) => `${a.patient?.first_name ?? ''} ${a.patient?.last_name ?? ''}`.trim() || 'Patient';
+  const patientName = (a: Appt) => `${a.patient?.first_name ?? ''} ${a.patient?.last_name ?? ''}`.trim() || tr('Patient', 'Mgonjwa');
 
-  if (loading) return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  if (loading) return <div className="flex items-center justify-center min-h-screen">{tr('Loading...', 'Inapakia...')}</div>;
   if (!user) return <Navigate to="/auth" replace />;
   if (role === 'patient') return <Navigate to="/patient-dashboard" replace />;
 
   const stats = [
-    { label: 'Active Patients', value: activePatients, hint: 'Currently assigned', icon: Users, onClick: () => navigate('/physio-patients') },
-    { label: 'Pending Requests', value: pending.length, hint: 'Awaiting your confirmation', icon: ClipboardCheck },
-    { label: "Today's Sessions", value: todays.length, hint: 'Scheduled for today', icon: Calendar, onClick: () => navigate('/physio-sessions') },
-    { label: 'Completion Rate', value: `${completionRate}%`, hint: 'Last 30 days', icon: TrendingUp },
+    { label: tr('Active Patients', 'Wagonjwa Hai'), value: activePatients, hint: tr('Currently assigned', 'Waliopangwa sasa'), icon: Users, onClick: () => navigate('/physio-patients') },
+    { label: tr('Pending Requests', 'Maombi Yanayosubiri'), value: pending.length, hint: tr('Awaiting your confirmation', 'Yanasubiri uthibitisho wako'), icon: ClipboardCheck },
+    { label: tr("Today's Sessions", 'Vikao vya Leo'), value: todays.length, hint: tr('Scheduled for today', 'Vilivyopangwa leo'), icon: Calendar, onClick: () => navigate('/physio-sessions') },
+    { label: tr('Completion Rate', 'Kiwango cha Ukamilishaji'), value: `${completionRate}%`, hint: tr('Last 30 days', 'Siku 30 zilizopita'), icon: TrendingUp },
   ];
 
   return (
@@ -120,8 +125,8 @@ const PhysiotherapistDashboard = () => {
             <Stethoscope className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold mb-1">Welcome, Dr. {displayName}</h1>
-            <p className="text-muted-foreground">Coordinate care, confirm sessions, and keep patients moving forward.</p>
+            <h1 className="text-3xl font-bold mb-1">{tr('Welcome, Dr.', 'Karibu, Dkt.')} {displayName}</h1>
+            <p className="text-muted-foreground">{tr('Coordinate care, confirm sessions, and keep patients moving forward.', 'Ratibu huduma, thibitisha vikao, na uwasaidie wagonjwa kuendelea mbele.')}</p>
           </div>
         </div>
 
@@ -152,14 +157,14 @@ const PhysiotherapistDashboard = () => {
           {/* Pending requests */}
           <Card className="shadow-card">
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Pending Requests</CardTitle>
+              <CardTitle>{tr('Pending Requests', 'Maombi Yanayosubiri')}</CardTitle>
               <Badge variant="outline">{pending.length}</Badge>
             </CardHeader>
             <CardContent className="space-y-3">
               {dataLoading ? (
-                <p className="text-sm text-muted-foreground">Loading...</p>
+                <p className="text-sm text-muted-foreground">{tr('Loading...', 'Inapakia...')}</p>
               ) : pending.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No pending requests. New bookings will appear here.</p>
+                <p className="text-sm text-muted-foreground">{tr('No pending requests. New bookings will appear here.', 'Hakuna maombi yanayosubiri. Miadi mipya itaonekana hapa.')}</p>
               ) : (
                 pending.map((a) => {
                   const Icon = sessionIcon(a.session_type);
@@ -171,20 +176,20 @@ const PhysiotherapistDashboard = () => {
                           <div className="min-w-0">
                             <p className="font-semibold truncate">{patientName(a)}</p>
                             <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                              <Icon className="h-3 w-3" />{a.appointment_date}, {a.appointment_time?.slice(0, 5)}, <span className="capitalize">{a.session_type}</span>
+                              <Icon className="h-3 w-3" />{a.appointment_date}, {a.appointment_time?.slice(0, 5)}, <span>{sessionLabel(a.session_type)}</span>
                             </p>
                           </div>
                         </div>
                       </div>
                       <div className="flex flex-wrap gap-2">
                         <Button size="sm" className="bg-gradient-hero shadow-soft" onClick={() => updateStatus(a.id, 'confirmed')}>
-                          <Check className="h-4 w-4 mr-1.5" />Confirm
+                          <Check className="h-4 w-4 mr-1.5" />{tr('Confirm', 'Thibitisha')}
                         </Button>
                         <Button size="sm" variant="outline" onClick={() => updateStatus(a.id, 'cancelled')}>
-                          <X className="h-4 w-4 mr-1.5" />Decline
+                          <X className="h-4 w-4 mr-1.5" />{tr('Decline', 'Kataa')}
                         </Button>
                         <Button size="sm" variant="ghost" onClick={() => navigate(`/messages?with=${a.patient_id}`)}>
-                          <MessageSquare className="h-4 w-4 mr-1.5" />Message
+                          <MessageSquare className="h-4 w-4 mr-1.5" />{tr('Message', 'Ujumbe')}
                         </Button>
                       </div>
                     </div>
@@ -197,16 +202,16 @@ const PhysiotherapistDashboard = () => {
           {/* Upcoming */}
           <Card className="shadow-card">
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Upcoming Sessions</CardTitle>
+              <CardTitle>{tr('Upcoming Sessions', 'Vikao Vijavyo')}</CardTitle>
               <Button variant="ghost" size="sm" onClick={() => navigate('/physio-sessions')}>
-                View all <ArrowRight className="h-4 w-4 ml-1" />
+                {tr('View all', 'Ona vyote')} <ArrowRight className="h-4 w-4 ml-1" />
               </Button>
             </CardHeader>
             <CardContent className="space-y-3">
               {dataLoading ? (
-                <p className="text-sm text-muted-foreground">Loading...</p>
+                <p className="text-sm text-muted-foreground">{tr('Loading...', 'Inapakia...')}</p>
               ) : upcoming.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No upcoming sessions.</p>
+                <p className="text-sm text-muted-foreground">{tr('No upcoming sessions.', 'Hakuna vikao vijavyo.')}</p>
               ) : (
                 upcoming.slice(0, 5).map((a) => {
                   const Icon = sessionIcon(a.session_type);
@@ -223,10 +228,10 @@ const PhysiotherapistDashboard = () => {
                         </div>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
-                        <Badge variant="outline" className="capitalize hidden sm:inline-flex">{a.status}</Badge>
+                        <Badge variant="outline" className="hidden sm:inline-flex">{statusLabel(a.status)}</Badge>
                         {canCall && (
                           <Button size="sm" className="bg-gradient-hero shadow-soft" onClick={() => joinTelehealth(a.id)}>
-                            <Video className="h-4 w-4 mr-1.5" />Start
+                            <Video className="h-4 w-4 mr-1.5" />{tr('Start', 'Anza')}
                           </Button>
                         )}
                       </div>
@@ -241,14 +246,14 @@ const PhysiotherapistDashboard = () => {
         {/* Recent bookings */}
         <Card className="shadow-card">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Recent Bookings</CardTitle>
+            <CardTitle>{tr('Recent Bookings', 'Miadi ya Hivi Karibuni')}</CardTitle>
             <Badge variant="outline">{recent.length}</Badge>
           </CardHeader>
           <CardContent className="space-y-3">
             {dataLoading ? (
-              <p className="text-sm text-muted-foreground">Loading...</p>
+              <p className="text-sm text-muted-foreground">{tr('Loading...', 'Inapakia...')}</p>
             ) : recent.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No bookings yet. Patients will appear here after scheduling.</p>
+              <p className="text-sm text-muted-foreground">{tr('No bookings yet. Patients will appear here after scheduling.', 'Hakuna miadi bado. Wagonjwa wataonekana hapa baada ya kupanga.')}</p>
             ) : (
               recent.map((a) => (
                 <div key={a.id} className="flex items-center justify-between gap-3 p-3 border border-border/60 rounded-lg">
@@ -256,10 +261,10 @@ const PhysiotherapistDashboard = () => {
                     <Avatar className="h-8 w-8"><AvatarFallback><User className="h-4 w-4" /></AvatarFallback></Avatar>
                     <div className="min-w-0">
                       <p className="font-medium truncate">{patientName(a)}</p>
-                      <p className="text-xs text-muted-foreground capitalize">{a.appointment_date}, {a.session_type}</p>
+                      <p className="text-xs text-muted-foreground">{a.appointment_date}, {sessionLabel(a.session_type)}</p>
                     </div>
                   </div>
-                  <Badge variant="outline" className="capitalize flex-shrink-0">{a.status}</Badge>
+                  <Badge variant="outline" className="flex-shrink-0">{statusLabel(a.status)}</Badge>
                 </div>
               ))
             )}

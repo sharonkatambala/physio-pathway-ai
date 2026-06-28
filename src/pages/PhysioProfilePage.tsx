@@ -208,7 +208,7 @@ const PhysioProfilePage = () => {
                 value={form.bio}
                 onChange={(e) => setForm({ ...form, bio: e.target.value })}
                 className="min-h-28"
-                placeholder={tr('Tell patients about your experience, specialties, and approach to care.', 'Waeleze wagonjwa kuhusu uzoefu wako, utaalamu, na namna unavyotoa huduma.')}
+                placeholder={tr('Short bio for patients', 'Wasifu mfupi kwa wagonjwa')}
               />
             </div>
 

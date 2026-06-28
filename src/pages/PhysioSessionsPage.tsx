@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { joinTelehealth } from '@/lib/telehealth';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 type Appt = {
   id: string;
@@ -33,6 +34,10 @@ const sessionIcon = (t: string) => (t === 'phone' ? Phone : t === 'in-person' ? 
 const PhysioSessionsPage = () => {
   const { user, role, loading } = useAuth();
   const { toast } = useToast();
+  const { language } = useLanguage();
+  const tr = (en: string, sw: string) => (language === 'sw' ? sw : en);
+  const sessionLabel = (t: string) => (t === 'phone' ? tr('Phone', 'Simu') : t === 'in-person' ? tr('Clinic', 'Kliniki') : tr('Video', 'Video'));
+  const statusLabel = (s: string) => (s === 'confirmed' ? tr('Confirmed', 'Imethibitishwa') : s === 'completed' ? tr('Completed', 'Imekamilika') : s === 'cancelled' ? tr('Cancelled', 'Imeghairiwa') : tr('Pending', 'Inasubiri'));
   const navigate = useNavigate();
   const [appts, setAppts] = useState<Appt[]>([]);
   const [loadingAppts, setLoadingAppts] = useState(true);
@@ -66,17 +71,17 @@ const PhysioSessionsPage = () => {
 
   const updateStatus = async (id: string, status: Appt['status']) => {
     const { error } = await supabase.from('appointments').update({ status }).eq('id', id);
-    if (error) { toast({ title: 'Update failed', description: error.message, variant: 'destructive' }); return; }
-    const labels: Record<string, string> = { confirmed: 'Session confirmed', cancelled: 'Session cancelled', completed: 'Session marked complete' };
-    toast({ title: labels[status] ?? 'Updated' });
+    if (error) { toast({ title: tr('Update failed', 'Kusasisha kumeshindwa'), description: error.message, variant: 'destructive' }); return; }
+    const labels: Record<string, string> = { confirmed: tr('Session confirmed', 'Kikao kimethibitishwa'), cancelled: tr('Session cancelled', 'Kikao kimeghairiwa'), completed: tr('Session marked complete', 'Kikao kimewekwa kuwa kimekamilika') };
+    toast({ title: labels[status] ?? tr('Updated', 'Imesasishwa') });
     load();
   };
 
-  if (loading) return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  if (loading) return <div className="flex items-center justify-center min-h-screen">{tr('Loading...', 'Inapakia...')}</div>;
   if (!user) return <Navigate to="/auth" replace />;
   if (role === 'patient') return <Navigate to="/patient-dashboard" replace />;
 
-  const patientName = (a: Appt) => `${a.patient?.first_name ?? ''} ${a.patient?.last_name ?? ''}`.trim() || 'Patient';
+  const patientName = (a: Appt) => `${a.patient?.first_name ?? ''} ${a.patient?.last_name ?? ''}`.trim() || tr('Patient', 'Mgonjwa');
   const active = appts.filter((a) => a.status !== 'cancelled');
   const todays = active.filter((a) => a.appointment_date === todayISO);
   const upcoming = active.filter((a) => a.appointment_date > todayISO && a.status !== 'completed');
@@ -96,26 +101,26 @@ const PhysioSessionsPage = () => {
             <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1 flex-wrap">
               <Clock className="h-3 w-3" />{a.appointment_date}, {a.appointment_time?.slice(0, 5)}
               <span className="mx-0.5">•</span>
-              <Icon className="h-3 w-3" /><span className="capitalize">{a.session_type === 'in-person' ? 'Clinic' : a.session_type}</span>
+              <Icon className="h-3 w-3" /><span>{sessionLabel(a.session_type)}</span>
             </div>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="outline" className="capitalize">{a.status}</Badge>
+          <Badge variant="outline">{statusLabel(a.status)}</Badge>
           {a.status === 'pending' && (
             <>
-              <Button size="sm" className="bg-gradient-hero shadow-soft" onClick={() => updateStatus(a.id, 'confirmed')}><Check className="h-4 w-4 mr-1.5" />Confirm</Button>
-              <Button size="sm" variant="outline" onClick={() => updateStatus(a.id, 'cancelled')}><X className="h-4 w-4 mr-1.5" />Decline</Button>
+              <Button size="sm" className="bg-gradient-hero shadow-soft" onClick={() => updateStatus(a.id, 'confirmed')}><Check className="h-4 w-4 mr-1.5" />{tr('Confirm', 'Thibitisha')}</Button>
+              <Button size="sm" variant="outline" onClick={() => updateStatus(a.id, 'cancelled')}><X className="h-4 w-4 mr-1.5" />{tr('Decline', 'Kataa')}</Button>
             </>
           )}
           {canCall && (
-            <Button size="sm" className="bg-gradient-hero shadow-soft" onClick={() => joinTelehealth(a.id)}><Video className="h-4 w-4 mr-1.5" />Start</Button>
+            <Button size="sm" className="bg-gradient-hero shadow-soft" onClick={() => joinTelehealth(a.id)}><Video className="h-4 w-4 mr-1.5" />{tr('Start', 'Anza')}</Button>
           )}
           {a.status === 'confirmed' && (
-            <Button size="sm" variant="outline" onClick={() => updateStatus(a.id, 'completed')}><CheckCircle2 className="h-4 w-4 mr-1.5" />Complete</Button>
+            <Button size="sm" variant="outline" onClick={() => updateStatus(a.id, 'completed')}><CheckCircle2 className="h-4 w-4 mr-1.5" />{tr('Complete', 'Kamilisha')}</Button>
           )}
-          <Button size="sm" variant="ghost" onClick={() => setNotesAppt(a)}><FileText className="h-4 w-4 mr-1.5" />Notes</Button>
-          <Button size="sm" variant="ghost" onClick={() => navigate(`/messages?with=${a.patient_id}`)}><MessageSquare className="h-4 w-4 mr-1.5" />Message</Button>
+          <Button size="sm" variant="ghost" onClick={() => setNotesAppt(a)}><FileText className="h-4 w-4 mr-1.5" />{tr('Notes', 'Maelezo')}</Button>
+          <Button size="sm" variant="ghost" onClick={() => navigate(`/messages?with=${a.patient_id}`)}><MessageSquare className="h-4 w-4 mr-1.5" />{tr('Message', 'Ujumbe')}</Button>
         </div>
       </div>
     );
@@ -130,8 +135,8 @@ const PhysioSessionsPage = () => {
             <Calendar className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold">Sessions &amp; Schedule</h1>
-            <p className="text-muted-foreground">Confirm requests, launch telehealth calls, and track session notes.</p>
+            <h1 className="text-3xl font-bold">{tr('Sessions & Schedule', 'Vikao na Ratiba')}</h1>
+            <p className="text-muted-foreground">{tr('Confirm requests, launch telehealth calls, and track session notes.', 'Thibitisha maombi, anzisha simu za telehealth, na fuatilia maelezo ya vikao.')}</p>
           </div>
         </div>
 
@@ -140,12 +145,12 @@ const PhysioSessionsPage = () => {
             {/* Today */}
             <Card className="shadow-card">
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Today&apos;s Sessions</CardTitle>
-                <Badge variant="outline" className="text-xs">{todays.length} scheduled</Badge>
+                <CardTitle>{tr("Today's Sessions", 'Vikao vya Leo')}</CardTitle>
+                <Badge variant="outline" className="text-xs">{todays.length} {tr('scheduled', 'vimepangwa')}</Badge>
               </CardHeader>
               <CardContent className="space-y-3">
-                {loadingAppts ? <p className="text-sm text-muted-foreground">Loading sessions...</p>
-                  : todays.length === 0 ? <p className="text-sm text-muted-foreground">No sessions scheduled for today.</p>
+                {loadingAppts ? <p className="text-sm text-muted-foreground">{tr('Loading sessions...', 'Inapakia vikao...')}</p>
+                  : todays.length === 0 ? <p className="text-sm text-muted-foreground">{tr('No sessions scheduled for today.', 'Hakuna vikao vilivyopangwa leo.')}</p>
                   : todays.map((a) => <SessionRow key={a.id} a={a} />)}
               </CardContent>
             </Card>
@@ -153,12 +158,12 @@ const PhysioSessionsPage = () => {
             {/* Upcoming */}
             <Card className="shadow-card">
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Upcoming</CardTitle>
+                <CardTitle>{tr('Upcoming', 'Vijavyo')}</CardTitle>
                 <Badge variant="outline" className="text-xs">{upcoming.length}</Badge>
               </CardHeader>
               <CardContent className="space-y-3">
-                {loadingAppts ? <p className="text-sm text-muted-foreground">Loading...</p>
-                  : upcoming.length === 0 ? <p className="text-sm text-muted-foreground">No upcoming sessions.</p>
+                {loadingAppts ? <p className="text-sm text-muted-foreground">{tr('Loading...', 'Inapakia...')}</p>
+                  : upcoming.length === 0 ? <p className="text-sm text-muted-foreground">{tr('No upcoming sessions.', 'Hakuna vikao vijavyo.')}</p>
                   : upcoming.map((a) => <SessionRow key={a.id} a={a} />)}
               </CardContent>
             </Card>
@@ -167,7 +172,7 @@ const PhysioSessionsPage = () => {
             {past.length > 0 && (
               <Card className="shadow-card">
                 <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle>History</CardTitle>
+                  <CardTitle>{tr('History', 'Historia')}</CardTitle>
                   <Badge variant="outline" className="text-xs">{past.length}</Badge>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -177,10 +182,10 @@ const PhysioSessionsPage = () => {
                         <Avatar className="h-8 w-8"><AvatarFallback><User className="h-4 w-4" /></AvatarFallback></Avatar>
                         <div className="min-w-0">
                           <p className="font-medium truncate">{patientName(a)}</p>
-                          <p className="text-xs text-muted-foreground capitalize">{a.appointment_date}, {a.session_type}</p>
+                          <p className="text-xs text-muted-foreground">{a.appointment_date}, {sessionLabel(a.session_type)}</p>
                         </div>
                       </div>
-                      <Badge variant="outline" className="capitalize flex-shrink-0">{a.status}</Badge>
+                      <Badge variant="outline" className="flex-shrink-0">{statusLabel(a.status)}</Badge>
                     </div>
                   ))}
                 </CardContent>
@@ -191,13 +196,13 @@ const PhysioSessionsPage = () => {
           {/* Sidebar stats */}
           <div className="space-y-6">
             <Card className="shadow-card">
-              <CardHeader><CardTitle>Overview</CardTitle></CardHeader>
+              <CardHeader><CardTitle>{tr('Overview', 'Muhtasari')}</CardTitle></CardHeader>
               <CardContent className="space-y-3 text-sm">
                 {[
-                  ['Pending requests', appts.filter((a) => a.status === 'pending').length],
-                  ['Confirmed', appts.filter((a) => a.status === 'confirmed').length],
-                  ['Completed', appts.filter((a) => a.status === 'completed').length],
-                  ['Cancelled', appts.filter((a) => a.status === 'cancelled').length],
+                  [tr('Pending requests', 'Maombi yanayosubiri'), appts.filter((a) => a.status === 'pending').length],
+                  [tr('Confirmed', 'Yaliyothibitishwa'), appts.filter((a) => a.status === 'confirmed').length],
+                  [tr('Completed', 'Yaliyokamilika'), appts.filter((a) => a.status === 'completed').length],
+                  [tr('Cancelled', 'Yaliyoghairiwa'), appts.filter((a) => a.status === 'cancelled').length],
                 ].map(([label, n]) => (
                   <div key={label as string} className="flex items-center justify-between rounded-lg border border-border/60 p-3">
                     <span className="text-muted-foreground">{label}</span>
@@ -208,11 +213,11 @@ const PhysioSessionsPage = () => {
             </Card>
 
             <Card className="shadow-card">
-              <CardHeader><CardTitle>Session Types</CardTitle></CardHeader>
+              <CardHeader><CardTitle>{tr('Session Types', 'Aina za Vikao')}</CardTitle></CardHeader>
               <CardContent className="space-y-3 text-sm">
-                <div className="flex items-center justify-between"><span className="text-muted-foreground inline-flex items-center gap-2"><Video className="h-4 w-4" />Video</span><span className="font-semibold">{appts.filter((a) => a.session_type === 'video').length}</span></div>
-                <div className="flex items-center justify-between"><span className="text-muted-foreground inline-flex items-center gap-2"><Phone className="h-4 w-4" />Phone</span><span className="font-semibold">{appts.filter((a) => a.session_type === 'phone').length}</span></div>
-                <div className="flex items-center justify-between"><span className="text-muted-foreground inline-flex items-center gap-2"><MapPin className="h-4 w-4" />In-person</span><span className="font-semibold">{appts.filter((a) => a.session_type === 'in-person').length}</span></div>
+                <div className="flex items-center justify-between"><span className="text-muted-foreground inline-flex items-center gap-2"><Video className="h-4 w-4" />{tr('Video', 'Video')}</span><span className="font-semibold">{appts.filter((a) => a.session_type === 'video').length}</span></div>
+                <div className="flex items-center justify-between"><span className="text-muted-foreground inline-flex items-center gap-2"><Phone className="h-4 w-4" />{tr('Phone', 'Simu')}</span><span className="font-semibold">{appts.filter((a) => a.session_type === 'phone').length}</span></div>
+                <div className="flex items-center justify-between"><span className="text-muted-foreground inline-flex items-center gap-2"><MapPin className="h-4 w-4" />{tr('In-person', 'Ana kwa ana')}</span><span className="font-semibold">{appts.filter((a) => a.session_type === 'in-person').length}</span></div>
               </CardContent>
             </Card>
           </div>
@@ -223,17 +228,17 @@ const PhysioSessionsPage = () => {
       <Dialog open={!!notesAppt} onOpenChange={(o) => !o && setNotesAppt(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Session notes</DialogTitle>
+            <DialogTitle>{tr('Session notes', 'Maelezo ya kikao')}</DialogTitle>
             <DialogDescription>
               {notesAppt ? `${patientName(notesAppt)}, ${notesAppt.appointment_date}, ${notesAppt.appointment_time?.slice(0,5)}` : ''}
             </DialogDescription>
           </DialogHeader>
           <div className="rounded-lg border border-border/60 bg-muted/40 p-4 text-sm whitespace-pre-wrap min-h-24">
-            {notesAppt?.notes?.trim() ? notesAppt.notes : <span className="text-muted-foreground">The patient did not add any notes for this session.</span>}
+            {notesAppt?.notes?.trim() ? notesAppt.notes : <span className="text-muted-foreground">{tr('The patient did not add any notes for this session.', 'Mgonjwa hakuongeza maelezo yoyote kwa kikao hiki.')}</span>}
           </div>
           {notesAppt && (
             <Button variant="outline" className="w-full" onClick={() => { navigate(`/messages?with=${notesAppt.patient_id}`); setNotesAppt(null); }}>
-              <MessageSquare className="h-4 w-4 mr-2" />Message patient
+              <MessageSquare className="h-4 w-4 mr-2" />{tr('Message patient', 'Tuma ujumbe kwa mgonjwa')}
             </Button>
           )}
         </DialogContent>

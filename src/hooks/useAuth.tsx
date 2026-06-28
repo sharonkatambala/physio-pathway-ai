@@ -16,14 +16,14 @@ interface Profile {
 }
 
 interface UserRole {
-  role: 'patient' | 'physiotherapist' | 'admin';
+  role: 'patient' | 'physiotherapist' | 'admin' | 'office_worker';
 }
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   profile: Profile | null;
-  role: 'patient' | 'physiotherapist' | 'admin' | null;
+  role: 'patient' | 'physiotherapist' | 'admin' | 'office_worker' | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, userData: any) => Promise<{ error: any }>;
@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [role, setRole] = useState<'patient' | 'physiotherapist' | 'admin' | null>(null);
+  const [role, setRole] = useState<'patient' | 'physiotherapist' | 'admin' | 'office_worker' | null>(null);
   const [loading, setLoading] = useState(true);
 
   const normalize = (value: unknown) =>
@@ -122,9 +122,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     if (roleData?.role) {
       setRole(roleData.role || null);
-    } else if (metaRole === 'patient' || metaRole === 'physiotherapist' || metaRole === 'admin') {
+    } else if (metaRole === 'patient' || metaRole === 'physiotherapist' || metaRole === 'admin' || metaRole === 'office_worker') {
       await supabase.from('user_roles').insert({ user_id: authUser.id, role: metaRole });
-      setRole(metaRole as 'patient' | 'physiotherapist' | 'admin');
+      setRole(metaRole as 'patient' | 'physiotherapist' | 'admin' | 'office_worker');
     } else {
       setRole(null);
     }

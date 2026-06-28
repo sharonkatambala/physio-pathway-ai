@@ -3,6 +3,7 @@ import Navigation from "@/components/Navigation";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -54,6 +55,8 @@ const COLORS = {
 const ProgressPage = () => {
   const { toast } = useToast();
   const { user, loading: authLoading } = useAuth();
+  const { language } = useLanguage();
+  const tr = (en: string, sw: string) => (language === "sw" ? sw : en);
   const [entries, setEntries] = useState<ProgressEntry[]>([]);
   const [latestRecommendation, setLatestRecommendation] = useState<RecommendationSummary | null>(null);
   const [loading, setLoading] = useState(true);
@@ -107,8 +110,8 @@ const ProgressPage = () => {
         setEntries(progressData ?? []);
       } catch (error: any) {
         toast({
-          title: "Unable to load progress",
-          description: error?.message || "Please refresh the page and try again.",
+          title: tr("Unable to load progress", "Imeshindwa kupakia maendeleo"),
+          description: error?.message || tr("Please refresh the page and try again.", "Tafadhali onyesha upya ukurasa na ujaribu tena."),
           variant: "destructive",
         });
       } finally {
@@ -139,7 +142,7 @@ const ProgressPage = () => {
 
     if (error) {
       toast({
-        title: "Could not save entry",
+        title: tr("Could not save entry", "Imeshindwa kuhifadhi"),
         description: error.message,
         variant: "destructive",
       });
@@ -150,8 +153,8 @@ const ProgressPage = () => {
     setForm({ pain_level: "", energy_level: "", adherence: "", notes: "" });
     setDialogOpen(false);
     toast({
-      title: "Progress entry added",
-      description: "Your latest update has been saved.",
+      title: tr("Progress entry added", "Rekodi imeongezwa"),
+      description: tr("Your latest update has been saved.", "Sasisho lako la hivi karibuni limehifadhiwa."),
     });
   };
 
@@ -195,14 +198,14 @@ const ProgressPage = () => {
   const ChartEmptyState = ({ icon: Icon }: { icon: typeof LineChartIcon }) => (
     <div className="flex h-full flex-col items-center justify-center gap-2 text-center text-muted-foreground">
       <Icon className="h-8 w-8 opacity-40" />
-      <p className="text-sm">No data yet - add a check-in to see your trend.</p>
+      <p className="text-sm">{tr("No data yet - add a check-in to see your trend.", "Hakuna data bado - ongeza rekodi kuona mwelekeo wako.")}</p>
     </div>
   );
 
   const summaryCards = [
-    { title: "Pain Trend", icon: Flame, value: averagePain, hint: "Average of recent entries" },
-    { title: "Energy Level", icon: HeartPulse, value: averageEnergy, hint: "How energized you feel" },
-    { title: "Plan Adherence", icon: Activity, value: adherenceScore, hint: "Consistency across sessions" },
+    { title: tr("Pain Trend", "Mwelekeo wa Maumivu"), icon: Flame, value: averagePain, hint: tr("Average of recent entries", "Wastani wa rekodi za hivi karibuni") },
+    { title: tr("Energy Level", "Kiwango cha Nguvu"), icon: HeartPulse, value: averageEnergy, hint: tr("How energized you feel", "Jinsi unavyojisikia na nguvu") },
+    { title: tr("Plan Adherence", "Ufuataji wa Mpango"), icon: Activity, value: adherenceScore, hint: tr("Consistency across sessions", "Uthabiti katika vikao") },
   ];
 
   return (
@@ -210,9 +213,9 @@ const ProgressPage = () => {
       <Navigation />
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col gap-1">
-          <h1 className="text-3xl font-bold text-foreground">Progress</h1>
+          <h1 className="text-3xl font-bold text-foreground">{tr("Progress", "Maendeleo")}</h1>
           <p className="text-sm text-muted-foreground">
-            Track how you feel, review your plan, and see your improvements over time.
+            {tr("Track how you feel, review your plan, and see your improvements over time.", "Fuatilia jinsi unavyojisikia, kagua mpango wako, na uone maendeleo yako kwa muda.")}
           </p>
         </div>
 
@@ -240,9 +243,9 @@ const ProgressPage = () => {
             <CardHeader className="flex flex-col gap-1">
               <CardTitle className="flex items-center gap-2 text-base">
                 <TrendingDown className="h-4 w-4 text-primary" />
-                Pain and Energy Trend
+                {tr("Pain and Energy Trend", "Mwelekeo wa Maumivu na Nguvu")}
               </CardTitle>
-              <p className="text-xs text-muted-foreground">Pain (lower is better) vs. energy (higher is better) over your check-ins.</p>
+              <p className="text-xs text-muted-foreground">{tr("Pain (lower is better) vs. energy (higher is better) over your check-ins.", "Maumivu (chini ni bora) dhidi ya nguvu (juu ni bora) kwa rekodi zako.")}</p>
             </CardHeader>
             <CardContent className="h-64">
               {hasData ? (
@@ -253,8 +256,8 @@ const ProgressPage = () => {
                     <YAxis domain={[0, 10]} tick={{ fill: COLORS.axis, fontSize: 12 }} />
                     <Tooltip contentStyle={tooltipStyle} />
                     <Legend wrapperStyle={{ fontSize: 12 }} />
-                    <Line type="monotone" name="Pain" dataKey="pain" stroke={COLORS.pain} strokeWidth={2} connectNulls dot={{ fill: COLORS.pain }} />
-                    <Line type="monotone" name="Energy" dataKey="energy" stroke={COLORS.energy} strokeWidth={2} connectNulls dot={{ fill: COLORS.energy }} />
+                    <Line type="monotone" name={tr("Pain", "Maumivu")} dataKey="pain" stroke={COLORS.pain} strokeWidth={2} connectNulls dot={{ fill: COLORS.pain }} />
+                    <Line type="monotone" name={tr("Energy", "Nguvu")} dataKey="energy" stroke={COLORS.energy} strokeWidth={2} connectNulls dot={{ fill: COLORS.energy }} />
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
@@ -268,9 +271,9 @@ const ProgressPage = () => {
               <CardHeader className="flex flex-col gap-1">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <TrendingUp className="h-4 w-4 text-primary" />
-                  Adherence
+                  {tr("Adherence", "Ufuataji")}
                 </CardTitle>
-                <p className="text-xs text-muted-foreground">How consistently you completed sessions.</p>
+                <p className="text-xs text-muted-foreground">{tr("How consistently you completed sessions.", "Jinsi ulivyokamilisha vikao kwa uthabiti.")}</p>
               </CardHeader>
               <CardContent className="h-48">
                 {hasData ? (
@@ -293,23 +296,23 @@ const ProgressPage = () => {
               <CardHeader className="flex flex-col gap-1">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <Calendar className="h-4 w-4 text-primary" />
-                  Latest Check-In
+                  {tr("Latest Check-In", "Rekodi ya Hivi Karibuni")}
                 </CardTitle>
-                <p className="text-xs text-muted-foreground">Your most recent progress entry.</p>
+                <p className="text-xs text-muted-foreground">{tr("Your most recent progress entry.", "Rekodi yako ya maendeleo ya hivi karibuni.")}</p>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
                 {latestEntry ? (
                   <>
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Pain level</span>
+                      <span className="text-muted-foreground">{tr("Pain level", "Kiwango cha maumivu")}</span>
                       <Badge variant="secondary">{latestEntry.pain_level ?? "N/A"}</Badge>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Energy level</span>
+                      <span className="text-muted-foreground">{tr("Energy level", "Kiwango cha nguvu")}</span>
                       <Badge variant="secondary">{latestEntry.energy_level ?? "N/A"}</Badge>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Adherence</span>
+                      <span className="text-muted-foreground">{tr("Adherence", "Ufuataji")}</span>
                       <Badge variant="secondary">{latestEntry.adherence ?? "N/A"}</Badge>
                     </div>
                     {latestEntry.notes && (
@@ -319,7 +322,7 @@ const ProgressPage = () => {
                     )}
                   </>
                 ) : (
-                  <p className="text-muted-foreground">No entries yet. Add your first update below.</p>
+                  <p className="text-muted-foreground">{tr("No entries yet. Add your first update below.", "Hakuna rekodi bado. Ongeza sasisho lako la kwanza hapa chini.")}</p>
                 )}
               </CardContent>
             </Card>
@@ -328,9 +331,9 @@ const ProgressPage = () => {
 
         <Card className="shadow-card">
           <CardHeader>
-            <CardTitle className="text-base">AI Program Connection</CardTitle>
+            <CardTitle className="text-base">{tr("AI Program Connection", "Muunganisho wa Programu ya AI")}</CardTitle>
             <p className="text-xs text-muted-foreground">
-              Review the latest program data that powers your recovery plan.
+              {tr("Review the latest program data that powers your recovery plan.", "Kagua data ya programu ya hivi karibuni inayoendesha mpango wako wa kupona.")}
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -338,36 +341,36 @@ const ProgressPage = () => {
               <>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Program title</p>
+                    <p className="text-sm text-muted-foreground">{tr("Program title", "Jina la programu")}</p>
                     <p className="text-base font-medium text-foreground">
-                      {programData.title || "Personalized Exercise Program"}
+                      {programData.title || tr("Personalized Exercise Program", "Programu Binafsi ya Mazoezi")}
                     </p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Phase</p>
+                    <p className="text-sm text-muted-foreground">{tr("Phase", "Awamu")}</p>
                     <p className="text-base font-medium text-foreground">
                       {programData.phase || programData?.schedule?.current_phase || "early"}
                     </p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Weekly target</p>
+                    <p className="text-sm text-muted-foreground">{tr("Weekly target", "Lengo la wiki")}</p>
                     <p className="text-base font-medium text-foreground">
-                      {programData.weekly_target ? `${programData.weekly_target} sessions` : "Not set"}
+                      {programData.weekly_target ? `${programData.weekly_target} ${tr("sessions", "vikao")}` : tr("Not set", "Haijawekwa")}
                     </p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Report date</p>
+                    <p className="text-sm text-muted-foreground">{tr("Report date", "Tarehe ya ripoti")}</p>
                     <p className="text-base font-medium text-foreground">
                       {latestRecommendation.created_at
                         ? new Date(latestRecommendation.created_at).toLocaleDateString()
-                        : "Unknown"}
+                        : tr("Unknown", "Haijulikani")}
                     </p>
                   </div>
                 </div>
 
                 {reportData.summary && (
                   <div className="rounded-lg border border-border bg-muted/30 p-4">
-                    <p className="text-sm text-muted-foreground">Summary</p>
+                    <p className="text-sm text-muted-foreground">{tr("Summary", "Muhtasari")}</p>
                     <p className="mt-2 text-sm text-foreground/90">{reportData.summary}</p>
                   </div>
                 )}
@@ -376,7 +379,7 @@ const ProgressPage = () => {
                   <div className="grid gap-4 md:grid-cols-2">
                     {reportFindings.length > 0 && (
                       <div className="space-y-2">
-                        <p className="text-sm text-muted-foreground">Key findings</p>
+                        <p className="text-sm text-muted-foreground">{tr("Key findings", "Matokeo muhimu")}</p>
                         <ul className="space-y-2 text-sm text-foreground/90">
                           {reportFindings.map((finding: string, idx: number) => (
                             <li key={`${finding}-${idx}`} className="flex gap-2">
@@ -389,7 +392,7 @@ const ProgressPage = () => {
                     )}
                     {reportRecommendations.length > 0 && (
                       <div className="space-y-2">
-                        <p className="text-sm text-muted-foreground">Recommendations</p>
+                        <p className="text-sm text-muted-foreground">{tr("Recommendations", "Mapendekezo")}</p>
                         <ul className="space-y-2 text-sm text-foreground/90">
                           {reportRecommendations.map((rec: string, idx: number) => (
                             <li key={`${rec}-${idx}`} className="flex gap-2">
@@ -405,8 +408,8 @@ const ProgressPage = () => {
               </>
             ) : (
               <div className="space-y-2 text-sm text-muted-foreground">
-                <p>No report found for your account yet.</p>
-                <p>Complete an assessment to generate a personalized report.</p>
+                <p>{tr("No report found for your account yet.", "Hakuna ripoti iliyopatikana kwa akaunti yako bado.")}</p>
+                <p>{tr("Complete an assessment to generate a personalized report.", "Kamilisha tathmini ili kutengeneza ripoti binafsi.")}</p>
               </div>
             )}
           </CardContent>
@@ -415,25 +418,25 @@ const ProgressPage = () => {
         <Card className="shadow-card">
           <CardHeader className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <div>
-              <CardTitle className="text-base">Progress Timeline</CardTitle>
+              <CardTitle className="text-base">{tr("Progress Timeline", "Ratiba ya Maendeleo")}</CardTitle>
               <p className="text-xs text-muted-foreground">
-                Snapshot of how you are feeling over time.
+                {tr("Snapshot of how you are feeling over time.", "Mtazamo wa jinsi unavyojisikia kwa muda.")}
               </p>
             </div>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="gap-2 bg-gradient-hero shadow-soft">
                   <Plus className="h-4 w-4" />
-                  Add Entry
+                  {tr("Add Entry", "Ongeza Rekodi")}
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-lg">
                 <DialogHeader>
-                  <DialogTitle>Add Progress Entry</DialogTitle>
+                  <DialogTitle>{tr("Add Progress Entry", "Ongeza Rekodi ya Maendeleo")}</DialogTitle>
                 </DialogHeader>
                 <div className="grid gap-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="pain_level">Pain level (0-10)</Label>
+                    <Label htmlFor="pain_level">{tr("Pain level (0-10)", "Kiwango cha maumivu (0-10)")}</Label>
                     <Input
                       id="pain_level"
                       type="number"
@@ -444,7 +447,7 @@ const ProgressPage = () => {
                     />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="energy_level">Energy level (0-10)</Label>
+                    <Label htmlFor="energy_level">{tr("Energy level (0-10)", "Kiwango cha nguvu (0-10)")}</Label>
                     <Input
                       id="energy_level"
                       type="number"
@@ -455,7 +458,7 @@ const ProgressPage = () => {
                     />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="adherence">Adherence (0-10)</Label>
+                    <Label htmlFor="adherence">{tr("Adherence (0-10)", "Ufuataji (0-10)")}</Label>
                     <Input
                       id="adherence"
                       type="number"
@@ -466,7 +469,7 @@ const ProgressPage = () => {
                     />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="notes">Notes</Label>
+                    <Label htmlFor="notes">{tr("Notes", "Maelezo")}</Label>
                     <Textarea
                       id="notes"
                       value={form.notes}
@@ -476,10 +479,10 @@ const ProgressPage = () => {
                   </div>
                   <div className="flex justify-end gap-3">
                     <Button variant="outline" onClick={() => setDialogOpen(false)}>
-                      Cancel
+                      {tr("Cancel", "Ghairi")}
                     </Button>
                     <Button onClick={handleCreateEntry} disabled={saving} className="bg-gradient-hero shadow-soft">
-                      {saving ? "Saving..." : "Save Entry"}
+                      {saving ? tr("Saving...", "Inahifadhi...") : tr("Save Entry", "Hifadhi Rekodi")}
                     </Button>
                   </div>
                 </div>
@@ -488,7 +491,7 @@ const ProgressPage = () => {
           </CardHeader>
           <CardContent>
             {loading ? (
-              <p className="text-sm text-muted-foreground">Loading entries...</p>
+              <p className="text-sm text-muted-foreground">{tr("Loading entries...", "Inapakia rekodi...")}</p>
             ) : entries.length ? (
               <div className="space-y-3">
                 {entries.map((entry) => (
@@ -512,9 +515,9 @@ const ProgressPage = () => {
                         </p>
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        <Badge variant="secondary">Pain {entry.pain_level ?? "N/A"}</Badge>
-                        <Badge variant="secondary">Energy {entry.energy_level ?? "N/A"}</Badge>
-                        <Badge variant="secondary">Adherence {entry.adherence ?? "N/A"}</Badge>
+                        <Badge variant="secondary">{tr("Pain", "Maumivu")} {entry.pain_level ?? "N/A"}</Badge>
+                        <Badge variant="secondary">{tr("Energy", "Nguvu")} {entry.energy_level ?? "N/A"}</Badge>
+                        <Badge variant="secondary">{tr("Adherence", "Ufuataji")} {entry.adherence ?? "N/A"}</Badge>
                       </div>
                     </div>
                     {entry.notes && (
@@ -524,7 +527,7 @@ const ProgressPage = () => {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">No progress entries yet.</p>
+              <p className="text-sm text-muted-foreground">{tr("No progress entries yet.", "Hakuna rekodi za maendeleo bado.")}</p>
             )}
           </CardContent>
         </Card>

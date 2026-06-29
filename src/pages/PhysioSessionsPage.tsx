@@ -77,6 +77,14 @@ const PhysioSessionsPage = () => {
     load();
   };
 
+  const handleStart = (id: string) => {
+    if (joinTelehealth(id)) {
+      toast({ title: tr('Opening telehealth room', 'Inafungua chumba cha telehealth'), description: tr('The video call is opening in a new tab.', 'Simu ya video inafunguka kwenye kichupo kipya.') });
+    } else {
+      toast({ title: tr('Could not open the call', 'Imeshindwa kufungua simu'), description: tr('Please allow pop-ups for this site and try again.', 'Tafadhali ruhusu pop-ups kwa tovuti hii kisha jaribu tena.'), variant: 'destructive' });
+    }
+  };
+
   if (loading) return <div className="flex items-center justify-center min-h-screen">{tr('Loading...', 'Inapakia...')}</div>;
   if (!user) return <Navigate to="/auth" replace />;
   if (role === 'patient') return <Navigate to="/patient-dashboard" replace />;
@@ -114,7 +122,7 @@ const PhysioSessionsPage = () => {
             </>
           )}
           {canCall && (
-            <Button size="sm" className="bg-gradient-hero shadow-soft" onClick={() => joinTelehealth(a.id)}><Video className="h-4 w-4 mr-1.5" />{tr('Start', 'Anza')}</Button>
+            <Button size="sm" className="bg-gradient-hero shadow-soft" onClick={() => handleStart(a.id)}><Video className="h-4 w-4 mr-1.5" />{tr('Start', 'Anza')}</Button>
           )}
           {a.status === 'confirmed' && (
             <Button size="sm" variant="outline" onClick={() => updateStatus(a.id, 'completed')}><CheckCircle2 className="h-4 w-4 mr-1.5" />{tr('Complete', 'Kamilisha')}</Button>

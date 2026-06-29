@@ -329,7 +329,7 @@ const AssessmentPage = () => {
 										</div>
 
 										<div>
-											<Label>{tr('Goals for next treatment', 'Malengo ya matibabu yajayo')}</Label>
+											<Label>{tr('Your goal for the next treatment', 'Lengo lako la matibabu yajayo')}</Label>
 											<Textarea
 																								placeholder={tr(
 													'e.g. move without pain',

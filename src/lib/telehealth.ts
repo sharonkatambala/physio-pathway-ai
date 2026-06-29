@@ -12,9 +12,24 @@ export const telehealthRoom = (appointmentId: string) =>
 export const telehealthUrl = (appointmentId: string) =>
   `${JITSI_BASE}/${telehealthRoom(appointmentId)}`;
 
-/** Open the telehealth room in a new tab. Returns false if blocked. */
+/** Open the telehealth room in a new tab. Returns false if it cannot open. */
 export const joinTelehealth = (appointmentId: string): boolean => {
-  if (typeof window === 'undefined') return false;
-  const win = window.open(telehealthUrl(appointmentId), '_blank', 'noopener,noreferrer');
-  return Boolean(win);
+  if (typeof window === 'undefined' || typeof document === 'undefined') return false;
+  // Open via a programmatic anchor click rather than window.open with a
+  // features string: the latter makes browsers treat the call as a popup
+  // (frequently blocked) and returns null even on success, so callers could
+  // never tell whether the room actually opened. An anchor click within the
+  // user gesture opens a real new tab and is not popup-blocked.
+  try {
+    const a = document.createElement('a');
+    a.href = telehealthUrl(appointmentId);
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    return true;
+  } catch {
+    return false;
+  }
 };

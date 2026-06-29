@@ -92,6 +92,15 @@ const PhysiotherapistDashboard = () => {
     loadDashboard();
   };
 
+  const handleStart = (id: string) => {
+    const opened = joinTelehealth(id);
+    if (opened) {
+      toast({ title: tr('Opening telehealth room', 'Inafungua chumba cha telehealth'), description: tr('The video call is opening in a new tab.', 'Simu ya video inafunguka kwenye kichupo kipya.') });
+    } else {
+      toast({ title: tr('Could not open the call', 'Imeshindwa kufungua simu'), description: tr('Please allow pop-ups for this site and try again.', 'Tafadhali ruhusu pop-ups kwa tovuti hii kisha jaribu tena.'), variant: 'destructive' });
+    }
+  };
+
   const pending = appts.filter((a) => a.status === 'pending');
   const upcoming = appts.filter((a) => a.status !== 'cancelled' && a.status !== 'completed' && a.appointment_date >= todayISO);
   const todays = appts.filter((a) => a.status !== 'cancelled' && a.appointment_date === todayISO);
@@ -230,7 +239,7 @@ const PhysiotherapistDashboard = () => {
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <Badge variant="outline" className="hidden sm:inline-flex">{statusLabel(a.status)}</Badge>
                         {canCall && (
-                          <Button size="sm" className="bg-gradient-hero shadow-soft" onClick={() => joinTelehealth(a.id)}>
+                          <Button size="sm" className="bg-gradient-hero shadow-soft" onClick={() => handleStart(a.id)}>
                             <Video className="h-4 w-4 mr-1.5" />{tr('Start', 'Anza')}
                           </Button>
                         )}

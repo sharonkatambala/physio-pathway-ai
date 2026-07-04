@@ -34,6 +34,8 @@ import {
   CheckCircle2,
   History,
   Loader2,
+  Maximize2,
+  Minimize2,
   PersonStanding,
   Play,
   ShieldCheck,
@@ -132,6 +134,9 @@ const PosturePage = () => {
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [result, setResult] = useState<PostureResult | null>(null);
   const [personVisible, setPersonVisible] = useState(false);
+  const [fullscreenSection, setFullscreenSection] = useState<'assessment' | 'live' | null>(null);
+  const assessmentSectionRef = useRef<HTMLDivElement>(null);
+  const liveSectionRef = useRef<HTMLDivElement>(null);
 
   // Assessment state
   const [phase, setPhase] = useState<'idle' | 'countdown' | 'capturing' | 'done'>('idle');
@@ -299,6 +304,32 @@ const PosturePage = () => {
     };
   }, []);
 
+  // Full screen ------------------------------------------------------
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement) setFullscreenSection(null);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  const toggleFullscreen = useCallback(
+    (section: 'assessment' | 'live') => {
+      const ref = section === 'assessment' ? assessmentSectionRef : liveSectionRef;
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+        return;
+      }
+      ref.current
+        ?.requestFullscreen?.()
+        .then(() => setFullscreenSection(section))
+        .catch(() => {
+          toast.error(tr('Full screen is not available on this device.', 'Skrini kamili haipatikani kwenye kifaa hiki.'));
+        });
+    },
+    [lang]
+  );
+
   // ── Assessment flow ───────────────────────────────────────────────
   const finalizeAssessment = useCallback(() => {
     const res = averageMetrics(captureSamplesRef.current, postureModeRef.current);
@@ -418,13 +449,26 @@ const PosturePage = () => {
   const liveColor = result ? zoneColor(result.zone) : 'hsl(var(--muted-foreground))';
 
   // Camera viewport (shared by Live + Assessment)
-  const cameraPanel = (
+  const renderCameraPanel = (section: 'assessment' | 'live') => {
+    const isFs = fullscreenSection === section;
+    return (
     <Card className="shadow-card overflow-hidden">
       <CardContent className="p-0">
-        <div className="relative aspect-video w-full bg-muted">
+        <div className={`relative w-full bg-muted ${isFs ? 'h-[54vh] sm:h-[64vh] lg:h-[78vh]' : 'aspect-video'}`}>
           {/* Mirror video + overlay for a natural selfie view */}
           <video ref={videoRef} playsInline muted className="absolute inset-0 h-full w-full object-cover [transform:scaleX(-1)]" />
           <canvas ref={canvasRef} className="absolute inset-0 h-full w-full object-cover [transform:scaleX(-1)]" />
+
+          {cameraOn && (
+            <button
+              type="button"
+              onClick={() => toggleFullscreen(section)}
+              className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-background/85 px-3 py-1.5 text-xs font-medium text-foreground shadow-soft backdrop-blur transition-colors hover:bg-background"
+            >
+              {isFs ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+              {isFs ? tr('Exit full screen', 'Toka skrini kamili') : tr('Full screen', 'Skrini kamili')}
+            </button>
+          )}
 
           {!cameraOn && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-muted/80 p-6 text-center">
@@ -488,7 +532,8 @@ const PosturePage = () => {
         )}
       </CardContent>
     </Card>
-  );
+    );
+  };
 
   const modeToggle = (
     <div className="inline-flex rounded-lg border border-border p-1">
@@ -527,6 +572,7 @@ const PosturePage = () => {
       )}
       <div className="grid gap-3 sm:grid-cols-2">
         <MetricBar label={tr('Neck / forward-head', 'Shingo / kichwa mbele')} value={res.metrics.neckFlexion} max={60} />
+        <MetricBar label={tr('Head side-tilt', 'Mwinamo wa kichwa upande')} value={res.metrics.headTilt} max={30} />
         <MetricBar label={tr('Trunk lean', 'Mwelekeo wa kiwiliwili')} value={res.metrics.trunkFlexion} max={60} />
         <MetricBar label={tr('Shoulder tilt', 'Mwinamo wa mabega')} value={res.metrics.shoulderTilt} max={30} />
         {postureMode === 'standing' && (
@@ -574,9 +620,18 @@ const PosturePage = () => {
 
           {/* ── Assessment ── */}
           <TabsContent value="assessment" className="space-y-6">
-            <div className="grid gap-6 lg:grid-cols-2">
-              {cameraPanel}
-              <Card className="shadow-card">
+            <div
+              ref={assessmentSectionRef}
+              className={
+                fullscreenSection === 'assessment'
+                  ? 'flex h-full flex-col gap-6 overflow-auto bg-background p-4 sm:p-8 lg:flex-row lg:items-start'
+                  : 'grid gap-6 lg:grid-cols-2'
+              }
+            >
+              <div className={fullscreenSection === 'assessment' ? 'min-w-0 flex-1' : ''}>
+                {renderCameraPanel('assessment')}
+              </div>
+              <Card className={`shadow-card ${fullscreenSection === 'assessment' ? 'flex flex-col overflow-auto lg:h-full lg:w-[420px] lg:shrink-0' : ''}`}>
                 <CardHeader>
                   <CardTitle className="text-base">{tr('Guided assessment', 'Tathmini elekezi')}</CardTitle>
                   <p className="text-sm text-muted-foreground">
@@ -586,7 +641,7 @@ const PosturePage = () => {
                     )}
                   </p>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4 overflow-auto">
                   {phase === 'capturing' && (
                     <div>
                       <div className="mb-1 flex justify-between text-sm text-muted-foreground">
@@ -630,16 +685,25 @@ const PosturePage = () => {
 
           {/* ── Live ── */}
           <TabsContent value="live" className="space-y-6">
-            <div className="grid gap-6 lg:grid-cols-2">
-              {cameraPanel}
-              <Card className="shadow-card">
+            <div
+              ref={liveSectionRef}
+              className={
+                fullscreenSection === 'live'
+                  ? 'flex h-full flex-col gap-6 overflow-auto bg-background p-4 sm:p-8 lg:flex-row lg:items-start'
+                  : 'grid gap-6 lg:grid-cols-2'
+              }
+            >
+              <div className={fullscreenSection === 'live' ? 'min-w-0 flex-1' : ''}>
+                {renderCameraPanel('live')}
+              </div>
+              <Card className={`shadow-card ${fullscreenSection === 'live' ? 'flex flex-col overflow-auto lg:h-full lg:w-[420px] lg:shrink-0' : ''}`}>
                 <CardHeader>
                   <CardTitle className="text-base">{tr('Live coaching', 'Mwongozo wa moja kwa moja')}</CardTitle>
                   <p className="text-sm text-muted-foreground">
                     {tr('We watch your posture and nudge you when you slouch.', 'Tunafuatilia mkao wako na kukukumbusha unapoinama.')}
                   </p>
                 </CardHeader>
-                <CardContent className="space-y-5">
+                <CardContent className="space-y-5 overflow-auto">
                   <div className="flex items-center gap-4">
                     <ScoreRing score={result?.score ?? 0} color={liveColor} size={120} />
                     <div className="space-y-1">

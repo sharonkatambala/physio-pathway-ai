@@ -20,7 +20,7 @@ const Hero = () => {
         <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/85 to-background/65" />
       </div>
 
-      <div className="relative z-10 pt-16 sm:pt-20 pb-14 sm:pb-20">
+      <div className="relative z-10 pt-28 sm:pt-32 pb-6 sm:pb-8">
         <div className="page-shell">
           <div className="max-w-2xl space-y-5">
             <Badge variant="secondary" className="w-fit">

@@ -9,6 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/components/ui/use-toast';
 import { ArrowLeft, Shield, CheckCircle2, Brain, TrendingUp } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import LegalDialog, { type LegalTopic } from '@/components/LegalDialog';
 
 const AuthPage = () => {
   const [loading, setLoading] = useState(false);
@@ -59,8 +60,8 @@ const AuthPage = () => {
     sex: '',
     occupation: ''
   });
-  const [physioPhoto, setPhysioPhoto] = useState<File | null>(null);
   const [authTab, setAuthTab] = useState<'login' | 'signup'>('login');
+  const [legalTopic, setLegalTopic] = useState<LegalTopic | null>(null);
 
   const inputClass =
     'bg-background border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-primary/40 focus-visible:border-primary/60';
@@ -408,16 +409,9 @@ const AuthPage = () => {
                   </div>
 
                   {signupData.role === 'physiotherapist' && (
-                    <div className="space-y-1.5">
-                      <Label htmlFor="physio-photo">Profile Photo</Label>
-                      <Input
-                        id="physio-photo"
-                        type="file"
-                        accept="image/*"
-                        onChange={(e: any) => setPhysioPhoto(e.target.files?.[0] ?? null)}
-                        className={inputClass}
-                      />
-                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      You can add a profile photo from your profile page after signing up.
+                    </p>
                   )}
 
                   <Button
@@ -433,13 +427,15 @@ const AuthPage = () => {
 
             <p className="text-center text-xs text-muted-foreground mt-6">
               By continuing, you agree to ErgoCare+'s{' '}
-              <button type="button" className="underline hover:text-foreground transition-colors">Terms</button>
+              <button type="button" onClick={() => setLegalTopic('terms')} className="underline hover:text-foreground transition-colors">Terms</button>
               {' '}and{' '}
-              <button type="button" className="underline hover:text-foreground transition-colors">Privacy Policy</button>.
+              <button type="button" onClick={() => setLegalTopic('privacy')} className="underline hover:text-foreground transition-colors">Privacy Policy</button>.
             </p>
           </div>
         </div>
       </div>
+
+      <LegalDialog topic={legalTopic} onClose={() => setLegalTopic(null)} />
     </div>
   );
 };

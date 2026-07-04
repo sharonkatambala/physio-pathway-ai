@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Navigation from '@/components/Navigation';
 import {
   Calendar, Clock, Phone, Users, Award, CheckCircle, User,
-  Video, MapPin, Loader2, CalendarCheck, ArrowRight, Stethoscope
+  Video, MapPin, Loader2, CalendarCheck, Stethoscope
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from "@/integrations/supabase/client";
@@ -60,6 +60,9 @@ const BookingPage = () => {
 
   const [myAppointments, setMyAppointments] = useState<Appointment[]>([]);
   const [justBooked, setJustBooked] = useState<null | { physio: string; date: string; time: string; type: SessionType }>(null);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+  // Which completed step the user reopened via its "Change" button.
+  const [editingStep, setEditingStep] = useState<1 | 2 | null>(null);
 
   const physioName = useCallback((p?: Physiotherapist | null) => {
     if (!p) return tr('Physiotherapist', 'Physiotherapist');
@@ -150,6 +153,25 @@ const BookingPage = () => {
 
   useEffect(() => { loadMyAppointments(); }, [loadMyAppointments]);
 
+  const cancelAppointment = async (id: string) => {
+    setCancellingId(id);
+    const { error } = await supabase.from('appointments').update({ status: 'cancelled' }).eq('id', id);
+    setCancellingId(null);
+    if (error) {
+      toast({
+        title: tr('Could not cancel', 'Imeshindwa kughairi'),
+        description: error.message,
+        variant: 'destructive',
+      });
+      return;
+    }
+    toast({
+      title: tr('Session cancelled', 'Kikao kimeghairiwa'),
+      description: tr('It has been removed from your upcoming sessions.', 'Kimeondolewa kwenye vikao vyako vijavyo.'),
+    });
+    await loadMyAppointments();
+  };
+
   const selectedPhysioObj = physiotherapists.find((p) => p.id === selectedPhysio) ?? null;
   const canConfirm = Boolean(selectedPhysio && selectedDate && selectedTime && !submitting);
 
@@ -197,9 +219,13 @@ const BookingPage = () => {
         title: tr('Session requested', 'Ombi la kikao limewasilishwa'),
         description: tr('Your physiotherapist will confirm shortly.', 'Physiotherapist atathibitisha hivi karibuni.'),
       });
+      // Reset the wizard back to step 1 so another session can be booked.
+      setSelectedPhysio(null);
       setSelectedDate('');
       setSelectedTime('');
+      setSessionType('video');
       setNotes('');
+      setEditingStep(null);
       await loadMyAppointments();
       if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (error: any) {
@@ -239,15 +265,91 @@ const BookingPage = () => {
     return <Badge variant="outline" className={`capitalize ${map[status]}`}>{labels[status]}</Badge>;
   };
 
-  const Step = ({ n, label, active, done }: { n: number; label: string; active: boolean; done: boolean }) => (
-    <div className="flex items-center gap-2">
-      <div className={`h-7 w-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
-        done ? 'bg-primary text-primary-foreground' : active ? 'bg-primary/15 text-primary border border-primary/40' : 'bg-muted text-muted-foreground'
-      }`}>
-        {done ? <CheckCircle className="h-4 w-4" /> : n}
+  const stepDefs = [
+    {
+      n: 1,
+      title: tr('Therapist', 'Mtaalamu'),
+      caption: tr('Pick who you want to see', 'Chagua unayemtaka'),
+      done: !!selectedPhysio,
+    },
+    {
+      n: 2,
+      title: tr('Schedule', 'Ratiba'),
+      caption: tr('Choose date and time', 'Chagua tarehe na muda'),
+      done: !!(selectedDate && selectedTime),
+    },
+    {
+      n: 3,
+      title: tr('Confirm', 'Thibitisha'),
+      caption: tr('Review and submit', 'Kagua na wasilisha'),
+      done: false,
+    },
+  ];
+  // The wizard shows one step at a time: the first incomplete step, or the
+  // one the user reopened with "Change".
+  const currentStep = editingStep ?? (stepDefs.find((s) => !s.done)?.n ?? 3);
+  const activeStep = currentStep;
+
+  const CompletedSummary = ({ n, onChange, children }: { n: number; onChange: () => void; children: React.ReactNode }) => (
+    <div className="flex items-center justify-between gap-3 rounded-2xl border border-primary/25 bg-primary/5 px-4 py-3 shadow-xs">
+      <div className="flex min-w-0 items-center gap-3">
+        <StepChip n={n} />
+        {children}
       </div>
-      <span className={`text-sm font-medium ${active || done ? 'text-foreground' : 'text-muted-foreground'}`}>{label}</span>
+      <Button variant="outline" size="sm" className="flex-shrink-0" onClick={onChange}>
+        {tr('Change', 'Badilisha')}
+      </Button>
     </div>
+  );
+
+  const Stepper = () => (
+    <div className="mb-8 rounded-2xl border border-border/60 bg-card px-5 py-5 shadow-card sm:px-8">
+      <div className="flex items-start">
+        {stepDefs.map((step, i) => {
+          const isActive = step.n === activeStep;
+          const isDone = step.done;
+          return (
+            <div key={step.n} className="flex flex-1 items-start last:flex-initial">
+              <div className="flex flex-col items-center text-center sm:min-w-[92px]">
+                <div
+                  className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold transition-all duration-200 ${
+                    isDone
+                      ? 'bg-primary text-primary-foreground shadow-soft'
+                      : isActive
+                      ? 'border-2 border-primary bg-primary/10 text-primary ring-4 ring-primary/10'
+                      : 'border border-border bg-muted text-muted-foreground'
+                  }`}
+                >
+                  {isDone ? <CheckCircle className="h-5 w-5" /> : step.n}
+                </div>
+                <p className={`mt-2 text-sm font-semibold ${isDone || isActive ? 'text-foreground' : 'text-muted-foreground'}`}>
+                  {step.title}
+                </p>
+                <p className="mt-0.5 hidden text-xs text-muted-foreground sm:block">{step.caption}</p>
+              </div>
+              {i < stepDefs.length - 1 && (
+                <div className="mx-2 mt-5 h-1 flex-1 overflow-hidden rounded-full bg-muted sm:mx-4">
+                  <div
+                    className="h-full rounded-full bg-primary transition-all duration-500"
+                    style={{ width: step.done ? '100%' : '0%' }}
+                  />
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  const StepChip = ({ n }: { n: number }) => (
+    <span
+      className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+        stepDefs[n - 1].done ? 'bg-primary text-primary-foreground' : 'bg-primary/10 text-primary'
+      }`}
+    >
+      {stepDefs[n - 1].done ? <CheckCircle className="h-3.5 w-3.5" /> : n}
+    </span>
   );
 
   return (
@@ -256,9 +358,14 @@ const BookingPage = () => {
 
       <div className="page-shell py-8">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-foreground mb-2">{tr('Book a Session', 'Weka Kikao')}</h1>
-          <p className="text-muted-foreground">{tr('Schedule an appointment with a licensed physiotherapist.', 'Panga miadi na physiotherapist aliyeidhinishwa.')}</p>
+        <div className="mb-6 flex items-center gap-3">
+          <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-primary/10">
+            <Calendar className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">{tr('Book Session', 'Weka Kikao')}</h1>
+            <p className="text-sm text-muted-foreground">{tr('Schedule an appointment with a licensed physiotherapist.', 'Panga miadi na physiotherapist aliyeidhinishwa.')}</p>
+          </div>
         </div>
 
         {/* Success banner */}
@@ -307,7 +414,22 @@ const BookingPage = () => {
                         </p>
                       </div>
                     </div>
-                    <StatusBadge status={appt.status} />
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <StatusBadge status={appt.status} />
+                      {(appt.status === 'pending' || appt.status === 'confirmed') && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                          disabled={cancellingId === appt.id}
+                          onClick={() => cancelAppointment(appt.id)}
+                        >
+                          {cancellingId === appt.id
+                            ? <Loader2 className="h-4 w-4 animate-spin" />
+                            : tr('Cancel', 'Ghairi')}
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 );
               })}
@@ -316,22 +438,31 @@ const BookingPage = () => {
         )}
 
         {/* Step indicator */}
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-6">
-          <Step n={1} label={tr('Therapist', 'Mtaalamu')} active={!selectedPhysio} done={!!selectedPhysio} />
-          <ArrowRight className="h-4 w-4 text-muted-foreground hidden sm:block" />
-          <Step n={2} label={tr('Schedule', 'Ratiba')} active={!!selectedPhysio && !(selectedDate && selectedTime)} done={!!(selectedDate && selectedTime)} />
-          <ArrowRight className="h-4 w-4 text-muted-foreground hidden sm:block" />
-          <Step n={3} label={tr('Confirm', 'Thibitisha')} active={!!(selectedDate && selectedTime)} done={false} />
-        </div>
+        <Stepper />
 
         <div className="grid lg:grid-cols-3 gap-8 items-start">
           {/* Left column */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Physiotherapist selection */}
+            {/* Step 1: physiotherapist — full picker while choosing, compact summary after */}
+            {currentStep !== 1 && selectedPhysioObj && (
+              <CompletedSummary n={1} onChange={() => setEditingStep(1)}>
+                <Avatar className="h-10 w-10 ring-2 ring-primary/15">
+                  <AvatarImage src={selectedPhysioObj.avatar_url || undefined} alt={physioName(selectedPhysioObj)} />
+                  <AvatarFallback className="bg-muted text-muted-foreground"><User className="h-5 w-5" /></AvatarFallback>
+                </Avatar>
+                <div className="min-w-0">
+                  <p className="truncate font-semibold text-foreground">{physioName(selectedPhysioObj)}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {selectedPhysioObj.occupation || tr('Physiotherapist', 'Physiotherapist')}
+                  </p>
+                </div>
+              </CompletedSummary>
+            )}
+            {currentStep === 1 && (
             <Card className="shadow-card">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-primary" />
+                <CardTitle className="flex items-center gap-2.5">
+                  <StepChip n={1} />
                   {tr('Choose Your Physiotherapist', 'Chagua Physiotherapist')}
                 </CardTitle>
               </CardHeader>
@@ -362,7 +493,7 @@ const BookingPage = () => {
                         <button
                           type="button"
                           key={physio.id}
-                          onClick={() => setSelectedPhysio(physio.id)}
+                          onClick={() => { setSelectedPhysio(physio.id); setEditingStep(null); }}
                           className={`text-left rounded-xl border p-4 transition-all ${
                             selected ? 'border-primary bg-primary/5 ring-2 ring-primary/30' : 'border-border hover:border-primary/50 hover:bg-muted/40'
                           }`}
@@ -397,13 +528,25 @@ const BookingPage = () => {
                 </div>
               </CardContent>
             </Card>
+            )}
 
-            {/* Date & time */}
-            {selectedPhysio && (
+            {/* Step 2: schedule — picker while choosing, compact summary after */}
+            {currentStep === 3 && selectedDate && selectedTime && (
+              <CompletedSummary n={2} onChange={() => setEditingStep(2)}>
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
+                  <Calendar className="h-5 w-5 text-primary" />
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate font-semibold text-foreground">{formatDateLong(selectedDate)}</p>
+                  <p className="text-xs text-muted-foreground">{formatTime12(selectedTime)}</p>
+                </div>
+              </CompletedSummary>
+            )}
+            {currentStep === 2 && (
               <Card className="shadow-card">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Calendar className="h-5 w-5 text-primary" />
+                  <CardTitle className="flex items-center gap-2.5">
+                    <StepChip n={2} />
                     {tr('Select Date & Time', 'Chagua Tarehe na Muda')}
                   </CardTitle>
                 </CardHeader>
@@ -441,7 +584,7 @@ const BookingPage = () => {
                             <button
                               type="button"
                               key={time}
-                              onClick={() => setSelectedTime(time)}
+                              onClick={() => { setSelectedTime(time); setEditingStep(null); }}
                               className={`flex items-center justify-center gap-1.5 rounded-lg border py-2.5 text-sm font-medium transition-colors ${
                                 active ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:border-primary/50 hover:bg-muted/40'
                               }`}
@@ -458,11 +601,14 @@ const BookingPage = () => {
               </Card>
             )}
 
-            {/* Session type & notes */}
-            {selectedPhysio && selectedDate && selectedTime && (
+            {/* Step 3: session type & notes */}
+            {currentStep === 3 && selectedPhysio && selectedDate && selectedTime && (
               <Card className="shadow-card">
                 <CardHeader>
-                  <CardTitle>{tr('Session Details', 'Maelezo ya Kikao')}</CardTitle>
+                  <CardTitle className="flex items-center gap-2.5">
+                    <StepChip n={3} />
+                    {tr('Session Details', 'Maelezo ya Kikao')}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-5">
                   <div>
@@ -529,11 +675,6 @@ const BookingPage = () => {
                     <SummaryRow label={tr('Time', 'Muda')} value={selectedTime ? formatTime12(selectedTime) : tr('Not selected', 'Haijachaguliwa')} />
                     <SummaryRow label={tr('Type', 'Aina')} value={sessionTypeMeta[sessionType].label} />
                     <SummaryRow label={tr('Duration', 'Muda')} value={tr('45 minutes', 'Dakika 45')} />
-
-                    <div className="flex items-center justify-between pt-3 border-t border-border/60">
-                      <span className="text-sm text-muted-foreground">{tr('Estimated cost', 'Gharama inayokadiriwa')}</span>
-                      <span className="text-lg font-bold text-foreground">$120</span>
-                    </div>
 
                     <Button
                       className="w-full bg-gradient-hero shadow-glow font-semibold"

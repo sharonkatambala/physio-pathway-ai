@@ -5,33 +5,19 @@ import { Navigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import Navigation from '@/components/Navigation';
 // Legacy assessment components removed. New assessment is handled at /assessment route.
-import { 
-  Calendar, 
-  Target, 
-  TrendingUp, 
-  Clock, 
-  Video, 
-  MessageSquare,
+import {
+  Calendar,
+  Target,
+  TrendingUp,
   Activity,
-  FileText,
-  Bell,
-  User,
-  Brain,
-  Play,
-  CheckCircle,
   RotateCcw,
   Sparkles,
   ArrowRight
 } from 'lucide-react';
-import ExerciseProgram from '@/components/ExerciseProgram';
-import ProgressTracker from '@/components/ProgressTracker';
-import MonitoringSystem from '@/components/MonitoringSystem';
-import BookingSystem from '@/components/BookingSystem';
 import ExerciseProgramDisplay from '@/components/ExerciseProgramDisplay';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -237,17 +223,8 @@ const PatientDashboard = () => {
           </div>
         </div>
 
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="overview">{t('dashboard.overview')}</TabsTrigger>
-            <TabsTrigger value="exercises">{t('dashboard.exercises')}</TabsTrigger>
-            <TabsTrigger value="progress">{t('dashboard.progress')}</TabsTrigger>
-            <TabsTrigger value="monitoring">{t('dashboard.monitoring')}</TabsTrigger>
-            <TabsTrigger value="chat">{t('dashboard.chatBook')}</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-6">
-            {/* First-time prompt: invite the patient to complete their first assessment */}
+        <div className="space-y-6">
+            {/* First-time prompt */}
             {hasAnyAssessment === false && (
               <Card className="border-primary/30 bg-primary/5 shadow-card">
                 <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
@@ -349,16 +326,14 @@ const PatientDashboard = () => {
             {/* AI-Generated Exercise Program */}
             {exerciseProgram && <ExerciseProgramDisplay program={exerciseProgram} />}
 
-            {/* Today's Tasks */}
+            {/* Quick Actions */}
             <Card className="shadow-card">
               <CardHeader>
                 <CardTitle>{t('patient.todaysActions')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="rounded-lg border border-dashed border-border/60 p-4 text-sm text-muted-foreground">
-                  {hasProgressEntries
-                    ? t('patient.actionsReady')
-                    : t('patient.actionsEmpty')}
+                  {hasProgressEntries ? t('patient.actionsReady') : t('patient.actionsEmpty')}
                   <div className="mt-3 flex flex-wrap gap-2">
                     <Button size="sm" variant="outline" onClick={() => navigate('/progress')}>
                       {t('patient.logProgress')}
@@ -376,48 +351,7 @@ const PatientDashboard = () => {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
-
-          <TabsContent value="exercises">
-            <ExerciseProgram />
-          </TabsContent>
-
-          <TabsContent value="progress">
-            <ProgressTracker />
-          </TabsContent>
-
-          <TabsContent value="monitoring">
-            <MonitoringSystem />
-          </TabsContent>
-
-          <TabsContent value="chat">
-            <div className="space-y-6">
-              <Card className="shadow-card">
-                <CardContent className="flex flex-col items-center text-center gap-4 py-10">
-                  <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center">
-                    <MessageSquare className="h-7 w-7 text-primary" />
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="text-lg font-semibold">
-                      {tr('Message your physiotherapist', 'Tuma ujumbe kwa physiotherapist wako')}
-                    </h3>
-                    <p className="text-sm text-muted-foreground max-w-md">
-                      {tr(
-                        'Chat directly with your physiotherapist in real time. Your conversations are private and shared only with your care team.',
-                        'Wasiliana moja kwa moja na physiotherapist wako kwa wakati halisi. Mazungumzo yako ni ya faragha na yanaonekana kwa timu yako ya huduma pekee.'
-                      )}
-                    </p>
-                  </div>
-                  <Button onClick={() => navigate('/messages')} className="bg-gradient-hero shadow-soft">
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    {tr('Open Messages', 'Fungua Ujumbe')}
-                  </Button>
-                </CardContent>
-              </Card>
-              <BookingSystem />
-            </div>
-          </TabsContent>
-        </Tabs>
+          </div>
       </div>
     </div>
   );

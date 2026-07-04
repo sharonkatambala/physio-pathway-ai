@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import PageTitle from "@/components/PageTitle";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/AuthPage";
@@ -25,6 +26,7 @@ import WorkstationPage from "./pages/WorkstationPage";
 
 const App = () => (
   <AuthProvider>
+    <PageTitle />
     <Routes>
       <Route path="/" element={<Index />} />
       <Route path="/auth" element={<AuthPage />} />

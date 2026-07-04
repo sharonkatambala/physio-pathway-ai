@@ -54,7 +54,7 @@ const translations = {
     
     // Hero
     'hero.tagline': 'AI-Powered Physiotherapy Platform',
-    'hero.title': 'Your AI Physiotherapy Assistant',
+    'hero.title': 'Your Physiotherapy Assistant',
     'hero.description': 'Advanced AI-powered physiotherapy platform connecting patients and physiotherapists. Get personalized assessments, exercise programs, and professional monitoring all in one place.',
     'hero.startAssessment': 'Start Free Assessment',
     'hero.hipaaCompliant': 'HIPAA Compliant',

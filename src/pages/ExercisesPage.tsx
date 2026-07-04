@@ -1,26 +1,43 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import Navigation from '@/components/Navigation';
-import { 
-  ArrowLeft, 
-  Play, 
-  Clock, 
+import { toast } from 'sonner';
+import {
+  ArrowLeft,
+  Play,
+  Clock,
   Target,
   Activity,
   Heart,
   Scale,
   Zap,
   User,
-  Award
+  Award,
+  BookmarkPlus,
+  BookmarkCheck,
+  ClipboardList,
+  Trash2
 } from 'lucide-react';
 import { exerciseCategories, type ExerciseDifficulty } from '@/data/exerciseCategories';
 import { exerciseTranslations } from '@/data/exerciseTranslations';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 type Phase = 'acute' | 'intermediate' | 'advanced';
+
+const MY_PLAN_KEY = 'ergocare-my-plan';
+
+const loadMyPlan = (): string[] => {
+  try {
+    const raw = localStorage.getItem(MY_PLAN_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.filter((v) => typeof v === 'string') : [];
+  } catch {
+    return [];
+  }
+};
 
 const ExercisesPage = () => {
   const { language } = useLanguage();
@@ -31,6 +48,32 @@ const ExercisesPage = () => {
   const [isCategoryDemoOpen, setIsCategoryDemoOpen] = useState(false);
   const [openImageUrl, setOpenImageUrl] = useState<string | null>(null);
   const [openImageAlt, setOpenImageAlt] = useState<string>('');
+  const [myPlan, setMyPlan] = useState<string[]>(loadMyPlan);
+  const [planOpen, setPlanOpen] = useState(false);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(MY_PLAN_KEY, JSON.stringify(myPlan));
+    } catch {
+      // storage full or unavailable; the in-memory plan still works for this visit
+    }
+  }, [myPlan]);
+
+  const togglePlan = (exerciseId: string, name: string) => {
+    setMyPlan((prev) => {
+      if (prev.includes(exerciseId)) {
+        toast(tr('Removed from your plan', 'Imeondolewa kwenye mpango wako'), { description: name });
+        return prev.filter((id) => id !== exerciseId);
+      }
+      toast.success(tr('Added to your plan', 'Imeongezwa kwenye mpango wako'), { description: name });
+      return [...prev, exerciseId];
+    });
+  };
+
+  const allExercises = exerciseCategories.flatMap((c) => c.exercises);
+  const planExercises = myPlan
+    .map((id) => allExercises.find((e) => e.id === id))
+    .filter((e): e is (typeof allExercises)[number] => !!e);
 
   const bodyPartLabels: Record<string, string> = {
     'adductors': 'ndani ya mapaja',
@@ -136,6 +179,61 @@ const ExercisesPage = () => {
     return id ? `https://www.youtube-nocookie.com/embed/${id}` : null;
   };
 
+  const myPlanButton = (
+    <Button variant="outline" onClick={() => setPlanOpen(true)} className="gap-2 flex-shrink-0">
+      <ClipboardList className="h-4 w-4" />
+      {tr('My Plan', 'Mpango Wangu')}
+      {myPlan.length > 0 && (
+        <Badge variant="secondary" className="ml-0.5 px-1.5">{myPlan.length}</Badge>
+      )}
+    </Button>
+  );
+
+  const planDialog = (
+    <Dialog open={planOpen} onOpenChange={setPlanOpen}>
+      <DialogContent className="max-h-[85vh] max-w-lg overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{tr('My Exercise Plan', 'Mpango Wangu wa Mazoezi')}</DialogTitle>
+          <DialogDescription>
+            {tr('Exercises you saved for your routine. Saved on this device.', 'Mazoezi uliyohifadhi kwa ratiba yako. Yamehifadhiwa kwenye kifaa hiki.')}
+          </DialogDescription>
+        </DialogHeader>
+        {planExercises.length === 0 ? (
+          <div className="flex flex-col items-center gap-2 py-8 text-center text-muted-foreground">
+            <ClipboardList className="h-8 w-8 opacity-40" />
+            <p className="text-sm">
+              {tr('No exercises saved yet. Use "Add to My Plan" on any exercise.', 'Hakuna mazoezi yaliyohifadhiwa bado. Tumia "Ongeza kwenye Mpango Wangu" kwenye zoezi lolote.')}
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {planExercises.map((exercise) => {
+              const copy = getExerciseCopy(exercise);
+              return (
+                <div key={exercise.id} className="flex items-center justify-between gap-3 rounded-lg border border-border/60 p-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-foreground">{copy.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {language === 'sw' ? (difficultyLabels[exercise.difficulty] ?? exercise.difficulty) : exercise.difficulty}, {copy.duration}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => togglePlan(exercise.id, copy.name)}
+                    className="flex-shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                    title={tr('Remove', 'Ondoa')}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+
   if (selectedCategory) {
     const category = exerciseCategories.find(cat => cat.id === selectedCategory);
     if (!category) return null;
@@ -165,14 +263,16 @@ const ExercisesPage = () => {
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Back Button */}
-          <Button 
-            variant="ghost" 
-            onClick={() => setSelectedCategory(null)}
-            className="mb-6"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            {tr('Back to Categories', 'Rudi kwenye Makundi')}
-          </Button>
+          <div className="mb-6 flex items-center justify-between gap-3">
+            <Button
+              variant="ghost"
+              onClick={() => setSelectedCategory(null)}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              {tr('Back to Categories', 'Rudi kwenye Makundi')}
+            </Button>
+            {myPlanButton}
+          </div>
 
           {/* Phase Selection */}
           <Card className="mb-6 shadow-card">
@@ -392,7 +492,18 @@ const ExercisesPage = () => {
                           {tr('Watch Demo', 'Tazama Demo')}
                         </Button>
                       )}
-                      <Button size="sm" className="flex-1">{tr('Add to My Plan', 'Ongeza kwenye Mpango Wangu')}</Button>
+                      <Button
+                        size="sm"
+                        variant={myPlan.includes(exercise.id) ? 'secondary' : 'default'}
+                        className="flex-1"
+                        onClick={() => togglePlan(exercise.id, exerciseCopy.name)}
+                      >
+                        {myPlan.includes(exercise.id) ? (
+                          <><BookmarkCheck className="h-4 w-4 mr-1" />{tr('In My Plan', 'Kwenye Mpango Wangu')}</>
+                        ) : (
+                          <><BookmarkPlus className="h-4 w-4 mr-1" />{tr('Add to My Plan', 'Ongeza kwenye Mpango Wangu')}</>
+                        )}
+                      </Button>
                     </div>
 
                     {embedUrl && isOpen ? (
@@ -419,6 +530,7 @@ const ExercisesPage = () => {
             )}
           </div>
         </div>
+        {planDialog}
       </div>
     );
   }
@@ -430,11 +542,14 @@ const ExercisesPage = () => {
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-4">{tr('Exercise Program', 'Mpango wa Mazoezi')}</h1>
-          <p className="text-muted-foreground">
-            {tr('Select a category below to view exercises based on WHO and leading physiotherapy standards. Each category contains exercise videos and instructions tailored to your rehabilitation needs.', 'Chagua kundi hapa chini kuona mazoezi yanayotokana na viwango vya WHO na physiotherapy. Kila kundi lina video za mazoezi na maelekezo yanayoendana na mahitaji yako ya rehab.')}
-          </p>
+        <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
+          <div className="max-w-3xl">
+            <h1 className="text-3xl font-bold text-foreground mb-4">{tr('Exercise Program', 'Mpango wa Mazoezi')}</h1>
+            <p className="text-muted-foreground">
+              {tr('Select a category below to view exercises based on WHO and leading physiotherapy standards. Each category contains exercise videos and instructions tailored to your rehabilitation needs.', 'Chagua kundi hapa chini kuona mazoezi yanayotokana na viwango vya WHO na physiotherapy. Kila kundi lina video za mazoezi na maelekezo yanayoendana na mahitaji yako ya rehab.')}
+            </p>
+          </div>
+          {myPlanButton}
         </div>
 
         {/* Categories Grid */}
@@ -506,6 +621,7 @@ const ExercisesPage = () => {
           </CardContent>
         </Card>
       </div>
+      {planDialog}
     </div>
   );
 };

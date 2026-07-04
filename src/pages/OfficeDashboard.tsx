@@ -62,7 +62,7 @@ const OfficeDashboard = () => {
     const [{ data: op }, { data: ea }, { data: ps }] = await Promise.all([
       supabase.from('office_profiles').select('*').eq('user_id', user.id).limit(1),
       supabase.from('ergonomic_assessments').select('id, created_at, risk_score, zone').eq('user_id', user.id).order('created_at', { ascending: false }),
-      supabase.from('posture_sessions').select('id, created_at, overall_score').eq('user_id', user.id).order('created_at', { ascending: false }),
+      supabase.from('posture_sessions').select('id, created_at, overall_score').eq('patient_user_id', user.id).order('created_at', { ascending: false }),
     ]);
     setOffice((op?.[0] as OfficeProfile) ?? null);
     setErgo((ea as ErgoRow[]) ?? []);

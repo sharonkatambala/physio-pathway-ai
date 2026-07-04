@@ -6,8 +6,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
-import { FileText, Dumbbell, Repeat, Stethoscope, Copy, Check, ClipboardList } from 'lucide-react';
+import { FileText, Dumbbell, Repeat, Stethoscope, Copy, Check, ClipboardList, Trash2, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const ProgramsPage = () => {
   const { language } = useLanguage();
@@ -18,6 +29,8 @@ const ProgramsPage = () => {
   const [loadingPrograms, setLoadingPrograms] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<any | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -63,6 +76,28 @@ const ProgramsPage = () => {
     navigator.clipboard?.writeText(JSON.stringify(p.program, null, 2));
     setCopiedId(p.id);
     setTimeout(() => setCopiedId((id) => (id === p.id ? null : id)), 2000);
+  };
+
+  const deleteReport = async () => {
+    if (!confirmDelete) return;
+    setDeleting(true);
+    // .select() confirms a row was actually removed; RLS silently deletes
+    // nothing when the user lacks permission, and that must surface as an error.
+    const { data, error: delError } = await supabase
+      .from('recommendations')
+      .delete()
+      .eq('id', confirmDelete.id)
+      .select('id');
+    setDeleting(false);
+    if (delError || !data?.length) {
+      toast.error(tr('Could not delete report', 'Imeshindwa kufuta ripoti'), {
+        description: delError?.message ?? tr('The report was not deleted. Please try again.', 'Ripoti haikufutwa. Tafadhali jaribu tena.'),
+      });
+      return;
+    }
+    setPrograms((prev) => prev.filter((p) => p.id !== confirmDelete.id));
+    setConfirmDelete(null);
+    toast.success(tr('Report deleted', 'Ripoti imefutwa'));
   };
 
   return (
@@ -135,6 +170,15 @@ const ProgramsPage = () => {
                         {copiedId === p.id ? <Check className="mr-2 h-4 w-4 text-success" /> : <Copy className="mr-2 h-4 w-4" />}
                         {copiedId === p.id ? tr('Copied', 'Imenakiliwa') : tr('Copy JSON', 'Nakili JSON')}
                       </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-muted-foreground hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
+                        onClick={() => setConfirmDelete(p)}
+                        title={tr('Delete report', 'Futa ripoti')}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 </CardHeader>
@@ -168,6 +212,31 @@ const ProgramsPage = () => {
           })}
         </div>
       </div>
+
+      <AlertDialog open={!!confirmDelete} onOpenChange={(open) => !open && setConfirmDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{tr('Delete this report?', 'Futa ripoti hii?')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {tr(
+                'This permanently removes the report and its exercise program from your account. This cannot be undone.',
+                'Hii itaondoa kabisa ripoti na programu yake ya mazoezi kutoka kwenye akaunti yako. Haiwezi kurejeshwa.'
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>{tr('Cancel', 'Ghairi')}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); deleteReport(); }}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
+              {deleting ? tr('Deleting...', 'Inafuta...') : tr('Delete report', 'Futa ripoti')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

@@ -41,13 +41,14 @@ export type Zone = 'good' | 'fair' | 'poor';
 export interface PostureMetrics {
   neckFlexion: number; // degrees of head/neck tilt from vertical (forward-head)
   trunkFlexion: number; // degrees of torso lean from vertical
+  headTilt: number | null; // lateral head tilt: ear-line vs shoulder-line (front view only)
   shoulderTilt: number | null; // left-right shoulder imbalance (front view only)
   kneeFlexion: number | null; // standing only: bend at the knee (0 = straight)
   side: 'left' | 'right';
 }
 
 export interface PostureIssue {
-  key: 'neck' | 'trunk' | 'shoulder' | 'knee';
+  key: 'neck' | 'head' | 'trunk' | 'shoulder' | 'knee';
   severity: number; // 0..1
   en: string;
   sw: string;
@@ -62,6 +63,17 @@ export interface PostureResult {
 
 const toDeg = (rad: number) => (rad * 180) / Math.PI;
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+
+/**
+ * Signed angle of the line a→b from horizontal, folded into [-90, 90] degrees
+ * so the result is independent of point ordering (0 = level line).
+ */
+function lineAngleFromHorizontal(a: Landmark, b: Landmark): number {
+  let ang = toDeg(Math.atan2(b.y - a.y, b.x - a.x));
+  if (ang > 90) ang -= 180;
+  if (ang < -90) ang += 180;
+  return ang;
+}
 
 /** Deviation of the segment lower→upper from the vertical axis, in degrees [0,90]. */
 function tiltFromVertical(lower: Landmark, upper: Landmark): number {
@@ -117,19 +129,33 @@ export function computeMetrics(landmarks: Landmark[], mode: PostureMode): Postur
     shoulderTilt = toDeg(Math.atan2(Math.abs(ls.y - rs.y), Math.abs(ls.x - rs.x) || 1e-6));
   }
 
+  // Lateral head tilt (ear toward shoulder) - front view only, when both ears
+  // are visible. Measured relative to the shoulder line so a slightly tilted
+  // camera or leaning torso does not flag a level head.
+  let headTilt: number | null = null;
+  const le = landmarks[LM.LEFT_EAR];
+  const re = landmarks[LM.RIGHT_EAR];
+  if (vis(le) > 0.5 && vis(re) > 0.5 && vis(ls) > 0.6 && vis(rs) > 0.6) {
+    const earLine = lineAngleFromHorizontal(le, re);
+    const shoulderLine = lineAngleFromHorizontal(ls, rs);
+    let diff = Math.abs(earLine - shoulderLine);
+    if (diff > 90) diff = 180 - diff;
+    headTilt = diff;
+  }
+
   // Knee bend only for standing/manual mode and when the leg is visible.
   let kneeFlexion: number | null = null;
   if (mode === 'standing' && vis(knee) > 0.4 && vis(ankle) > 0.4) {
     kneeFlexion = Math.max(0, 180 - jointAngle(hip, knee, ankle));
   }
 
-  return { neckFlexion, trunkFlexion, shoulderTilt, kneeFlexion, side };
+  return { neckFlexion, trunkFlexion, headTilt, shoulderTilt, kneeFlexion, side };
 }
 
 /** Conservative neutral allowances and concern thresholds (degrees). */
 const THRESH = {
-  seated: { neck: { ok: 12, bad: 35 }, trunk: { ok: 10, bad: 30 }, shoulder: { ok: 5, bad: 18 } },
-  standing: { neck: { ok: 12, bad: 35 }, trunk: { ok: 10, bad: 45 }, shoulder: { ok: 6, bad: 20 }, knee: { ok: 12, bad: 45 } },
+  seated: { neck: { ok: 12, bad: 35 }, head: { ok: 8, bad: 25 }, trunk: { ok: 10, bad: 30 }, shoulder: { ok: 5, bad: 18 } },
+  standing: { neck: { ok: 12, bad: 35 }, head: { ok: 8, bad: 25 }, trunk: { ok: 10, bad: 45 }, shoulder: { ok: 6, bad: 20 }, knee: { ok: 12, bad: 45 } },
 };
 
 /** 0..1 severity for how far `value` is past its `ok` threshold toward `bad`. */
@@ -146,6 +172,16 @@ export function scorePosture(metrics: PostureMetrics, mode: PostureMode): Postur
       severity: neckSev,
       en: 'Your head is tilting forward - bring your ears back over your shoulders and raise your screen to eye level.',
       sw: 'Kichwa chako kinaegemea mbele - rudisha masikio yako juu ya mabega na inua skrini hadi usawa wa macho.',
+    });
+  }
+
+  const headSev = metrics.headTilt !== null ? severityOf(metrics.headTilt, t.head.ok, t.head.bad) : 0;
+  if (metrics.headTilt !== null && headSev > 0.05) {
+    issues.push({
+      key: 'head',
+      severity: headSev,
+      en: 'Your head is tilting to the side - level your head so your ear moves away from your shoulder.',
+      sw: 'Kichwa chako kinainama upande - nyoosha kichwa ili sikio liache kukaribia bega.',
     });
   }
 
@@ -187,6 +223,7 @@ export function scorePosture(metrics: PostureMetrics, mode: PostureMode): Postur
   // Weighted penalty → score. Neck and trunk dominate (the angles that matter most).
   const penalty =
     neckSev * 42 +
+    headSev * 34 +
     trunkSev * 38 +
     (metrics.shoulderTilt !== null ? severityOf(metrics.shoulderTilt, t.shoulder.ok, t.shoulder.bad) * 12 : 0) +
     (mode === 'standing' && metrics.kneeFlexion !== null
@@ -235,6 +272,7 @@ export function averageMetrics(series: PostureMetrics[], mode: PostureMode): Pos
   const metrics: PostureMetrics = {
     neckFlexion: avg((m) => m.neckFlexion) ?? 0,
     trunkFlexion: avg((m) => m.trunkFlexion) ?? 0,
+    headTilt: avg((m) => m.headTilt),
     shoulderTilt: avg((m) => m.shoulderTilt),
     kneeFlexion: avg((m) => m.kneeFlexion),
     side: series[series.length - 1].side,

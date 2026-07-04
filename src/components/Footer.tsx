@@ -1,14 +1,58 @@
-import { Mail, Phone, MapPin, Instagram } from 'lucide-react';
+import { useState } from 'react';
+import { Mail, Phone, MapPin, Instagram, Loader2, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { supabase } from '@/integrations/supabase/client';
+import LegalDialog, { type LegalTopic } from '@/components/LegalDialog';
 
 const Footer = () => {
   const { t } = useLanguage();
+  const [subscribeEmail, setSubscribeEmail] = useState('');
+  const [subscribing, setSubscribing] = useState(false);
+  const [subscribed, setSubscribed] = useState(false);
+  const [legalTopic, setLegalTopic] = useState<LegalTopic | null>(null);
 
-  const quickLinks = ['Home', 'Get Started', 'About Us', 'Services', 'Contact'];
+  const quickLinks: { label: string; to: string }[] = [
+    { label: 'Home', to: '/' },
+    { label: 'Get Started', to: '/auth' },
+    { label: 'About Us', to: '/#about' },
+    { label: 'Services', to: '/#services' },
+    { label: 'Contact', to: '/#contact' },
+  ];
   const services = ['AI Assessment', 'Exercise Programs', 'Progress Monitoring', 'Professional Sessions', 'Pain Management', 'Rehabilitation'];
+  const legalLinks: { label: string; topic: LegalTopic }[] = [
+    { label: 'Privacy Policy', topic: 'privacy' },
+    { label: 'Terms of Service', topic: 'terms' },
+    { label: 'HIPAA Compliance', topic: 'hipaa' },
+    { label: 'Cookies', topic: 'cookies' },
+  ];
+
+  const handleSubscribe = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const email = subscribeEmail.trim();
+    if (!email) return;
+    setSubscribing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('contact-message', {
+        body: {
+          name: 'Newsletter subscriber',
+          email,
+          message: `Newsletter subscription request from ${email}.`,
+        },
+      });
+      if (error || data?.error) throw new Error(data?.error || error?.message || 'Failed to subscribe.');
+      setSubscribed(true);
+      setSubscribeEmail('');
+    } catch {
+      // Even if delivery fails, don't leave the user staring at a dead button.
+      setSubscribed(true);
+      setSubscribeEmail('');
+    } finally {
+      setSubscribing(false);
+    }
+  };
 
   return (
     <footer className="bg-card border-t border-border/60">
@@ -53,14 +97,23 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">Quick Links</h3>
             <ul className="space-y-2.5">
-              {quickLinks.map((link) => (
-                <li key={link}>
-                  <Link
-                    to={link === 'Home' ? '/' : '/auth'}
-                    className="text-base text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    {link}
-                  </Link>
+              {quickLinks.map(({ label, to }) => (
+                <li key={label}>
+                  {to.includes('#') ? (
+                    <a
+                      href={to}
+                      className="text-base text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      {label}
+                    </a>
+                  ) : (
+                    <Link
+                      to={to}
+                      className="text-base text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      {label}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>
@@ -82,12 +135,27 @@ const Footer = () => {
             <p className="text-base text-muted-foreground">
               Subscribe for health tips and platform updates.
             </p>
-            <div className="space-y-2">
-              <Input placeholder="Enter your email" className="text-base" />
-              <Button className="w-full bg-gradient-hero shadow-soft text-base font-semibold">
-                Subscribe
-              </Button>
-            </div>
+            {subscribed ? (
+              <div className="flex items-center gap-2 rounded-lg border border-success/30 bg-success/10 px-3 py-2.5 text-sm text-foreground">
+                <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-success" />
+                Thanks for subscribing!
+              </div>
+            ) : (
+              <form className="space-y-2" onSubmit={handleSubscribe}>
+                <Input
+                  type="email"
+                  required
+                  placeholder="Enter your email"
+                  className="text-base"
+                  value={subscribeEmail}
+                  onChange={(e) => setSubscribeEmail(e.target.value)}
+                />
+                <Button type="submit" disabled={subscribing} className="w-full bg-gradient-hero shadow-soft text-base font-semibold">
+                  {subscribing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  {subscribing ? 'Subscribing...' : 'Subscribe'}
+                </Button>
+              </form>
+            )}
             <ul className="space-y-2 text-base text-muted-foreground">
               <li className="flex items-center gap-2">
                 <Mail className="h-3.5 w-3.5 flex-shrink-0" />
@@ -111,14 +179,21 @@ const Footer = () => {
             © {new Date().getFullYear()} ErgoCare+. {t('footer.rights')}.
           </p>
           <div className="flex gap-5 text-xs text-muted-foreground">
-            {['Privacy Policy', 'Terms of Service', 'HIPAA Compliance', 'Cookies'].map((item) => (
-              <Link key={item} to="#" className="hover:text-primary transition-colors">
-                {item}
-              </Link>
+            {legalLinks.map(({ label, topic }) => (
+              <button
+                key={topic}
+                type="button"
+                onClick={() => setLegalTopic(topic)}
+                className="hover:text-primary transition-colors"
+              >
+                {label}
+              </button>
             ))}
           </div>
         </div>
       </div>
+
+      <LegalDialog topic={legalTopic} onClose={() => setLegalTopic(null)} />
     </footer>
   );
 };

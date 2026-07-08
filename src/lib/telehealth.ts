@@ -4,9 +4,23 @@
 
 const JITSI_BASE = 'https://meet.jit.si';
 
+/**
+ * Deterministic FNV-1a hash suffix. The appointment id (a UUID) is already
+ * unguessable; the suffix adds defense in depth so a leaked/shared id alone
+ * is not enough to reconstruct the room name.
+ */
+const roomSuffix = (input: string): string => {
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < input.length; i++) {
+    hash ^= input.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return hash.toString(16).padStart(8, '0');
+};
+
 /** Deterministic, hard-to-guess room name for an appointment. */
 export const telehealthRoom = (appointmentId: string) =>
-  `ErgoCarePlus-${appointmentId}`;
+  `ErgoCarePlus-${appointmentId}-${roomSuffix(`ergocare-telehealth:${appointmentId}`)}`;
 
 /** Full URL for the appointment's telehealth room. */
 export const telehealthUrl = (appointmentId: string) =>

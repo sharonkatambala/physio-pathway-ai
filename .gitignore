@@ -30,4 +30,7 @@ dist-ssr
 # Claude/Agent files
 .claude/
 
+# Supabase CLI local state
+supabase/.temp/
+
 

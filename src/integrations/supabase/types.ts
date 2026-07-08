@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "13.0.5"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       appointments: {
@@ -113,6 +138,42 @@ export type Database = {
         }
         Relationships: []
       }
+      contact_messages: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          ip_address: string | null
+          message: string
+          name: string
+          status: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          ip_address?: string | null
+          message: string
+          name: string
+          status?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          ip_address?: string | null
+          message?: string
+          name?: string
+          status?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           created_at: string
@@ -179,6 +240,48 @@ export type Database = {
           step?: number | null
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      ergonomic_assessments: {
+        Row: {
+          answers: Json | null
+          chair_score: number | null
+          created_at: string | null
+          habits_score: number | null
+          id: string
+          monitor_score: number | null
+          peripherals_score: number | null
+          risk_score: number | null
+          tips: Json | null
+          user_id: string
+          zone: string | null
+        }
+        Insert: {
+          answers?: Json | null
+          chair_score?: number | null
+          created_at?: string | null
+          habits_score?: number | null
+          id?: string
+          monitor_score?: number | null
+          peripherals_score?: number | null
+          risk_score?: number | null
+          tips?: Json | null
+          user_id: string
+          zone?: string | null
+        }
+        Update: {
+          answers?: Json | null
+          chair_score?: number | null
+          created_at?: string | null
+          habits_score?: number | null
+          id?: string
+          monitor_score?: number | null
+          peripherals_score?: number | null
+          risk_score?: number | null
+          tips?: Json | null
+          user_id?: string
+          zone?: string | null
         }
         Relationships: []
       }
@@ -251,6 +354,72 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string | null
+          data: Json | null
+          id: string
+          link: string | null
+          read_at: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      office_profiles: {
+        Row: {
+          created_at: string | null
+          desk_hours_per_day: number | null
+          pain_areas: string[] | null
+          reminder_interval_min: number | null
+          reminders_enabled: boolean | null
+          sitting_streak_minutes: number | null
+          updated_at: string | null
+          user_id: string
+          uses_standing_desk: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          desk_hours_per_day?: number | null
+          pain_areas?: string[] | null
+          reminder_interval_min?: number | null
+          reminders_enabled?: boolean | null
+          sitting_streak_minutes?: number | null
+          updated_at?: string | null
+          user_id: string
+          uses_standing_desk?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          desk_hours_per_day?: number | null
+          pain_areas?: string[] | null
+          reminder_interval_min?: number | null
+          reminders_enabled?: boolean | null
+          sitting_streak_minutes?: number | null
+          updated_at?: string | null
+          user_id?: string
+          uses_standing_desk?: boolean | null
+        }
+        Relationships: []
+      }
       physio_patient_assignments: {
         Row: {
           created_at: string | null
@@ -308,10 +477,101 @@ export type Database = {
         }
         Relationships: []
       }
+      posture_samples: {
+        Row: {
+          alerts: Json
+          camera_summary: string
+          created_at: string
+          head_angle_deg: number
+          id: string
+          patient_user_id: string
+          posture_score: number
+          risk_score: number
+          shoulder_imbalance_pct: number
+          sitting_duration_minutes: number
+          source: string
+          spine_slouch_angle_deg: number
+        }
+        Insert: {
+          alerts?: Json
+          camera_summary?: string
+          created_at?: string
+          head_angle_deg?: number
+          id?: string
+          patient_user_id: string
+          posture_score?: number
+          risk_score?: number
+          shoulder_imbalance_pct?: number
+          sitting_duration_minutes?: number
+          source?: string
+          spine_slouch_angle_deg?: number
+        }
+        Update: {
+          alerts?: Json
+          camera_summary?: string
+          created_at?: string
+          head_angle_deg?: number
+          id?: string
+          patient_user_id?: string
+          posture_score?: number
+          risk_score?: number
+          shoulder_imbalance_pct?: number
+          sitting_duration_minutes?: number
+          source?: string
+          spine_slouch_angle_deg?: number
+        }
+        Relationships: []
+      }
+      posture_sessions: {
+        Row: {
+          avg_neck_flexion: number | null
+          avg_shoulder_tilt: number | null
+          avg_trunk_flexion: number | null
+          created_at: string | null
+          duration_seconds: number | null
+          id: string
+          metrics: Json | null
+          mode: string | null
+          overall_score: number | null
+          patient_user_id: string
+          pct_good_posture: number | null
+          posture_mode: string | null
+        }
+        Insert: {
+          avg_neck_flexion?: number | null
+          avg_shoulder_tilt?: number | null
+          avg_trunk_flexion?: number | null
+          created_at?: string | null
+          duration_seconds?: number | null
+          id?: string
+          metrics?: Json | null
+          mode?: string | null
+          overall_score?: number | null
+          patient_user_id: string
+          pct_good_posture?: number | null
+          posture_mode?: string | null
+        }
+        Update: {
+          avg_neck_flexion?: number | null
+          avg_shoulder_tilt?: number | null
+          avg_trunk_flexion?: number | null
+          created_at?: string | null
+          duration_seconds?: number | null
+          id?: string
+          metrics?: Json | null
+          mode?: string | null
+          overall_score?: number | null
+          patient_user_id?: string
+          pct_good_posture?: number | null
+          posture_mode?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           age: number | null
           avatar_url: string | null
+          bio: string | null
           created_at: string
           email: string | null
           first_name: string | null
@@ -326,6 +586,7 @@ export type Database = {
         Insert: {
           age?: number | null
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           email?: string | null
           first_name?: string | null
@@ -340,6 +601,7 @@ export type Database = {
         Update: {
           age?: number | null
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           email?: string | null
           first_name?: string | null
@@ -355,31 +617,55 @@ export type Database = {
       }
       progress_entries: {
         Row: {
+          adherence: number | null
           completed_exercises_count: number | null
           created_at: string | null
           data: Json | null
+          ears_answers: Json | null
+          ears_score: number | null
+          energy_level: number | null
+          function_score: number | null
+          groc: number | null
           id: string
           notes: string | null
           pain_level: number | null
           patient_user_id: string
+          sessions_done: number | null
+          sessions_target: number | null
         }
         Insert: {
+          adherence?: number | null
           completed_exercises_count?: number | null
           created_at?: string | null
           data?: Json | null
+          ears_answers?: Json | null
+          ears_score?: number | null
+          energy_level?: number | null
+          function_score?: number | null
+          groc?: number | null
           id?: string
           notes?: string | null
           pain_level?: number | null
           patient_user_id: string
+          sessions_done?: number | null
+          sessions_target?: number | null
         }
         Update: {
+          adherence?: number | null
           completed_exercises_count?: number | null
           created_at?: string | null
           data?: Json | null
+          ears_answers?: Json | null
+          ears_score?: number | null
+          energy_level?: number | null
+          function_score?: number | null
+          groc?: number | null
           id?: string
           notes?: string | null
           pain_level?: number | null
           patient_user_id?: string
+          sessions_done?: number | null
+          sessions_target?: number | null
         }
         Relationships: []
       }
@@ -444,6 +730,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      current_profile_id: { Args: never; Returns: string }
+      get_booked_slots: {
+        Args: { p_date: string; p_physio: string }
+        Returns: string[]
+      }
+      get_platform_stats: { Args: never; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["user_role"]
@@ -451,9 +743,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_my_patient: { Args: { _patient_profile_id: string }; Returns: boolean }
+      is_my_patient_user: {
+        Args: { _patient_user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      user_role: "patient" | "physiotherapist"
+      user_role: "patient" | "physiotherapist" | "office_worker"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -579,9 +876,12 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
-      user_role: ["patient", "physiotherapist"],
+      user_role: ["patient", "physiotherapist", "office_worker"],
     },
   },
 } as const

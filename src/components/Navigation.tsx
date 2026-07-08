@@ -4,6 +4,7 @@ import { Menu, X, Calendar, Users, LogOut, Target, Video, LayoutDashboard, FileT
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/contexts/LanguageContext';
+import NotificationsBell from '@/components/NotificationsBell';
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -124,6 +125,7 @@ const Navigation = () => {
                   <Link to={role === 'patient' ? '/patient-dashboard' : role === 'office_worker' ? '/office-dashboard' : '/physiotherapist-dashboard'} className="text-[15px] font-medium text-foreground/70 hover:text-foreground transition-colors">
                     {t('nav.dashboard')}
                   </Link>
+                  <NotificationsBell />
                   {settingsLink}
                   <button
                     type="button"
@@ -158,6 +160,7 @@ const Navigation = () => {
                     })}
                   </div>
                   <div className="flex items-center gap-4">
+                    <NotificationsBell />
                     {settingsLink}
                     <button
                       type="button"
@@ -203,13 +206,16 @@ const Navigation = () => {
             )}
           </div>
 
-          {/* Mobile menu toggle */}
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors"
-          >
-            {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
+          {/* Mobile: bell + menu toggle */}
+          <div className="md:hidden flex items-center gap-2">
+            {user && <NotificationsBell />}
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors"
+            >
+              {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile drawer */}

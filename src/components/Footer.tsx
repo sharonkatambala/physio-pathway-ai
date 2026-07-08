@@ -8,25 +8,33 @@ import { supabase } from '@/integrations/supabase/client';
 import LegalDialog, { type LegalTopic } from '@/components/LegalDialog';
 
 const Footer = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const tr = (en: string, sw: string) => (language === 'sw' ? sw : en);
   const [subscribeEmail, setSubscribeEmail] = useState('');
   const [subscribing, setSubscribing] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
   const [legalTopic, setLegalTopic] = useState<LegalTopic | null>(null);
 
   const quickLinks: { label: string; to: string }[] = [
-    { label: 'Home', to: '/' },
-    { label: 'Get Started', to: '/auth' },
-    { label: 'About Us', to: '/#about' },
-    { label: 'Services', to: '/#services' },
-    { label: 'Contact', to: '/#contact' },
+    { label: tr('Home', 'Nyumbani'), to: '/' },
+    { label: tr('Get Started', 'Anza Sasa'), to: '/auth' },
+    { label: tr('About Us', 'Kuhusu Sisi'), to: '/#about' },
+    { label: tr('Services', 'Huduma'), to: '/#services' },
+    { label: tr('Contact', 'Mawasiliano'), to: '/#contact' },
   ];
-  const services = ['AI Assessment', 'Exercise Programs', 'Progress Monitoring', 'Professional Sessions', 'Pain Management', 'Rehabilitation'];
+  const services = [
+    tr('AI Assessment', 'Tathmini ya AI'),
+    tr('Exercise Programs', 'Programu za Mazoezi'),
+    tr('Progress Monitoring', 'Ufuatiliaji wa Maendeleo'),
+    tr('Professional Sessions', 'Vikao vya Kitaalamu'),
+    tr('Pain Management', 'Udhibiti wa Maumivu'),
+    tr('Rehabilitation', 'Urekebishaji'),
+  ];
   const legalLinks: { label: string; topic: LegalTopic }[] = [
-    { label: 'Privacy Policy', topic: 'privacy' },
-    { label: 'Terms of Service', topic: 'terms' },
-    { label: 'HIPAA Compliance', topic: 'hipaa' },
-    { label: 'Cookies', topic: 'cookies' },
+    { label: tr('Privacy Policy', 'Sera ya Faragha'), topic: 'privacy' },
+    { label: tr('Terms of Service', 'Masharti ya Huduma'), topic: 'terms' },
+    { label: tr('HIPAA Compliance', 'Uzingatiaji wa HIPAA'), topic: 'hipaa' },
+    { label: tr('Cookies', 'Vidakuzi'), topic: 'cookies' },
   ];
 
   const handleSubscribe = async (event: React.FormEvent) => {
@@ -78,7 +86,10 @@ const Footer = () => {
               </div>
             </div>
             <p className="text-muted-foreground text-base leading-relaxed">
-              Revolutionizing physiotherapy through AI-powered assessments, personalized treatment plans, and professional care.
+              {tr(
+                'Revolutionizing physiotherapy through AI-powered assessments, personalized treatment plans, and professional care.',
+                'Tunabadilisha physiotherapy kupitia tathmini za AI, mipango binafsi ya matibabu, na huduma za kitaalamu.'
+              )}
             </p>
             <div className="flex gap-1">
               <a
@@ -95,7 +106,7 @@ const Footer = () => {
 
           {/* Quick Links */}
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">Quick Links</h3>
+            <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">{tr('Quick Links', 'Viungo vya Haraka')}</h3>
             <ul className="space-y-2.5">
               {quickLinks.map(({ label, to }) => (
                 <li key={label}>
@@ -121,7 +132,7 @@ const Footer = () => {
 
           {/* Services */}
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">Services</h3>
+            <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">{tr('Services', 'Huduma')}</h3>
             <ul className="space-y-2.5">
               {services.map((s) => (
                 <li key={s} className="text-base text-muted-foreground">{s}</li>
@@ -131,28 +142,28 @@ const Footer = () => {
 
           {/* Stay Updated */}
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">Stay Updated</h3>
+            <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">{tr('Stay Updated', 'Endelea Kupata Habari')}</h3>
             <p className="text-base text-muted-foreground">
-              Subscribe for health tips and platform updates.
+              {tr('Subscribe for health tips and platform updates.', 'Jiandikishe kupata vidokezo vya afya na taarifa za jukwaa.')}
             </p>
             {subscribed ? (
               <div className="flex items-center gap-2 rounded-lg border border-success/30 bg-success/10 px-3 py-2.5 text-sm text-foreground">
                 <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-success" />
-                Thanks for subscribing!
+                {tr('Thanks for subscribing!', 'Asante kwa kujiandikisha!')}
               </div>
             ) : (
               <form className="space-y-2" onSubmit={handleSubscribe}>
                 <Input
                   type="email"
                   required
-                  placeholder="Enter your email"
+                  placeholder={tr('Enter your email', 'Weka barua pepe yako')}
                   className="text-base"
                   value={subscribeEmail}
                   onChange={(e) => setSubscribeEmail(e.target.value)}
                 />
                 <Button type="submit" disabled={subscribing} className="w-full bg-gradient-hero shadow-soft text-base font-semibold">
                   {subscribing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                  {subscribing ? 'Subscribing...' : 'Subscribe'}
+                  {subscribing ? tr('Subscribing...', 'Inajiandikisha...') : tr('Subscribe', 'Jiandikishe')}
                 </Button>
               </form>
             )}

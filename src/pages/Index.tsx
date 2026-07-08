@@ -11,6 +11,7 @@ import Footer from '@/components/Footer';
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Scan, ClipboardList, TrendingUp, Quote, Star } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface LiveStats {
   patients: number;
@@ -21,6 +22,8 @@ interface LiveStats {
 
 const Index = () => {
   const { loading } = useAuth();
+  const { language } = useLanguage();
+  const tr = (en: string, sw: string) => (language === 'sw' ? sw : en);
   const location = useLocation();
   const [stats, setStats] = useState<LiveStats>({ patients: 0, physiotherapists: 0, assessments: 0, programs: 0 });
 
@@ -63,38 +66,56 @@ const Index = () => {
     {
       icon: Scan,
       step: '01',
-      title: 'AI Assessment',
-      desc: 'Complete our smart questionnaire. Ergocare AI analyzes your posture, pain patterns, and movement to build a full clinical picture instantly.',
+      title: tr('AI Assessment', 'Tathmini ya AI'),
+      desc: tr(
+        'Complete our smart questionnaire. Ergocare AI analyzes your posture, pain patterns, and movement to build a full clinical picture instantly.',
+        'Kamilisha dodoso letu mahiri. Ergocare AI inachambua mkao wako, mifumo ya maumivu, na mwendo kuunda picha kamili ya kiafya papo hapo.'
+      ),
     },
     {
       icon: ClipboardList,
       step: '02',
-      title: 'Get Your Plan',
-      desc: 'Receive a personalized exercise program designed for your condition - reviewed and approved by a certified physiotherapist.',
+      title: tr('Get Your Plan', 'Pata Mpango Wako'),
+      desc: tr(
+        'Receive a personalized exercise program designed for your condition - reviewed and approved by a certified physiotherapist.',
+        'Pokea programu binafsi ya mazoezi iliyoundwa kwa hali yako - iliyokaguliwa na kuidhinishwa na physiotherapist aliyethibitishwa.'
+      ),
     },
     {
       icon: TrendingUp,
       step: '03',
-      title: 'Track & Recover',
-      desc: 'Follow guided sessions, log your progress daily, and watch measurable improvement with AI-powered insights and milestone tracking.',
+      title: tr('Track & Recover', 'Fuatilia na Upone'),
+      desc: tr(
+        'Follow guided sessions, log your progress daily, and watch measurable improvement with AI-powered insights and milestone tracking.',
+        'Fuata vikao vya mwongozo, rekodi maendeleo yako kila siku, na uone uboreshaji unaopimika kwa maarifa ya AI na ufuatiliaji wa hatua.'
+      ),
     },
   ];
 
   const testimonials = [
     {
       name: 'Sarah M.',
-      role: 'Patient',
-      text: 'The AI assessment pinpointed my issue immediately. Three weeks in, my chronic back pain is nearly gone. This platform is a complete game-changer.',
+      role: tr('Patient', 'Mgonjwa'),
+      text: tr(
+        'The AI assessment pinpointed my issue immediately. Three weeks in, my chronic back pain is nearly gone. This platform is a complete game-changer.',
+        'Tathmini ya AI ilibaini tatizo langu mara moja. Wiki tatu baadaye, maumivu yangu sugu ya mgongo yamekaribia kuisha. Jukwaa hili limebadilisha kila kitu.'
+      ),
     },
     {
       name: 'Dr. James K.',
-      role: 'Physiotherapist',
-      text: 'ErgoCare+ makes remote patient management effortless. The AI-generated reports are clinically accurate and save me hours of documentation every week.',
+      role: tr('Physiotherapist', 'Physiotherapist'),
+      text: tr(
+        'ErgoCare+ makes remote patient management effortless. The AI-generated reports are clinically accurate and save me hours of documentation every week.',
+        'ErgoCare+ inafanya usimamizi wa wagonjwa wa mbali kuwa rahisi. Ripoti za AI ni sahihi kiafya na zinaniokolea masaa ya uandishi kila wiki.'
+      ),
     },
     {
       name: 'Amina T.',
-      role: 'Patient',
-      text: 'Finally physiotherapy I can do from home with real professional guidance. The exercise videos and progress tracking keep me fully motivated.',
+      role: tr('Patient', 'Mgonjwa'),
+      text: tr(
+        'Finally physiotherapy I can do from home with real professional guidance. The exercise videos and progress tracking keep me fully motivated.',
+        'Hatimaye physiotherapy ninayoweza kufanya nyumbani kwa mwongozo halisi wa kitaalamu. Video za mazoezi na ufuatiliaji wa maendeleo vinanipa motisha kamili.'
+      ),
     },
   ];
 
@@ -109,10 +130,10 @@ const Index = () => {
           <div className="page-shell py-8">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
               {[
-                { value: stats.patients,         label: 'Registered Patients' },
-                { value: stats.physiotherapists, label: 'Physiotherapists' },
-                { value: stats.assessments,      label: 'Assessments Done' },
-                { value: stats.programs,         label: 'Exercise Programs' },
+                { value: stats.patients,         label: tr('Registered Patients', 'Wagonjwa Waliosajiliwa') },
+                { value: stats.physiotherapists, label: tr('Physiotherapists', 'Physiotherapist') },
+                { value: stats.assessments,      label: tr('Assessments Done', 'Tathmini Zilizofanyika') },
+                { value: stats.programs,         label: tr('Exercise Programs', 'Programu za Mazoezi') },
               ].map(({ value, label }) => (
                 <div key={label}>
                   <p className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
@@ -131,10 +152,13 @@ const Index = () => {
         <section id="how-it-works" className="section-pad bg-muted/20">
           <div className="page-shell">
             <div className="text-center mb-14">
-              <p className="text-primary text-xs font-bold uppercase tracking-[0.15em] mb-3">Simple Process</p>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground">How It Works</h2>
+              <p className="text-primary text-xs font-bold uppercase tracking-[0.15em] mb-3">{tr('Simple Process', 'Mchakato Rahisi')}</p>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground">{tr('How It Works', 'Jinsi Inavyofanya Kazi')}</h2>
               <p className="text-lg text-muted-foreground mt-4 max-w-xl mx-auto leading-relaxed">
-                From assessment to recovery in three clear steps - powered by AI, guided by professionals.
+                {tr(
+                  'From assessment to recovery in three clear steps - powered by AI, guided by professionals.',
+                  'Kutoka tathmini hadi kupona kwa hatua tatu wazi - kwa nguvu ya AI, kwa mwongozo wa wataalamu.'
+                )}
               </p>
             </div>
             <div className="grid md:grid-cols-3 gap-5">
@@ -161,8 +185,8 @@ const Index = () => {
         <section className="section-pad bg-muted/20">
           <div className="page-shell">
             <div className="text-center mb-14">
-              <p className="text-primary text-xs font-bold uppercase tracking-[0.15em] mb-3">Testimonials</p>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground">Trusted by Patients & Professionals</h2>
+              <p className="text-primary text-xs font-bold uppercase tracking-[0.15em] mb-3">{tr('Testimonials', 'Shuhuda')}</p>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground">{tr('Trusted by Patients & Professionals', 'Inaaminiwa na Wagonjwa na Wataalamu')}</h2>
             </div>
             <div className="grid md:grid-cols-3 gap-5">
               {testimonials.map(({ name, role, text }) => (
@@ -201,12 +225,15 @@ const Index = () => {
                 style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '28px 28px' }}
               />
               <div className="relative z-10 max-w-2xl mx-auto space-y-5">
-                <p className="text-primary-foreground/70 text-xs font-bold uppercase tracking-[0.15em]">Get Started Today</p>
+                <p className="text-primary-foreground/70 text-xs font-bold uppercase tracking-[0.15em]">{tr('Get Started Today', 'Anza Leo')}</p>
                 <h2 className="text-3xl sm:text-4xl font-extrabold text-primary-foreground">
-                  Start Your Recovery Journey
+                  {tr('Start Your Recovery Journey', 'Anza Safari Yako ya Kupona')}
                 </h2>
                 <p className="text-primary-foreground/80 text-lg leading-relaxed">
-                  Free AI assessment. No credit card required. Get your personalized plan in minutes.
+                  {tr(
+                    'Free AI assessment. No credit card required. Get your personalized plan in minutes.',
+                    'Tathmini ya AI bila malipo. Hakuna kadi ya benki inayohitajika. Pata mpango wako binafsi kwa dakika chache.'
+                  )}
                 </p>
                 <div className="flex flex-wrap gap-3 justify-center pt-2">
                   <Button
@@ -215,7 +242,7 @@ const Index = () => {
                     className="bg-white text-primary hover:bg-white/90 shadow-lg font-bold h-12 px-8 rounded-xl text-base"
                   >
                     <Link to="/auth">
-                      Start Free Assessment
+                      {tr('Start Free Assessment', 'Anza Tathmini Bila Malipo')}
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
                   </Button>
@@ -225,7 +252,7 @@ const Index = () => {
                     size="lg"
                     className="border-2 border-white/60 bg-transparent text-white hover:bg-white hover:text-primary h-12 px-8 rounded-xl text-base font-semibold"
                   >
-                    <a href="#contact">Contact Us</a>
+                    <a href="#contact">{tr('Contact Us', 'Wasiliana Nasi')}</a>
                   </Button>
                 </div>
               </div>

@@ -144,12 +144,30 @@ const MessagesPage = () => {
     openOrCreateConversation(withId);
   }, [searchParams, convsLoaded, activeId, openOrCreateConversation]);
 
-  // Load messages for the active conversation and poll for new ones.
+  // Load messages for the active conversation, then subscribe to realtime
+  // inserts so new messages appear instantly. A slow poll remains as a
+  // fallback for environments where the realtime publication isn't enabled.
   useEffect(() => {
     if (!activeId) return;
     loadMessages(activeId);
-    const interval = setInterval(() => loadMessages(activeId), 4000);
-    return () => clearInterval(interval);
+
+    const channel = supabase
+      .channel(`messages-${activeId}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${activeId}` },
+        (payload) => {
+          const msg = payload.new as Msg;
+          setMessages((prev) => (prev.some((m) => m.id === msg.id) ? prev : [...prev, msg]));
+        }
+      )
+      .subscribe();
+
+    const interval = setInterval(() => loadMessages(activeId), 30000);
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
   }, [activeId, loadMessages]);
 
   useEffect(() => {

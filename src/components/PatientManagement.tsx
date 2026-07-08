@@ -31,14 +31,26 @@ interface ProgressEntry {
   id: string;
   created_at: string;
   pain_level: number | null;
-  energy_level: number | null;
-  adherence: number | null;
+  function_score: number | null;
+  sessions_done: number | null;
+  sessions_target: number | null;
+  ears_score: number | null;
+  energy_level: number | null; // legacy
+  adherence: number | null; // legacy
   notes: string | null;
 }
 
 type LastAssessment = { pain_level: number | null; created_at: string };
 type LastPosture = { overall_score: number | null; posture_mode: string | null; created_at: string };
-type LastProgress = { pain_level: number | null; energy_level: number | null; adherence: number | null; created_at: string };
+type LastProgress = {
+  pain_level: number | null;
+  function_score: number | null;
+  sessions_done: number | null;
+  sessions_target: number | null;
+  energy_level: number | null;
+  adherence: number | null;
+  created_at: string;
+};
 
 const CHART_COLORS = {
   pain: "hsl(var(--warning))",
@@ -152,13 +164,23 @@ const PatientManagement = () => {
       // Latest progress entry per patient
       const { data: pgData } = await supabase
         .from('progress_entries')
-        .select('patient_user_id, pain_level, energy_level, adherence, created_at')
+        .select('patient_user_id, pain_level, function_score, sessions_done, sessions_target, ears_score, energy_level, adherence, created_at')
         .in('patient_user_id', userIds)
         .order('created_at', { ascending: false });
       const pgMap: Record<string, LastProgress> = {};
       (pgData ?? []).forEach((e: any) => {
+        // Skip EARS-only rows so the snapshot shows the latest real check-in.
+        if (e.ears_score !== null) return;
         if (!pgMap[e.patient_user_id])
-          pgMap[e.patient_user_id] = { pain_level: e.pain_level, energy_level: e.energy_level, adherence: e.adherence, created_at: e.created_at };
+          pgMap[e.patient_user_id] = {
+            pain_level: e.pain_level,
+            function_score: e.function_score,
+            sessions_done: e.sessions_done,
+            sessions_target: e.sessions_target,
+            energy_level: e.energy_level,
+            adherence: e.adherence,
+            created_at: e.created_at,
+          };
       });
       setLatestProgress(pgMap);
 
@@ -182,7 +204,7 @@ const PatientManagement = () => {
     setSheetLoading(true);
     const { data } = await supabase
       .from('progress_entries')
-      .select('id, created_at, pain_level, energy_level, adherence, notes')
+      .select('id, created_at, pain_level, function_score, sessions_done, sessions_target, ears_score, energy_level, adherence, notes')
       .eq('patient_user_id', patient.user_id)
       .order('created_at', { ascending: false })
       .limit(20);
@@ -203,16 +225,20 @@ const PatientManagement = () => {
     );
   }
 
-  // Chart data for the sheet
-  const sheetChartData = [...sheetEntries].reverse().slice(-10).map((e) => ({
+  // Chart data for the sheet (skip EARS-only rows; function falls back to legacy energy)
+  const sheetCheckIns = sheetEntries.filter((e) => e.ears_score === null);
+  const sheetChartData = [...sheetCheckIns].reverse().slice(-10).map((e) => ({
     date: new Date(e.created_at).toLocaleDateString(language === 'sw' ? 'sw-KE' : 'en-GB', { month: 'short', day: 'numeric' }),
     [tr('Pain', 'Maumivu')]: e.pain_level ?? null,
-    [tr('Energy', 'Nguvu')]: e.energy_level ?? null,
+    [tr('Function', 'Uwezo')]: e.function_score ?? e.energy_level ?? null,
   }));
 
-  const sheetAvgPain = avg(sheetEntries.map((e) => e.pain_level));
-  const sheetAvgEnergy = avg(sheetEntries.map((e) => e.energy_level));
-  const sheetAvgAdherence = avg(sheetEntries.map((e) => e.adherence));
+  const sheetAvgPain = avg(sheetCheckIns.map((e) => e.pain_level));
+  const sheetAvgFunction = avg(sheetCheckIns.map((e) => e.function_score ?? e.energy_level));
+  const sheetAvgAdherence = avg(sheetCheckIns.map((e) =>
+    e.sessions_done !== null && e.sessions_target ? Math.min(10, Math.round((e.sessions_done / e.sessions_target) * 10)) : e.adherence
+  ));
+  const sheetLatestEars = sheetEntries.find((e) => e.ears_score !== null) ?? null;
 
   const patientName = (p: Patient) =>
     `${p.first_name ?? ''} ${p.last_name ?? ''}`.trim() || tr('Patient', 'Mgonjwa');
@@ -285,12 +311,18 @@ const PatientManagement = () => {
                     <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${painColor(pg.pain_level)}`}>
                       {tr('Pain', 'Maumivu')} {pg.pain_level ?? '—'}
                     </span>
-                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${energyColor(pg.energy_level)}`}>
-                      {tr('Energy', 'Nguvu')} {pg.energy_level ?? '—'}
+                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${energyColor(pg.function_score ?? pg.energy_level)}`}>
+                      {pg.function_score !== null ? tr('Function', 'Uwezo') : tr('Energy', 'Nguvu')} {pg.function_score ?? pg.energy_level ?? '—'}
                     </span>
-                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${adherenceColor(pg.adherence)}`}>
-                      {tr('Adherence', 'Ufuataji')} {pg.adherence ?? '—'}
-                    </span>
+                    {pg.sessions_done !== null ? (
+                      <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${adherenceColor(pg.sessions_target ? Math.min(10, Math.round((pg.sessions_done / pg.sessions_target) * 10)) : null)}`}>
+                        {tr('Sessions', 'Vikao')} {pg.sessions_done}{pg.sessions_target ? `/${pg.sessions_target}` : ''}
+                      </span>
+                    ) : (
+                      <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${adherenceColor(pg.adherence)}`}>
+                        {tr('Adherence', 'Ufuataji')} {pg.adherence ?? '—'}
+                      </span>
+                    )}
                     <span className="text-xs text-muted-foreground self-center">
                       {new Date(pg.created_at).toLocaleDateString(language === 'sw' ? 'sw-KE' : 'en-GB', { day: 'numeric', month: 'short' })}
                     </span>
@@ -376,7 +408,7 @@ const PatientManagement = () => {
                   <div className="grid grid-cols-3 gap-3">
                     {[
                       { label: tr('Avg Pain', 'Wastani Maumivu'), value: sheetAvgPain, colorFn: painColor },
-                      { label: tr('Avg Energy', 'Wastani Nguvu'), value: sheetAvgEnergy, colorFn: energyColor },
+                      { label: tr('Avg Function', 'Wastani Uwezo'), value: sheetAvgFunction, colorFn: energyColor },
                       { label: tr('Adherence', 'Ufuataji'), value: sheetAvgAdherence, colorFn: adherenceColor },
                     ].map(({ label, value, colorFn }) => (
                       <div key={label} className="rounded-xl border border-border bg-card p-3 text-center">
@@ -388,10 +420,23 @@ const PatientManagement = () => {
                     ))}
                   </div>
 
+                  {/* Latest EARS adherence questionnaire */}
+                  {sheetLatestEars && (
+                    <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-3">
+                      <div>
+                        <p className="text-xs text-muted-foreground">{tr('Exercise Adherence (EARS)', 'Ufuataji wa Mazoezi (EARS)')}</p>
+                        <p className="text-sm font-bold text-foreground">{sheetLatestEars.ears_score}/24</p>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(sheetLatestEars.created_at).toLocaleDateString(language === 'sw' ? 'sw-KE' : 'en-GB')}
+                      </p>
+                    </div>
+                  )}
+
                   {/* Trend chart */}
                   {sheetChartData.length > 1 && (
                     <div className="h-52">
-                      <p className="text-xs font-medium text-muted-foreground mb-2">{tr('Pain vs Energy trend', 'Mwelekeo wa Maumivu na Nguvu')}</p>
+                      <p className="text-xs font-medium text-muted-foreground mb-2">{tr('Pain vs Function trend', 'Mwelekeo wa Maumivu na Uwezo')}</p>
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={sheetChartData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
                           <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.grid} />
@@ -399,7 +444,7 @@ const PatientManagement = () => {
                           <YAxis domain={[0, 10]} tick={{ fill: CHART_COLORS.axis, fontSize: 11 }} width={24} />
                           <Tooltip contentStyle={tooltipStyle} />
                           <Line type="monotone" name={tr('Pain', 'Maumivu')} dataKey={tr('Pain', 'Maumivu')} stroke={CHART_COLORS.pain} strokeWidth={2} connectNulls dot={{ r: 3 }} />
-                          <Line type="monotone" name={tr('Energy', 'Nguvu')} dataKey={tr('Energy', 'Nguvu')} stroke={CHART_COLORS.energy} strokeWidth={2} connectNulls dot={{ r: 3 }} />
+                          <Line type="monotone" name={tr('Function', 'Uwezo')} dataKey={tr('Function', 'Uwezo')} stroke={CHART_COLORS.energy} strokeWidth={2} connectNulls dot={{ r: 3 }} />
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
@@ -423,15 +468,29 @@ const PatientManagement = () => {
                               </p>
                             </div>
                             <div className="flex flex-wrap gap-1.5">
-                              <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${painColor(entry.pain_level)}`}>
-                                {tr('P', 'M')} {entry.pain_level ?? '—'}
-                              </span>
-                              <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${energyColor(entry.energy_level)}`}>
-                                {tr('E', 'N')} {entry.energy_level ?? '—'}
-                              </span>
-                              <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${adherenceColor(entry.adherence)}`}>
-                                {tr('A', 'U')} {entry.adherence ?? '—'}
-                              </span>
+                              {entry.ears_score !== null ? (
+                                <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${adherenceColor(Math.round((entry.ears_score / 24) * 10))}`}>
+                                  EARS {entry.ears_score}/24
+                                </span>
+                              ) : (
+                                <>
+                                  <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${painColor(entry.pain_level)}`}>
+                                    {tr('P', 'M')} {entry.pain_level ?? '—'}
+                                  </span>
+                                  <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${energyColor(entry.function_score ?? entry.energy_level)}`}>
+                                    {entry.function_score !== null ? tr('F', 'U') : tr('E', 'N')} {entry.function_score ?? entry.energy_level ?? '—'}
+                                  </span>
+                                  {entry.sessions_done !== null ? (
+                                    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${adherenceColor(entry.sessions_target ? Math.min(10, Math.round((entry.sessions_done / entry.sessions_target) * 10)) : null)}`}>
+                                      {tr('S', 'V')} {entry.sessions_done}{entry.sessions_target ? `/${entry.sessions_target}` : ''}
+                                    </span>
+                                  ) : (
+                                    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${adherenceColor(entry.adherence)}`}>
+                                      {tr('A', 'U')} {entry.adherence ?? '—'}
+                                    </span>
+                                  )}
+                                </>
+                              )}
                             </div>
                           </div>
                           {entry.notes && (

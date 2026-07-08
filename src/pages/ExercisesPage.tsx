@@ -263,7 +263,7 @@ const ExercisesPage = () => {
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Back Button */}
-          <div className="mb-6 flex items-center justify-between gap-3">
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
             <Button
               variant="ghost"
               onClick={() => setSelectedCategory(null)}
@@ -283,9 +283,9 @@ const ExercisesPage = () => {
             <CardContent>
               <div className="grid md:grid-cols-3 gap-4">
                 {(Object.keys(phaseInfo) as Phase[]).map((phase) => (
-                  <Card 
+                  <Card
                     key={phase}
-                    className={`cursor-pointer transition-all hover:shadow-md ${
+                    className={`min-w-0 cursor-pointer transition-all hover:shadow-md ${
                       currentPhase === phase ? 'border-primary ring-2 ring-primary' : 'border-border'
                     }`}
                     onClick={() => setCurrentPhase(phase)}
@@ -388,19 +388,19 @@ const ExercisesPage = () => {
                 const embedUrl = getYouTubeEmbedUrl(demoUrl);
                 const isOpen = openVideoId === exercise.id;
                 return (
-                <Card key={exercise.id} className="shadow-card hover:shadow-soft transition-shadow">
+                <Card key={exercise.id} className="min-w-0 shadow-card hover:shadow-soft transition-shadow">
                   <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div>
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
                         <CardTitle className="text-lg">{exerciseCopy.name}</CardTitle>
-                        <div className="flex gap-2 mt-2">
+                        <div className="flex flex-wrap gap-2 mt-2">
                           <Badge variant="secondary" className="text-xs">
                             {language === 'sw' ? (difficultyLabels[exercise.difficulty] ?? exercise.difficulty) : exercise.difficulty}
                           </Badge>
                           <Badge variant="outline" className="text-xs">{exerciseCopy.category}</Badge>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 text-muted-foreground">
+                      <div className="flex flex-shrink-0 items-center gap-1 text-muted-foreground">
                         <Clock className="h-4 w-4" />
                         <span className="text-sm">{exerciseCopy.duration}</span>
                       </div>
@@ -474,20 +474,20 @@ const ExercisesPage = () => {
                       </ol>
                     </div>
 
-                    {/* Actions */}
-                    <div className="flex gap-2">
+                    {/* Actions - stacked on very narrow screens so button labels never overflow */}
+                    <div className="flex flex-col gap-2 min-[420px]:flex-row">
                       {embedUrl ? (
                         <Button
                           variant="outline"
                           size="sm"
-                          className="flex-1"
+                          className="w-full min-w-0 min-[420px]:w-auto min-[420px]:flex-1"
                           onClick={() => setOpenVideoId(isOpen ? null : exercise.id)}
                         >
                           <Play className="h-4 w-4 mr-1" />
                           {isOpen ? tr('Hide Demo', 'Ficha Demo') : tr('Watch Demo', 'Tazama Demo')}
                         </Button>
                       ) : (
-                        <Button variant="outline" size="sm" className="flex-1" disabled>
+                        <Button variant="outline" size="sm" className="min-w-0 min-[420px]:flex-1" disabled>
                           <Play className="h-4 w-4 mr-1" />
                           {tr('Watch Demo', 'Tazama Demo')}
                         </Button>
@@ -495,7 +495,7 @@ const ExercisesPage = () => {
                       <Button
                         size="sm"
                         variant={myPlan.includes(exercise.id) ? 'secondary' : 'default'}
-                        className="flex-1"
+                        className="min-w-0 min-[420px]:flex-1"
                         onClick={() => togglePlan(exercise.id, exerciseCopy.name)}
                       >
                         {myPlan.includes(exercise.id) ? (
@@ -557,9 +557,9 @@ const ExercisesPage = () => {
           {exerciseCategories.map((category) => {
             const Icon = getCategoryIcon(category.id);
             return (
-              <Card 
+              <Card
                 key={category.id}
-                className="shadow-card hover:shadow-soft transition-all cursor-pointer hover:border-primary"
+                className="min-w-0 shadow-card hover:shadow-soft transition-all cursor-pointer hover:border-primary"
                 onClick={() => setSelectedCategory(category.id)}
               >
                 <CardHeader>

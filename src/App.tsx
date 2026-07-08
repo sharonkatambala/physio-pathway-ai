@@ -4,6 +4,7 @@ import PageTitle from "@/components/PageTitle";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/AuthPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import ExercisesPage from "./pages/ExercisesPage";
 import BookingPage from "./pages/BookingPage";
 import ProgressPage from "./pages/ProgressPage";
@@ -30,6 +31,7 @@ const App = () => (
     <Routes>
       <Route path="/" element={<Index />} />
       <Route path="/auth" element={<AuthPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/patient-dashboard" element={<PatientDashboard />} />
       <Route path="/physiotherapist-dashboard" element={<PhysiotherapistDashboard />} />
       <Route path="/assessment" element={<AssessmentPage />} />

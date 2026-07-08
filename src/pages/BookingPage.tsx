@@ -63,6 +63,8 @@ const BookingPage = () => {
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   // Which completed step the user reopened via its "Change" button.
   const [editingStep, setEditingStep] = useState<1 | 2 | null>(null);
+  // Times already taken for the selected physio + date ("HH:MM").
+  const [bookedTimes, setBookedTimes] = useState<string[]>([]);
 
   const physioName = useCallback((p?: Physiotherapist | null) => {
     if (!p) return tr('Physiotherapist', 'Physiotherapist');
@@ -153,6 +155,25 @@ const BookingPage = () => {
 
   useEffect(() => { loadMyAppointments(); }, [loadMyAppointments]);
 
+  // Load taken slots whenever physio + date are chosen, so those times can be
+  // disabled. Falls back to "all free" if the RPC is missing (migration not
+  // applied yet) - the unique index still blocks true double-bookings.
+  useEffect(() => {
+    let cancelled = false;
+    const loadBookedSlots = async () => {
+      if (!selectedPhysio || !selectedDate) { setBookedTimes([]); return; }
+      const { data, error } = await supabase.rpc('get_booked_slots' as any, {
+        p_physio: selectedPhysio,
+        p_date: selectedDate,
+      });
+      if (cancelled) return;
+      if (error || !Array.isArray(data)) { setBookedTimes([]); return; }
+      setBookedTimes((data as string[]).map((t) => String(t).slice(0, 5)));
+    };
+    loadBookedSlots();
+    return () => { cancelled = true; };
+  }, [selectedPhysio, selectedDate]);
+
   const cancelAppointment = async (id: string) => {
     setCancellingId(id);
     const { error } = await supabase.from('appointments').update({ status: 'cancelled' }).eq('id', id);
@@ -229,11 +250,18 @@ const BookingPage = () => {
       await loadMyAppointments();
       if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (error: any) {
+      const isSlotTaken = String(error?.code) === '23505' || String(error?.message ?? '').includes('uniq_active_appointment_slot');
       toast({
         title: tr('Booking failed', 'Kuweka kikao kumeshindikana'),
-        description: String(error?.message || error || 'Unknown error'),
+        description: isSlotTaken
+          ? tr('That time was just booked by someone else. Please pick another slot.', 'Muda huo umeshachukuliwa na mtu mwingine sasa hivi. Tafadhali chagua muda mwingine.')
+          : String(error?.message || error || 'Unknown error'),
         variant: 'destructive',
       });
+      if (isSlotTaken) {
+        setSelectedTime('');
+        setBookedTimes((prev) => [...new Set([...prev, selectedTime])]);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -580,13 +608,20 @@ const BookingPage = () => {
                       <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                         {AVAILABLE_TIMES.map((time) => {
                           const active = selectedTime === time;
+                          const taken = bookedTimes.includes(time);
                           return (
                             <button
                               type="button"
                               key={time}
+                              disabled={taken}
                               onClick={() => { setSelectedTime(time); setEditingStep(null); }}
+                              title={taken ? tr('Already booked', 'Tayari imeshachukuliwa') : undefined}
                               className={`flex items-center justify-center gap-1.5 rounded-lg border py-2.5 text-sm font-medium transition-colors ${
-                                active ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:border-primary/50 hover:bg-muted/40'
+                                taken
+                                  ? 'cursor-not-allowed border-border/60 bg-muted/50 text-muted-foreground/50 line-through'
+                                  : active
+                                  ? 'border-primary bg-primary text-primary-foreground'
+                                  : 'border-border hover:border-primary/50 hover:bg-muted/40'
                               }`}
                             >
                               <Clock className="h-3.5 w-3.5" />
@@ -595,6 +630,11 @@ const BookingPage = () => {
                           );
                         })}
                       </div>
+                      {bookedTimes.length > 0 && (
+                        <p className="mt-2 text-xs text-muted-foreground">
+                          {tr('Crossed-out times are already booked for this physiotherapist.', 'Muda uliokatwa mstari tayari umeshachukuliwa kwa physiotherapist huyu.')}
+                        </p>
+                      )}
                     </div>
                   )}
                 </CardContent>

@@ -9,6 +9,7 @@ const BRAND = 'ErgoCare+';
 const TITLES: Record<string, { en: string; sw: string }> = {
   '/': { en: 'Home', sw: 'Nyumbani' },
   '/auth': { en: 'Sign In', sw: 'Ingia' },
+  '/reset-password': { en: 'Reset Password', sw: 'Weka Nenosiri Jipya' },
   '/patient-dashboard': { en: 'Dashboard', sw: 'Dashibodi' },
   '/physiotherapist-dashboard': { en: 'Dashboard', sw: 'Dashibodi' },
   '/office-dashboard': { en: 'Dashboard', sw: 'Dashibodi' },

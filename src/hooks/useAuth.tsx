@@ -13,6 +13,9 @@ interface Profile {
   age: number | null;
   sex: string | null;
   occupation: string | null;
+  license_number?: string | null;
+  verified_at?: string | null;
+  telehealth_consent_at?: string | null;
 }
 
 interface UserRole {
@@ -55,6 +58,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const metaPhone = normalize(meta.phone);
     const metaSex = normalize(meta.sex);
     const metaOccupation = normalize(meta.occupation);
+    const metaLicenseNumber = normalize(meta.license_number);
     const metaAvatarUrl = normalize(meta.avatar_url);
     const metaEmail = normalize(meta.email) || normalize(authUser.email);
     const metaAge = typeof meta.age === 'number' ? meta.age : Number(meta.age) || null;
@@ -74,6 +78,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       age: metaAge ?? null,
       sex: metaSex || null,
       occupation: metaOccupation || null,
+      license_number: metaLicenseNumber || null,
       avatar_url: metaAvatarUrl || null,
     };
 
@@ -99,6 +104,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (!existingProfile.age && metaAge !== null) updatePayload.age = metaAge;
       if (!existingProfile.sex && metaSex) updatePayload.sex = metaSex;
       if (!existingProfile.occupation && metaOccupation) updatePayload.occupation = metaOccupation;
+      if (!existingProfile.license_number && metaLicenseNumber) updatePayload.license_number = metaLicenseNumber;
       if (!existingProfile.avatar_url && metaAvatarUrl) updatePayload.avatar_url = metaAvatarUrl;
 
       if (Object.keys(updatePayload).length > 0) {

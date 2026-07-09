@@ -16,6 +16,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { hasTelehealthConsent, joinTelehealth } from '@/lib/telehealth';
+import TelehealthConsentDialog from '@/components/TelehealthConsentDialog';
 
 type Physiotherapist = {
   id: string;
@@ -26,6 +28,7 @@ type Physiotherapist = {
   phone?: string | null;
   email?: string | null;
   avatar_url?: string | null;
+  verified_at?: string | null;
 };
 
 type Appointment = {
@@ -65,6 +68,9 @@ const BookingPage = () => {
   const [editingStep, setEditingStep] = useState<1 | 2 | null>(null);
   // Times already taken for the selected physio + date ("HH:MM").
   const [bookedTimes, setBookedTimes] = useState<string[]>([]);
+  // Appointment id awaiting telehealth consent before the call opens.
+  const [pendingJoinId, setPendingJoinId] = useState<string | null>(null);
+  const [telehealthConsented, setTelehealthConsented] = useState(false);
 
   const physioName = useCallback((p?: Physiotherapist | null) => {
     if (!p) return tr('Physiotherapist', 'Physiotherapist');
@@ -123,7 +129,7 @@ const BookingPage = () => {
 
         const { data, error } = await supabase
           .from('profiles')
-          .select('id, user_id, first_name, last_name, occupation, phone, email, avatar_url')
+          .select('id, user_id, first_name, last_name, occupation, phone, email, avatar_url, verified_at')
           .in('user_id', userIds);
         if (error) throw error;
         setPhysiotherapists((data as Physiotherapist[]) ?? []);
@@ -154,6 +160,20 @@ const BookingPage = () => {
   }, [profile?.id]);
 
   useEffect(() => { loadMyAppointments(); }, [loadMyAppointments]);
+
+  const handleJoinCall = useCallback((appointmentId: string) => {
+    if (hasTelehealthConsent(profile) || telehealthConsented) {
+      if (!joinTelehealth(appointmentId)) {
+        toast({
+          title: tr('Could not open the call', 'Imeshindwa kufungua simu'),
+          description: tr('Please allow pop-ups for this site and try again.', 'Tafadhali ruhusu pop-ups kwa tovuti hii kisha jaribu tena.'),
+          variant: 'destructive',
+        });
+      }
+      return;
+    }
+    setPendingJoinId(appointmentId);
+  }, [profile, telehealthConsented, tr, toast]);
 
   // Load taken slots whenever physio + date are chosen, so those times can be
   // disabled. Falls back to "all free" if the RPC is missing (migration not
@@ -444,6 +464,16 @@ const BookingPage = () => {
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <StatusBadge status={appt.status} />
+                      {appt.status === 'confirmed' && appt.session_type !== 'in-person' && (
+                        <Button
+                          size="sm"
+                          className="bg-gradient-hero shadow-soft"
+                          onClick={() => handleJoinCall(appt.id)}
+                        >
+                          <Video className="mr-1.5 h-4 w-4" />
+                          {tr('Join Call', 'Jiunge na Simu')}
+                        </Button>
+                      )}
                       {(appt.status === 'pending' || appt.status === 'confirmed') && (
                         <Button
                           size="sm"
@@ -543,10 +573,12 @@ const BookingPage = () => {
                               ) : (
                                 <p className="text-xs uppercase tracking-wide text-muted-foreground mt-0.5">{tr('Physiotherapist', 'Physiotherapist')}</p>
                               )}
-                              <Badge variant="secondary" className="text-[11px] mt-2">
-                                <Award className="h-3 w-3 mr-1" />
-                                {tr('Verified', 'Imethibitishwa')}
-                              </Badge>
+                              {physio.verified_at && (
+                                <Badge variant="secondary" className="text-[11px] mt-2">
+                                  <Award className="h-3 w-3 mr-1" />
+                                  {tr('Verified', 'Imethibitishwa')}
+                                </Badge>
+                              )}
                             </div>
                           </div>
                         </button>
@@ -742,6 +774,16 @@ const BookingPage = () => {
           </div>
         </div>
       </div>
+
+      <TelehealthConsentDialog
+        open={!!pendingJoinId}
+        onClose={() => setPendingJoinId(null)}
+        onConsented={() => {
+          setTelehealthConsented(true);
+          if (pendingJoinId) joinTelehealth(pendingJoinId);
+          setPendingJoinId(null);
+        }}
+      />
     </div>
   );
 };

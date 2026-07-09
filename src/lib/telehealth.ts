@@ -26,6 +26,14 @@ export const telehealthRoom = (appointmentId: string) =>
 export const telehealthUrl = (appointmentId: string) =>
   `${JITSI_BASE}/${telehealthRoom(appointmentId)}`;
 
+/**
+ * Tanzania has no finalized telehealth-specific consent regulation yet, so
+ * ErgoCare+ self-imposes a one-time consent step per patient before their
+ * first video/phone session, recorded in profiles.telehealth_consent_at.
+ */
+export const hasTelehealthConsent = (profile: { telehealth_consent_at?: string | null } | null | undefined): boolean =>
+  !!profile?.telehealth_consent_at;
+
 /** Open the telehealth room in a new tab. Returns false if it cannot open. */
 export const joinTelehealth = (appointmentId: string): boolean => {
   if (typeof window === 'undefined' || typeof document === 'undefined') return false;

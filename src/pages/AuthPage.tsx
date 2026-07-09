@@ -58,7 +58,8 @@ const AuthPage = () => {
     phone: '',
     age: '',
     sex: '',
-    occupation: ''
+    occupation: '',
+    licenseNumber: ''
   });
   const [authTab, setAuthTab] = useState<'login' | 'signup'>('login');
   const [legalTopic, setLegalTopic] = useState<LegalTopic | null>(null);
@@ -116,6 +117,10 @@ const AuthPage = () => {
       toast({ title: t('auth.error'), description: 'Phone number is required for physiotherapists.', variant: 'destructive' });
       return;
     }
+    if (signupData.role === 'physiotherapist' && !signupData.licenseNumber.trim()) {
+      toast({ title: t('auth.error'), description: 'Your professional license/registration number is required for physiotherapists.', variant: 'destructive' });
+      return;
+    }
     setLoading(true);
     const userData = {
       first_name: signupData.firstName,
@@ -125,6 +130,7 @@ const AuthPage = () => {
       age: signupData.age ? parseInt(signupData.age) : null,
       sex: signupData.sex || null,
       occupation: signupData.occupation || null,
+      license_number: signupData.licenseNumber || null,
       email: signupData.email
     };
     const { error } = await signUp(signupData.email, signupData.password, userData);
@@ -445,6 +451,23 @@ const AuthPage = () => {
                       className={inputClass}
                     />
                   </div>
+
+                  {signupData.role === 'physiotherapist' && (
+                    <div className="space-y-1.5">
+                      <Label htmlFor="licenseNumber">Professional license / registration number</Label>
+                      <Input
+                        id="licenseNumber"
+                        placeholder="e.g. TPCB-2024-00123"
+                        value={signupData.licenseNumber}
+                        onChange={(e) => setSignupData({ ...signupData, licenseNumber: e.target.value })}
+                        required
+                        className={inputClass}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Checked before your profile shows a "Verified" badge to patients.
+                      </p>
+                    </div>
+                  )}
 
                   {signupData.role === 'physiotherapist' && (
                     <p className="text-xs text-muted-foreground">

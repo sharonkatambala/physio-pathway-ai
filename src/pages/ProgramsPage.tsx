@@ -54,7 +54,7 @@ const ProgramsPage = () => {
 
         const { data: recs, error: rErr } = await supabase
           .from('recommendations')
-          .select('id, assessment_id, program, created_at')
+          .select('id, assessment_id, program, created_at, confidence, source')
           .in('assessment_id', assessmentIds)
           .order('created_at', { ascending: false });
 
@@ -203,6 +203,20 @@ const ProgramsPage = () => {
                       <Badge variant="secondary" className="gap-1.5">
                         <Dumbbell className="h-3.5 w-3.5" />
                         {exercises.length} {tr('exercises', 'mazoezi')}
+                      </Badge>
+                    )}
+                    {p.confidence != null && (
+                      <Badge
+                        variant="secondary"
+                        className={`gap-1.5 ${p.source === 'fallback' ? 'bg-warning/10 text-warning hover:bg-warning/10' : 'bg-primary/10 text-primary hover:bg-primary/10'}`}
+                        title={tr(
+                          'How much the AI trusted this program, based on how much detail your assessment provided.',
+                          'Ni kiasi gani AI iliamini programu hii, kulingana na undani wa tathmini yako.'
+                        )}
+                      >
+                        {p.source === 'fallback'
+                          ? tr('Basic plan', 'Mpango wa msingi')
+                          : tr(`AI confidence: ${Math.round(p.confidence * 100)}%`, `Uhakika wa AI: ${Math.round(p.confidence * 100)}%`)}
                       </Badge>
                     )}
                   </div>

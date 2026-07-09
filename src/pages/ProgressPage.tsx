@@ -874,9 +874,28 @@ const ProgressPage = () => {
                   <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                     {tr("Current Program", "Programu ya Sasa")}
                   </p>
-                  <p className="truncate text-base font-semibold text-foreground">
-                    {programData.title || tr("Personalized Exercise Program", "Programu Binafsi ya Mazoezi")}
-                  </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="truncate text-base font-semibold text-foreground">
+                      {programData.title || tr("Personalized Exercise Program", "Programu Binafsi ya Mazoezi")}
+                    </p>
+                    {latestRecommendation.confidence != null && (
+                      <span
+                        className={`inline-flex flex-shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                          latestRecommendation.source === "fallback"
+                            ? "bg-warning/10 text-warning"
+                            : "bg-primary/10 text-primary"
+                        }`}
+                        title={tr(
+                          "How much the AI trusted this program, based on how much detail your assessment provided.",
+                          "Ni kiasi gani AI iliamini programu hii, kulingana na undani wa tathmini yako."
+                        )}
+                      >
+                        {latestRecommendation.source === "fallback"
+                          ? tr("Basic plan", "Mpango wa msingi")
+                          : tr(`AI confidence: ${Math.round(latestRecommendation.confidence * 100)}%`, `Uhakika wa AI: ${Math.round(latestRecommendation.confidence * 100)}%`)}
+                      </span>
+                    )}
+                  </div>
                   <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
                     <span>{tr("Phase", "Awamu")}: <span className="font-medium text-foreground">{phaseLabel(programData.phase || programData?.schedule?.current_phase || "early")}</span></span>
                     <span>{tr("Weekly target", "Lengo la wiki")}: <span className="font-medium text-foreground">{weeklyTarget ? `${weeklyTarget} ${tr("sessions", "vikao")}` : tr("Not set", "Haijawekwa")}</span></span>

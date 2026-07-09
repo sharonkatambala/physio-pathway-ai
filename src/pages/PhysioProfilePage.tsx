@@ -24,7 +24,7 @@ const PhysioProfilePage = () => {
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [form, setForm] = useState({ first_name: '', last_name: '', phone: '', occupation: '', bio: '' });
+  const [form, setForm] = useState({ first_name: '', last_name: '', phone: '', occupation: '', bio: '', license_number: '' });
 
   useEffect(() => {
     if (!profile) return;
@@ -35,8 +35,11 @@ const PhysioProfilePage = () => {
       phone: profile.phone ?? '',
       occupation: profile.occupation ?? '',
       bio: (profile as any)?.bio ?? '',
+      license_number: profile.license_number ?? '',
     });
   }, [profile]);
+
+  const isVerified = !!profile?.verified_at;
 
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen">{tr('Loading...', 'Inapakia...')}</div>;
@@ -55,6 +58,7 @@ const PhysioProfilePage = () => {
         phone: profile.phone ?? '',
         occupation: profile.occupation ?? '',
         bio: (profile as any)?.bio ?? '',
+        license_number: profile.license_number ?? '',
       });
     }
     setEditing(false);
@@ -91,6 +95,7 @@ const PhysioProfilePage = () => {
   const saveProfile = async () => {
     try {
       setSaving(true);
+      const licenseChanged = form.license_number.trim() !== (profile?.license_number ?? '');
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -99,9 +104,19 @@ const PhysioProfilePage = () => {
           phone: form.phone || null,
           occupation: form.occupation || null,
           bio: form.bio || null,
+          license_number: form.license_number || null,
+          // Changing the license number after verification voids the old
+          // check - it must be re-verified against the new number.
+          ...(licenseChanged && isVerified ? { verified_at: null, verified_by: null } : {}),
         } as any)
         .eq('user_id', user.id);
       if (error) throw error;
+      if (licenseChanged && isVerified) {
+        toast({
+          title: tr('License number updated', 'Nambari ya leseni imesasishwa'),
+          description: tr('Your verified badge is paused until the new number is checked.', 'Alama yako ya uthibitisho imesimamishwa hadi nambari mpya ikaguliwe.'),
+        });
+      }
       toast({ title: tr('Profile saved', 'Wasifu umehifadhiwa'), description: tr('Your changes are live.', 'Mabadiliko yako yapo hewani.') });
       setEditing(false);
     } catch (err: any) {
@@ -156,10 +171,17 @@ const PhysioProfilePage = () => {
               <div className="space-y-1.5 min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <h2 className="text-2xl font-bold truncate">{displayName}</h2>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                    <ShieldCheck className="h-3.5 w-3.5" />
-                    {tr('Verified Physiotherapist', 'Physiotherapist Aliyethibitishwa')}
-                  </span>
+                  {isVerified ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                      <ShieldCheck className="h-3.5 w-3.5" />
+                      {tr('Verified Physiotherapist', 'Physiotherapist Aliyethibitishwa')}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-warning/10 px-3 py-1 text-xs font-medium text-warning">
+                      <ShieldCheck className="h-3.5 w-3.5" />
+                      {tr('Verification pending', 'Uthibitisho unasubiri')}
+                    </span>
+                  )}
                 </div>
                 <p className="inline-flex items-center gap-1.5 text-sm font-medium text-primary">
                   <Stethoscope className="h-4 w-4" />
@@ -198,6 +220,15 @@ const PhysioProfilePage = () => {
               <div className="space-y-2">
                 <Label htmlFor="occupation">{tr('Specialty / Title', 'Utaalamu / Cheo')}</Label>
                 <Input id="occupation" value={form.occupation} onChange={(e) => setForm({ ...form, occupation: e.target.value })} placeholder={tr('e.g. Sports Physiotherapist', 'mf. Physiotherapist wa Michezo')} />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="license_number">{tr('Professional license / registration number', 'Nambari ya leseni / usajili wa kitaaluma')}</Label>
+                <Input id="license_number" value={form.license_number} onChange={(e) => setForm({ ...form, license_number: e.target.value })} placeholder="e.g. TPCB-2024-00123" />
+                <p className="text-xs text-muted-foreground">
+                  {isVerified
+                    ? tr('Changing this will pause your verified badge until it is re-checked.', 'Kubadilisha hii kutasimamisha alama yako ya uthibitisho hadi ikaguliwe tena.')
+                    : tr('Checked by ErgoCare+ before your profile shows a verified badge to patients.', 'Inakaguliwa na ErgoCare+ kabla wasifu wako kuonyesha alama ya uthibitisho kwa wagonjwa.')}
+                </p>
               </div>
             </div>
 

@@ -29,6 +29,7 @@ const TITLES: Record<string, { en: string; sw: string }> = {
   '/physio-profile': { en: 'Profile', sw: 'Wasifu' },
   '/physio-settings': { en: 'Profile', sw: 'Wasifu' },
   '/admin/status': { en: 'Admin Status', sw: 'Hali ya Msimamizi' },
+  '/admin/physios': { en: 'Verify Physiotherapists', sw: 'Thibitisha Physiotherapist' },
 };
 
 const PageTitle = () => {

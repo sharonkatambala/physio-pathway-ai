@@ -12,6 +12,7 @@ import PhysioVideosPage from "./pages/PhysioVideosPage";
 import PatientVideosPage from "./pages/PatientVideosPage";
 import ProgramsPage from "./pages/ProgramsPage";
 import AdminStatus from "./pages/AdminStatus";
+import AdminPhysios from "./pages/AdminPhysios";
 import AssessmentPage from "./pages/AssessmentPage";
 import AssessmentReportPage from "./pages/AssessmentReportPage";
 import PatientDashboard from "./pages/PatientDashboard";
@@ -46,6 +47,7 @@ const App = () => (
       <Route path="/programs" element={<ProgramsPage />} />
       <Route path="/report/:reportId" element={<AssessmentReportPage />} />
       <Route path="/admin/status" element={<AdminStatus />} />
+      <Route path="/admin/physios" element={<AdminPhysios />} />
       <Route path="/booking" element={<BookingPage />} />
       <Route path="/settings" element={<SettingsPage />} />
       <Route path="/messages" element={<MessagesPage />} />

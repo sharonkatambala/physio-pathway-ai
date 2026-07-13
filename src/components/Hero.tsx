@@ -17,7 +17,7 @@ const Hero = () => {
           alt="Professional physiotherapy session"
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/85 to-background/65" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/70 to-background/30" />
       </div>
 
       <div className="relative z-10 pt-28 sm:pt-32 pb-6 sm:pb-8">

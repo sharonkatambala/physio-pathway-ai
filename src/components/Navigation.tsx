@@ -219,8 +219,11 @@ const Navigation = () => {
         </div>
 
         {/* Mobile drawer */}
+        {/* Mobile drawer. Solid background + explicit z-index: translucency
+            here bled the page text through the menu on phones without
+            backdrop-filter support. */}
         {isOpen && (
-          <div className="md:hidden absolute top-full left-0 right-0 mt-2 bg-card/98 backdrop-blur-md border border-border/60 rounded-2xl shadow-lg overflow-hidden">
+          <div className="md:hidden absolute top-full left-0 right-0 z-50 mt-2 bg-card border border-border/60 rounded-2xl shadow-lg overflow-hidden">
             <div className="px-4 py-4 space-y-1">
               {user ? (
                 <>

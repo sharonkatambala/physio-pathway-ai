@@ -101,8 +101,8 @@ const CONTENT: Record<LegalTopic, { en: LegalCopy; sw: LegalCopy }> = {
   },
   hipaa: {
     en: {
-      title: 'HIPAA Compliance',
-      intro: 'Our commitment to protecting your health information.',
+      title: 'Data Protection (Tanzania PDPA)',
+      intro: 'How ErgoCare+ protects your health information under Tanzania\'s Personal Data Protection Act, 2022.',
       sections: [
         {
           heading: 'Protected health information',
@@ -116,11 +116,15 @@ const CONTENT: Record<LegalTopic, { en: LegalCopy; sw: LegalCopy }> = {
           heading: 'On-device processing',
           body: 'Camera-based posture analysis runs locally in your browser. No video ever leaves your device.',
         },
+        {
+          heading: 'Your rights under the PDPA',
+          body: 'Tanzania\'s Personal Data Protection Act, 2022 classifies health data as sensitive personal data. You may request access to, correction of, or deletion of your data at any time via info@ergocare.com, and complaints may be directed to the Personal Data Protection Commission (PDPC).',
+        },
       ],
     },
     sw: {
-      title: 'Uzingatiaji wa HIPAA',
-      intro: 'Ahadi yetu ya kulinda taarifa zako za afya.',
+      title: 'Ulinzi wa Data (PDPA Tanzania)',
+      intro: 'Jinsi ErgoCare+ inavyolinda taarifa zako za afya chini ya Sheria ya Ulinzi wa Taarifa Binafsi ya Tanzania, 2022.',
       sections: [
         {
           heading: 'Taarifa za afya zinazolindwa',
@@ -133,6 +137,10 @@ const CONTENT: Record<LegalTopic, { en: LegalCopy; sw: LegalCopy }> = {
         {
           heading: 'Uchakataji kwenye kifaa',
           body: 'Uchambuzi wa mkao kwa kamera unafanyika ndani ya kivinjari chako. Hakuna video inayotoka kwenye kifaa chako.',
+        },
+        {
+          heading: 'Haki zako chini ya PDPA',
+          body: 'Sheria ya Ulinzi wa Taarifa Binafsi ya Tanzania, 2022 inaainisha data ya afya kama taarifa nyeti. Unaweza kuomba kupata, kusahihisha, au kufuta data yako wakati wowote kupitia info@ergocare.com, na malalamiko yanaweza kuwasilishwa kwa Tume ya Ulinzi wa Taarifa Binafsi (PDPC).',
         },
       ],
     },

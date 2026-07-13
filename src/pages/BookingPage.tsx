@@ -127,10 +127,18 @@ const BookingPage = () => {
           return;
         }
 
-        const { data, error } = await supabase
+        // verified_at is a newer column; fall back without it so booking
+        // still works if the verification migration hasn't been applied yet.
+        let { data, error } = await supabase
           .from('profiles')
           .select('id, user_id, first_name, last_name, occupation, phone, email, avatar_url, verified_at')
           .in('user_id', userIds);
+        if (error && String(error.message ?? '').includes('verified_at')) {
+          ({ data, error } = await supabase
+            .from('profiles')
+            .select('id, user_id, first_name, last_name, occupation, phone, email, avatar_url')
+            .in('user_id', userIds));
+        }
         if (error) throw error;
         setPhysiotherapists((data as Physiotherapist[]) ?? []);
       } catch (error: any) {

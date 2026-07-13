@@ -223,7 +223,7 @@ const PhysioProfilePage = () => {
               </div>
               <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="license_number">{tr('Professional license / registration number', 'Nambari ya leseni / usajili wa kitaaluma')}</Label>
-                <Input id="license_number" value={form.license_number} onChange={(e) => setForm({ ...form, license_number: e.target.value })} placeholder="e.g. TPCB-2024-00123" />
+                <Input id="license_number" value={form.license_number} onChange={(e) => setForm({ ...form, license_number: e.target.value })} placeholder={tr('Your professional registration number', 'Nambari yako ya usajili wa kitaaluma')} />
                 <p className="text-xs text-muted-foreground">
                   {isVerified
                     ? tr('Changing this will pause your verified badge until it is re-checked.', 'Kubadilisha hii kutasimamisha alama yako ya uthibitisho hadi ikaguliwe tena.')

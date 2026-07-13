@@ -94,7 +94,7 @@ const Index = () => {
 
   const testimonials = [
     {
-      name: 'Sarah M.',
+      name: 'Joyness L.',
       role: tr('Patient', 'Mgonjwa'),
       text: tr(
         'The AI assessment pinpointed my issue immediately. Three weeks in, my chronic back pain is nearly gone. This platform is a complete game-changer.',
@@ -110,7 +110,7 @@ const Index = () => {
       ),
     },
     {
-      name: 'Amina T.',
+      name: 'Lupondije J.',
       role: tr('Patient', 'Mgonjwa'),
       text: tr(
         'Finally physiotherapy I can do from home with real professional guidance. The exercise videos and progress tracking keep me fully motivated.',
@@ -149,7 +149,7 @@ const Index = () => {
         <ServicesSection />
 
         {/* How It Works */}
-        <section id="how-it-works" className="section-pad bg-muted/20">
+        <section id="how-it-works" className="section-pad bg-card/70">
           <div className="page-shell">
             <div className="text-center mb-14">
               <p className="text-primary text-xs font-bold uppercase tracking-[0.15em] mb-3">{tr('Simple Process', 'Mchakato Rahisi')}</p>
@@ -182,7 +182,7 @@ const Index = () => {
         <AboutSection stats={stats} />
 
         {/* Testimonials */}
-        <section className="section-pad bg-muted/20">
+        <section className="section-pad bg-card/70">
           <div className="page-shell">
             <div className="text-center mb-14">
               <p className="text-primary text-xs font-bold uppercase tracking-[0.15em] mb-3">{tr('Testimonials', 'Shuhuda')}</p>
@@ -231,8 +231,8 @@ const Index = () => {
                 </h2>
                 <p className="text-primary-foreground/80 text-lg leading-relaxed">
                   {tr(
-                    'Free AI assessment. No credit card required. Get your personalized plan in minutes.',
-                    'Tathmini ya AI bila malipo. Hakuna kadi ya benki inayohitajika. Pata mpango wako binafsi kwa dakika chache.'
+                    'Free AI assessment. No payment needed to start. Get your personalized plan in minutes.',
+                    'Tathmini ya AI bila malipo. Huhitaji kulipa chochote kuanza. Pata mpango wako binafsi kwa dakika chache.'
                   )}
                 </p>
                 <div className="flex flex-wrap gap-3 justify-center pt-2">

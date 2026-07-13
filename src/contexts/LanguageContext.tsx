@@ -57,7 +57,7 @@ const translations = {
     'hero.title': 'Your Physiotherapy Assistant',
     'hero.description': 'Advanced AI-powered physiotherapy platform connecting patients and physiotherapists. Get personalized assessments, exercise programs, and professional monitoring all in one place.',
     'hero.startAssessment': 'Start Free Assessment',
-    'hero.hipaaCompliant': 'HIPAA Compliant',
+    'hero.hipaaCompliant': 'PDPA Data Protection',
     'hero.available': '24/7 Available',
     'hero.patients': '10k+ Patients',
     
@@ -382,7 +382,7 @@ const translations = {
     'hero.title': 'Msaidizi wako wa Physiotherapy wa AI',
     'hero.description': 'Jukwaa la juu la physiotherapy linalotumiwa na AI linalounganisha wagonjwa na physiotherapists. Pata tathmini maalum, programu za mazoezi, na ufuatiliaji wa kitaalamu mahali pamoja.',
     'hero.startAssessment': 'Anza Tathmini Bure',
-    'hero.hipaaCompliant': 'Inafuata HIPAA',
+    'hero.hipaaCompliant': 'Ulinzi wa Data (PDPA)',
     'hero.available': 'Inapatikana 24/7',
     'hero.patients': 'Wagonjwa 10k+',
     

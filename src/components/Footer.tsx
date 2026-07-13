@@ -33,7 +33,7 @@ const Footer = () => {
   const legalLinks: { label: string; topic: LegalTopic }[] = [
     { label: tr('Privacy Policy', 'Sera ya Faragha'), topic: 'privacy' },
     { label: tr('Terms of Service', 'Masharti ya Huduma'), topic: 'terms' },
-    { label: tr('HIPAA Compliance', 'Uzingatiaji wa HIPAA'), topic: 'hipaa' },
+    { label: tr('Data Protection (PDPA)', 'Ulinzi wa Data (PDPA)'), topic: 'hipaa' },
     { label: tr('Cookies', 'Vidakuzi'), topic: 'cookies' },
   ];
 

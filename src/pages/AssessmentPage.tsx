@@ -384,22 +384,23 @@ const AssessmentPage = () => {
 								{currentStep === 2 && (
 									<div className="space-y-3">
 										<div>
-											<Label>{tr('Type of workstation/device used', 'Aina ya kituo/kifaa cha kazi')}</Label>
-											<Select
+											<Label>{tr('Describe your workstation / devices and how you work', 'Eleza kituo chako cha kazi / vifaa na jinsi unavyofanya kazi')}</Label>
+											<Textarea
 												value={formData.workstation_type || ''}
-												onValueChange={(v) => setFormData({ ...formData, workstation_type: v })}
-											>
-												<SelectTrigger><SelectValue placeholder={tr('Select', 'Chagua')} /></SelectTrigger>
-												<SelectContent>
-													<SelectItem value="laptop">{tr('Laptop', 'Kompyuta mpakato')}</SelectItem>
-													<SelectItem value="desktop">{tr('Desktop', 'Kompyuta mezani')}</SelectItem>
-													<SelectItem value="tablet">{tr('Tablet', 'Tablet')}</SelectItem>
-													<SelectItem value="mobile">{tr('Phone / mobile device', 'Simu / kifaa cha mkononi')}</SelectItem>
-													<SelectItem value="standing">{tr('Standing desk', 'Meza ya kusimama')}</SelectItem>
-													<SelectItem value="none">{tr('No fixed workstation / field work', 'Hakuna kituo maalum / kazi ya uwanjani')}</SelectItem>
-													<SelectItem value="other">{tr('Other', 'Nyingine')}</SelectItem>
-												</SelectContent>
-											</Select>
+												onChange={(e) => setFormData({ ...formData, workstation_type: e.target.value })}
+												rows={3}
+												className="mt-1"
+												placeholder={tr(
+													'In your own words, e.g. "Laptop on the dining table about 6 hours a day, plus long motorbike rides" or "Standing at a market stall all day, carrying heavy loads"',
+													'Kwa maneno yako, mf. "Kompyuta mpakato mezani karibu saa 6 kwa siku, pamoja na safari ndefu za pikipiki" au "Kusimama sokoni siku nzima, kubeba mizigo mizito"'
+												)}
+											/>
+											<p className="mt-1 text-xs text-muted-foreground">
+												{tr(
+													'The more detail you give, the better the AI can tailor your exercise program.',
+													'Kadri unavyotoa maelezo zaidi, ndivyo AI itakavyobinafsisha programu yako ya mazoezi vizuri zaidi.'
+												)}
+											</p>
 										</div>
 
 										<div className="grid md:grid-cols-2 gap-4">

@@ -207,7 +207,7 @@ const AuthPage = () => {
         <div className="relative z-10 flex gap-3">
           <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur border border-white/15 rounded-lg px-3 py-2">
             <Shield className="h-3.5 w-3.5 text-white/80" />
-            <span className="text-[12px] text-white/80 font-medium">HIPAA Compliant</span>
+            <span className="text-[12px] text-white/80 font-medium">PDPA Data Protection</span>
           </div>
           <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur border border-white/15 rounded-lg px-3 py-2">
             <CheckCircle2 className="h-3.5 w-3.5 text-white/80" />
@@ -457,7 +457,7 @@ const AuthPage = () => {
                       <Label htmlFor="licenseNumber">Professional license / registration number</Label>
                       <Input
                         id="licenseNumber"
-                        placeholder="e.g. TPCB-2024-00123"
+                        placeholder="Your professional registration number"
                         value={signupData.licenseNumber}
                         onChange={(e) => setSignupData({ ...signupData, licenseNumber: e.target.value })}
                         required

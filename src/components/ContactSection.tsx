@@ -58,18 +58,18 @@ const ContactSection = () => {
     { icon: Mail, label: t('footer.email'), value: 'info@ergocare.com' },
     { icon: Phone, label: t('footer.phone'), value: '+255748566062' },
     { icon: MapPin, label: t('contact.address'), value: 'Muhimbili, Upanga Magharibi 65001' },
-    { icon: Clock, label: 'Support Hours', value: '24/7 AI, Mon-Fri 9AM-6PM Human' },
+    { icon: Clock, label: 'Support Hours', value: '24/7 AI, Mon-Fri 9AM-6PM EAT Human' },
   ];
 
   const reasons = [
-    'HIPAA compliant and fully secure',
+    'Data protected under Tanzania\'s PDPA',
     'Evidence-based treatment plans',
     '24/7 AI-powered support',
     'Certified physiotherapist network',
   ];
 
   return (
-    <section id="contact" className="section-pad bg-muted/20">
+    <section id="contact" className="section-pad bg-card/70">
       <div className="page-shell">
         <div className="text-center mb-14">
           <p className="text-primary text-xs font-bold uppercase tracking-[0.15em] mb-3">Contact</p>

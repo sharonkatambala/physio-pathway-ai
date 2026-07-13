@@ -123,7 +123,11 @@ serve(async (req)=>{
 - Primary site(s): ${(Array.isArray(questionnaireAnswers?.primary_sites) ? questionnaireAnswers?.primary_sites.join(', ') : questionnaireAnswers?.primary_sites) || 'Not specified'}
 - Aggravating factors: ${(Array.isArray(healthData?.aggravating_factors) ? healthData?.aggravating_factors.join(', ') : healthData?.aggravating_factors) || 'Not specified'}
 - Relieving factors: ${(Array.isArray(healthData?.relieving_factors) ? healthData?.relieving_factors.join(', ') : healthData?.relieving_factors) || 'Not specified'}
+- Workstation / daily working setup (patient's own words): ${questionnaireAnswers?.workstation_type || healthData?.workstation_type || 'Not specified'}
 ${hasVideo ? 'Note: Patient has provided a video assessment for visual analysis.' : ''}
+
+Complete questionnaire answers (JSON, includes every question the patient answered - use any detail relevant to exercise selection and safety):
+${JSON.stringify(questionnaireAnswers ?? {}, null, 0)}
 
 Requirements:
 - 3-5 safe exercises tailored to the complaint and stage (acute if <6 weeks)
